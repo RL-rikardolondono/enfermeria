@@ -122,7 +122,7 @@ export async function adminRoutes(app: FastifyInstance) {
       }),
       prisma.profesional.findMany({
         where: { estadoVerificacion: 'aprobado' },
-        orderBy: { totalServicios: 'desc' },
+        orderByX: { totalServicios: 'desc' },
         take: 10,
         include: { usuario: { select: { nombreCompleto: true } } },
         select: {
