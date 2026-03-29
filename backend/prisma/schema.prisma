@@ -1,0 +1,329 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum RolUsuario {
+  paciente
+  profesional
+  admin
+}
+
+enum EstadoUsuario {
+  activo
+  suspendido
+  pendiente_verificacion
+}
+
+enum EstadoVerificacion {
+  pendiente
+  aprobado
+  rechazado
+  vencido
+}
+
+enum TipoServicio {
+  rutina
+  urgente
+  emergencia
+}
+
+enum EstadoServicio {
+  pendiente
+  asignado
+  en_camino
+  en_curso
+  completado
+  cancelado
+}
+
+enum MetodoPago {
+  tarjeta
+  pse
+  efectivo
+  plan_mensual
+}
+
+enum EstadoPago {
+  pendiente
+  aprobado
+  fallido
+  reembolsado
+}
+
+model Usuario {
+  id             String        @id @default(uuid())
+  rol            RolUsuario
+  nombreCompleto String        @map("nombre_completo") @db.VarChar(200)
+  telefono       String        @unique @db.VarChar(20)
+  email          String        @unique @db.VarChar(150)
+  passwordHash   String        @map("password_hash")
+  estado         EstadoUsuario @default(activo)
+  fotoUrl        String?       @map("foto_url")
+  createdAt      DateTime      @default(now()) @map("created_at")
+  updatedAt      DateTime      @updatedAt @map("updated_at")
+
+  sesiones       Sesion[]
+  paciente       Paciente?
+  profesional    Profesional?
+  notificaciones Notificacion[]
+  calificaciones_emitidas    Calificacion[] @relation("Autor")
+  calificaciones_recibidas   Calificacion[] @relation("Destinatario")
+
+  @@map("usuarios")
+}
+
+model Sesion {
+  id           String   @id @default(uuid())
+  usuarioId    String   @map("usuario_id")
+  tokenHash    String   @map("token_hash")
+  refreshHash  String   @map("refresh_hash")
+  dispositivo  String?  @db.VarChar(200)
+  ip           String?
+  expiresAt    DateTime @map("expires_at")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  usuario      Usuario  @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+
+  @@map("sesiones")
+}
+
+model Paciente {
+  id                String    @id @default(uuid())
+  usuarioId         String    @unique @map("usuario_id")
+  documentoTipo     String    @default("CC") @map("documento_tipo") @db.VarChar(10)
+  documentoNumero   String    @unique @map("documento_numero") @db.VarChar(20)
+  fechaNacimiento   DateTime  @map("fecha_nacimiento") @db.Date
+  tipoSangre        String?   @map("tipo_sangre") @db.VarChar(5)
+  eps               String?   @db.VarChar(100)
+  regimen           String?   @db.VarChar(50)
+  direccionBase     String?   @map("direccion_base")
+  latBase           Decimal?  @map("lat_base") @db.Decimal(10, 7)
+  lngBase           Decimal?  @map("lng_base") @db.Decimal(10, 7)
+  contactoEmergencia Json?    @map("contacto_emergencia")
+  createdAt         DateTime  @default(now()) @map("created_at")
+
+  usuario           Usuario   @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  historiaClinica   HistoriaClinica?
+  servicios         Servicio[]
+  pagos             Pago[]
+  planes            PlanMensual[]
+  evoluciones       Evolucion[]
+
+  @@map("pacientes")
+}
+
+model HistoriaClinica {
+  id                      String   @id @default(uuid())
+  pacienteId              String   @unique @map("paciente_id")
+  antecedentesPersonales  Json     @default("{}") @map("antecedentes_personales")
+  antecedentesFamiliares  Json     @default("{}") @map("antecedentes_familiares")
+  alergias                String[] @default([])
+  diagnosticosActivos     Json     @default("[]") @map("diagnosticos_activos")
+  medicacionCronica       Json     @default("[]") @map("medicacion_cronica")
+  cirugiasPrevia          Json     @default("[]") @map("cirugia_previa")
+  habitos                 Json     @default("{}")
+  notasAdicionales        String?  @map("notas_adicionales")
+  actualizadoPor          String?  @map("actualizado_por")
+  actualizadoEn           DateTime @default(now()) @map("actualizado_en")
+  createdAt               DateTime @default(now()) @map("created_at")
+
+  paciente                Paciente @relation(fields: [pacienteId], references: [id], onDelete: Cascade)
+
+  @@map("historia_clinica")
+}
+
+model Profesional {
+  id                   String             @id @default(uuid())
+  usuarioId            String             @unique @map("usuario_id")
+  documentoTipo        String             @default("CC") @map("documento_tipo") @db.VarChar(10)
+  documentoNumero      String             @unique @map("documento_numero") @db.VarChar(20)
+  registroRethus       String?            @unique @map("registro_rethus") @db.VarChar(50)
+  titulo               String             @db.VarChar(200)
+  universidad          String?            @db.VarChar(200)
+  anioGraduacion       Int?               @map("año_graduacion")
+  especialidades       String[]           @default([])
+  estadoVerificacion   EstadoVerificacion @default(pendiente) @map("estado_verificacion")
+  verificadoPor        String?            @map("verificado_por")
+  verificadoEn         DateTime?          @map("verificado_en")
+  calificacionPromedio Decimal            @default(0) @map("calificacion_promedio") @db.Decimal(3, 2)
+  totalServicios       Int                @default(0) @map("total_servicios")
+  disponible           Boolean            @default(false)
+  radioServicioKm      Int                @default(10) @map("radio_servicio_km")
+  tarifaHora           Decimal?           @map("tarifa_hora") @db.Decimal(10, 2)
+  createdAt            DateTime           @default(now()) @map("created_at")
+
+  usuario              Usuario            @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  documentos           DocumentoProfesional[]
+  ubicacion            UbicacionProfesional?
+  servicios            Servicio[]
+  evoluciones          Evolucion[]
+  trackings            TrackingHistorial[]
+
+  @@map("profesionales")
+}
+
+model DocumentoProfesional {
+  id             String   @id @default(uuid())
+  profesionalId  String   @map("profesional_id")
+  tipo           String   @db.VarChar(50)
+  nombre         String   @db.VarChar(200)
+  urlS3          String   @map("url_s3")
+  estado         String   @default("pendiente") @db.VarChar(20)
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  profesional    Profesional @relation(fields: [profesionalId], references: [id], onDelete: Cascade)
+
+  @@map("documentos_profesional")
+}
+
+model UbicacionProfesional {
+  id            String   @id @default(uuid())
+  profesionalId String   @unique @map("profesional_id")
+  lat           Decimal  @db.Decimal(10, 7)
+  lng           Decimal  @db.Decimal(10, 7)
+  enServicio    Boolean  @default(false) @map("en_servicio")
+  updatedAt     DateTime @default(now()) @map("updated_at")
+
+  profesional   Profesional @relation(fields: [profesionalId], references: [id], onDelete: Cascade)
+
+  @@map("ubicacion_profesional")
+}
+
+model Servicio {
+  id                String         @id @default(uuid())
+  pacienteId        String         @map("paciente_id")
+  profesionalId     String?        @map("profesional_id")
+  tipo              TipoServicio   @default(rutina)
+  estado            EstadoServicio @default(pendiente)
+  descripcion       String
+  latDestino        Decimal        @map("lat_destino") @db.Decimal(10, 7)
+  lngDestino        Decimal        @map("lng_destino") @db.Decimal(10, 7)
+  direccionDestino  String         @map("direccion_destino")
+  tarifa            Decimal?       @db.Decimal(10, 2)
+  duracionMinutos   Int?           @map("duracion_minutos")
+  protocoloAplicado String?        @map("protocolo_aplicado") @db.VarChar(100)
+  asignadoEn        DateTime?      @map("asignado_en")
+  iniciadoEn        DateTime?      @map("iniciado_en")
+  finalizadoEn      DateTime?      @map("finalizado_en")
+  canceladoEn       DateTime?      @map("cancelado_en")
+  motivoCancelacion String?        @map("motivo_cancelacion")
+  createdAt         DateTime       @default(now()) @map("created_at")
+
+  paciente          Paciente       @relation(fields: [pacienteId], references: [id])
+  profesional       Profesional?   @relation(fields: [profesionalId], references: [id])
+  evolucion         Evolucion?
+  pago              Pago?
+  calificaciones    Calificacion[]
+  trackings         TrackingHistorial[]
+
+  @@map("servicios")
+}
+
+model Evolucion {
+  id                String   @id @default(uuid())
+  servicioId        String   @unique @map("servicio_id")
+  pacienteId        String   @map("paciente_id")
+  profesionalId     String   @map("profesional_id")
+  signosVitales     Json     @default("{}") @map("signos_vitales")
+  procedimientos    String[] @default([])
+  medicamentosAdmin Json     @default("[]") @map("medicamentos_admin")
+  observaciones     String?
+  alertasGeneradas  Json     @default("[]") @map("alertas_generadas")
+  reporteUrl        String?  @map("reporte_url")
+  fechaHora         DateTime @default(now()) @map("fecha_hora")
+  createdAt         DateTime @default(now()) @map("created_at")
+
+  servicio          Servicio    @relation(fields: [servicioId], references: [id], onDelete: Cascade)
+  paciente          Paciente    @relation(fields: [pacienteId], references: [id])
+  profesional       Profesional @relation(fields: [profesionalId], references: [id])
+
+  @@map("evoluciones")
+}
+
+model Calificacion {
+  id             String   @id @default(uuid())
+  servicioId     String   @map("servicio_id")
+  autorId        String   @map("autor_id")
+  destinatarioId String   @map("destinatario_id")
+  puntuacion     Int
+  comentario     String?
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  servicio       Servicio @relation(fields: [servicioId], references: [id], onDelete: Cascade)
+  autor          Usuario  @relation("Autor", fields: [autorId], references: [id])
+  destinatario   Usuario  @relation("Destinatario", fields: [destinatarioId], references: [id])
+
+  @@unique([servicioId, autorId])
+  @@map("calificaciones")
+}
+
+model TrackingHistorial {
+  id            String   @id @default(uuid())
+  servicioId    String   @map("servicio_id")
+  profesionalId String   @map("profesional_id")
+  lat           Decimal  @db.Decimal(10, 7)
+  lng           Decimal  @db.Decimal(10, 7)
+  recordedAt    DateTime @default(now()) @map("recorded_at")
+
+  servicio      Servicio    @relation(fields: [servicioId], references: [id], onDelete: Cascade)
+  profesional   Profesional @relation(fields: [profesionalId], references: [id])
+
+  @@map("tracking_historial")
+}
+
+model Pago {
+  id           String     @id @default(uuid())
+  servicioId   String     @unique @map("servicio_id")
+  pacienteId   String     @map("paciente_id")
+  monto        Decimal    @db.Decimal(10, 2)
+  metodo       MetodoPago
+  estado       EstadoPago @default(pendiente)
+  refExterna   String?    @map("ref_externa") @db.VarChar(200)
+  pasarela     String?    @db.VarChar(50)
+  respuestaRaw Json?      @map("respuesta_raw")
+  createdAt    DateTime   @default(now()) @map("created_at")
+  updatedAt    DateTime   @updatedAt @map("updated_at")
+
+  servicio     Servicio @relation(fields: [servicioId], references: [id])
+  paciente     Paciente @relation(fields: [pacienteId], references: [id])
+
+  @@map("pagos")
+}
+
+model PlanMensual {
+  id                  String   @id @default(uuid())
+  pacienteId          String   @map("paciente_id")
+  nombre              String   @db.VarChar(100)
+  precioMensual       Decimal  @map("precio_mensual") @db.Decimal(10, 2)
+  serviciosIncluidos  Int      @default(4) @map("servicios_incluidos")
+  serviciosUsados     Int      @default(0) @map("servicios_usados")
+  activo              Boolean  @default(true)
+  fechaInicio         DateTime @map("fecha_inicio") @db.Date
+  fechaFin            DateTime @map("fecha_fin") @db.Date
+  renovacionAuto      Boolean  @default(false) @map("renovacion_auto")
+  createdAt           DateTime @default(now()) @map("created_at")
+
+  paciente            Paciente @relation(fields: [pacienteId], references: [id])
+
+  @@map("planes_mensuales")
+}
+
+model Notificacion {
+  id         String   @id @default(uuid())
+  usuarioId  String   @map("usuario_id")
+  tipo       String   @db.VarChar(50)
+  titulo     String   @db.VarChar(200)
+  cuerpo     String
+  datos      Json     @default("{}")
+  leida      Boolean  @default(false)
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  usuario    Usuario  @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+
+  @@map("notificaciones")
+}
