@@ -1,0 +1,1226 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#1B6B5A">
+<title>Reina Elizabeth IPS</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --teal: #1B6B5A;
+    --teal-light: #2A8A74;
+    --teal-pale: #E8F4F1;
+    --teal-dark: #124A3E;
+    --cream: #FAFAF7;
+    --white: #FFFFFF;
+    --ink: #1A1714;
+    --ink-light: #4A4540;
+    --muted: #9A918A;
+    --border: #E8E0D8;
+    --amber: #E8932A;
+    --amber-pale: #FEF3E2;
+    --red: #C44040;
+    --red-pale: #FDECEC;
+    --green: #2E7D52;
+    --green-pale: #E8F5EE;
+    --shadow: 0 2px 12px rgba(26,23,20,0.10);
+    --shadow-lg: 0 8px 32px rgba(26,23,20,0.15);
+    --radius: 16px;
+    --radius-sm: 10px;
+    --safe-bottom: env(safe-area-inset-bottom, 16px);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    font-family: 'Nunito', sans-serif;
+    background: var(--cream);
+    color: var(--ink);
+    min-height: 100vh;
+    max-width: 430px;
+    margin: 0 auto;
+    position: relative;
+    overflow-x: hidden;
+  }
+
+  /* ── SCREENS ── */
+  .screen { display: none; min-height: 100vh; flex-direction: column; }
+  .screen.active { display: flex; }
+
+  /* ── SPLASH ── */
+  #screen-splash {
+    background: linear-gradient(160deg, var(--teal-dark) 0%, var(--teal) 60%, var(--teal-light) 100%);
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+  }
+
+  .splash-icon {
+    width: 100px; height: 100px;
+    background: rgba(255,255,255,0.15);
+    border-radius: 28px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 50px;
+    backdrop-filter: blur(10px);
+    animation: splashPop 0.5s ease;
+  }
+
+  @keyframes splashPop {
+    from { transform: scale(0.7); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+  }
+
+  .splash-text { text-align: center; color: white; animation: fadeUp 0.6s ease 0.2s both; }
+  .splash-text h1 { font-size: 28px; font-weight: 800; margin-bottom: 4px; }
+  .splash-text p { font-size: 14px; opacity: 0.8; }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ── AUTH ── */
+  #screen-auth {
+    background: white;
+  }
+
+  .auth-header {
+    background: linear-gradient(160deg, var(--teal-dark), var(--teal));
+    padding: 60px 28px 40px;
+    color: white;
+  }
+
+  .auth-header h1 { font-size: 26px; font-weight: 800; margin-bottom: 4px; }
+  .auth-header p { font-size: 14px; opacity: 0.8; }
+
+  .auth-tabs {
+    display: flex;
+    background: rgba(255,255,255,0.15);
+    border-radius: var(--radius-sm);
+    padding: 4px;
+    margin-top: 20px;
+  }
+
+  .auth-tab {
+    flex: 1;
+    padding: 8px;
+    border: none;
+    background: transparent;
+    color: rgba(255,255,255,0.7);
+    font-family: 'Nunito', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    border-radius: 8px;
+    transition: all 0.2s;
+  }
+
+  .auth-tab.active {
+    background: white;
+    color: var(--teal);
+  }
+
+  .auth-body { padding: 28px; flex: 1; }
+
+  .form-group { margin-bottom: 16px; }
+
+  .form-group label {
+    display: block;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--ink-light);
+    margin-bottom: 6px;
+  }
+
+  .form-group input, .form-group select, .form-group textarea {
+    width: 100%;
+    padding: 14px 16px;
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    font-family: 'Nunito', sans-serif;
+    font-size: 15px;
+    background: var(--cream);
+    color: var(--ink);
+    outline: none;
+    transition: border-color 0.2s;
+    appearance: none;
+  }
+
+  .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+    border-color: var(--teal);
+    background: white;
+  }
+
+  .form-group textarea { resize: none; height: 80px; }
+
+  .btn-main {
+    width: 100%;
+    padding: 16px;
+    background: var(--teal);
+    color: white;
+    border: none;
+    border-radius: var(--radius);
+    font-family: 'Nunito', sans-serif;
+    font-size: 16px;
+    font-weight: 800;
+    cursor: pointer;
+    transition: all 0.15s;
+    margin-top: 8px;
+  }
+
+  .btn-main:active { transform: scale(0.98); background: var(--teal-dark); }
+
+  .auth-error {
+    background: var(--red-pale);
+    color: var(--red);
+    padding: 12px 16px;
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    font-weight: 600;
+    margin-top: 12px;
+    display: none;
+  }
+
+  /* ── APP SHELL ── */
+  #screen-app {
+    background: var(--cream);
+    padding-bottom: calc(70px + var(--safe-bottom));
+  }
+
+  /* TOP BAR */
+  .topbar {
+    background: white;
+    padding: 16px 20px 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky; top: 0; z-index: 50;
+    box-shadow: var(--shadow);
+  }
+
+  .topbar-greeting { font-size: 13px; color: var(--muted); font-weight: 600; }
+  .topbar-name { font-size: 18px; font-weight: 800; color: var(--ink); }
+
+  .topbar-avatar {
+    width: 42px; height: 42px;
+    background: var(--teal);
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; font-weight: 800; color: white;
+  }
+
+  /* BOTTOM NAV */
+  .bottom-nav {
+    position: fixed;
+    bottom: 0; left: 50%;
+    transform: translateX(-50%);
+    width: 100%; max-width: 430px;
+    background: white;
+    border-top: 1px solid var(--border);
+    display: flex;
+    padding: 8px 0 calc(8px + var(--safe-bottom));
+    z-index: 50;
+    box-shadow: 0 -4px 20px rgba(0,0,0,0.06);
+  }
+
+  .nav-btn {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    border: none;
+    background: none;
+    cursor: pointer;
+    padding: 4px 0;
+    transition: all 0.15s;
+  }
+
+  .nav-btn-icon { font-size: 22px; }
+  .nav-btn-label { font-size: 10px; font-weight: 700; color: var(--muted); font-family: 'Nunito', sans-serif; }
+  .nav-btn.active .nav-btn-label { color: var(--teal); }
+  .nav-btn.active .nav-btn-icon { transform: scale(1.1); }
+
+  /* PAGES */
+  .page { display: none; padding: 20px; }
+  .page.active { display: block; }
+
+  /* HOME PAGE */
+  .hero-card {
+    background: linear-gradient(135deg, var(--teal-dark), var(--teal-light));
+    border-radius: 20px;
+    padding: 24px;
+    color: white;
+    margin-bottom: 24px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .hero-card::after {
+    content: '🏥';
+    position: absolute;
+    right: 20px; top: 50%;
+    transform: translateY(-50%);
+    font-size: 60px;
+    opacity: 0.2;
+  }
+
+  .hero-card h2 { font-size: 20px; font-weight: 800; margin-bottom: 6px; }
+  .hero-card p { font-size: 13px; opacity: 0.85; margin-bottom: 16px; }
+
+  .btn-hero {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: white;
+    color: var(--teal);
+    border: none;
+    padding: 10px 18px;
+    border-radius: 10px;
+    font-family: 'Nunito', sans-serif;
+    font-size: 14px;
+    font-weight: 800;
+    cursor: pointer;
+    transition: transform 0.15s;
+  }
+
+  .btn-hero:active { transform: scale(0.97); }
+
+  .section-title {
+    font-size: 17px;
+    font-weight: 800;
+    color: var(--ink);
+    margin-bottom: 14px;
+  }
+
+  /* SERVICE TYPES */
+  .service-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+
+  .service-card {
+    background: white;
+    border-radius: var(--radius);
+    padding: 18px 14px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    box-shadow: var(--shadow);
+    cursor: pointer;
+    transition: transform 0.15s, box-shadow 0.15s;
+    border: 2px solid transparent;
+  }
+
+  .service-card:active { transform: scale(0.97); }
+  .service-card.selected { border-color: var(--teal); background: var(--teal-pale); }
+
+  .service-card-icon { font-size: 28px; }
+  .service-card-name { font-size: 13px; font-weight: 700; color: var(--ink); }
+  .service-card-desc { font-size: 11px; color: var(--muted); font-weight: 600; }
+
+  /* RECENT SERVICES */
+  .service-item {
+    background: white;
+    border-radius: var(--radius);
+    padding: 16px;
+    margin-bottom: 10px;
+    box-shadow: var(--shadow);
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .service-item-icon {
+    width: 44px; height: 44px;
+    background: var(--teal-pale);
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px;
+    flex-shrink: 0;
+  }
+
+  .service-item-info { flex: 1; }
+  .service-item-name { font-size: 14px; font-weight: 700; }
+  .service-item-date { font-size: 12px; color: var(--muted); font-weight: 600; }
+
+  /* BADGE */
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 700;
+  }
+
+  .badge-green { background: var(--green-pale); color: var(--green); }
+  .badge-amber { background: var(--amber-pale); color: var(--amber); }
+  .badge-red { background: var(--red-pale); color: var(--red); }
+  .badge-gray { background: var(--border); color: var(--muted); }
+
+  /* SOLICITAR PAGE */
+  .step-indicator {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 24px;
+  }
+
+  .step-dot {
+    height: 4px;
+    flex: 1;
+    background: var(--border);
+    border-radius: 2px;
+    transition: background 0.3s;
+  }
+
+  .step-dot.active { background: var(--teal); }
+
+  .step-title {
+    font-size: 20px;
+    font-weight: 800;
+    margin-bottom: 6px;
+  }
+
+  .step-subtitle {
+    font-size: 13px;
+    color: var(--muted);
+    font-weight: 600;
+    margin-bottom: 20px;
+  }
+
+  /* PERFIL PAGE */
+  .profile-header {
+    background: linear-gradient(135deg, var(--teal-dark), var(--teal));
+    border-radius: 20px;
+    padding: 28px 20px;
+    text-align: center;
+    color: white;
+    margin-bottom: 20px;
+  }
+
+  .profile-avatar {
+    width: 72px; height: 72px;
+    background: rgba(255,255,255,0.2);
+    border-radius: 20px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 32px; font-weight: 800;
+    margin: 0 auto 12px;
+    backdrop-filter: blur(10px);
+  }
+
+  .profile-name { font-size: 20px; font-weight: 800; }
+  .profile-email { font-size: 13px; opacity: 0.8; margin-top: 2px; }
+
+  .info-card {
+    background: white;
+    border-radius: var(--radius);
+    padding: 20px;
+    box-shadow: var(--shadow);
+    margin-bottom: 14px;
+  }
+
+  .info-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .info-row:last-child { border-bottom: none; }
+  .info-label { font-size: 13px; color: var(--muted); font-weight: 600; }
+  .info-value { font-size: 14px; font-weight: 700; }
+
+  .btn-outline-red {
+    width: 100%;
+    padding: 14px;
+    background: var(--red-pale);
+    color: var(--red);
+    border: none;
+    border-radius: var(--radius);
+    font-family: 'Nunito', sans-serif;
+    font-size: 15px;
+    font-weight: 800;
+    cursor: pointer;
+    margin-top: 8px;
+  }
+
+  /* MODAL */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 200;
+    display: none;
+    align-items: flex-end;
+    justify-content: center;
+  }
+
+  .modal-overlay.active { display: flex; }
+
+  .modal {
+    background: white;
+    border-radius: 24px 24px 0 0;
+    padding: 28px 24px calc(24px + var(--safe-bottom));
+    width: 100%;
+    max-width: 430px;
+    animation: slideUp 0.3s ease;
+  }
+
+  @keyframes slideUp {
+    from { transform: translateY(100%); }
+    to { transform: translateY(0); }
+  }
+
+  .modal-handle {
+    width: 40px; height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    margin: 0 auto 20px;
+  }
+
+  .modal-title {
+    font-size: 20px;
+    font-weight: 800;
+    margin-bottom: 6px;
+  }
+
+  .modal-subtitle {
+    font-size: 13px;
+    color: var(--muted);
+    font-weight: 600;
+    margin-bottom: 20px;
+  }
+
+  /* SUCCESS */
+  .success-screen {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 24px;
+    text-align: center;
+    flex: 1;
+  }
+
+  .success-icon {
+    width: 90px; height: 90px;
+    background: var(--green-pale);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 44px;
+    margin-bottom: 20px;
+    animation: successPop 0.4s ease;
+  }
+
+  @keyframes successPop {
+    0% { transform: scale(0); }
+    70% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+  }
+
+  .success-title { font-size: 24px; font-weight: 800; margin-bottom: 8px; }
+  .success-text { font-size: 14px; color: var(--muted); font-weight: 600; line-height: 1.6; margin-bottom: 28px; }
+
+  /* SPINNER */
+  .spinner {
+    width: 20px; height: 20px;
+    border: 2px solid rgba(255,255,255,0.3);
+    border-top-color: white;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    display: inline-block;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* LOADING OVERLAY */
+  .loading-overlay {
+    position: fixed; inset: 0;
+    background: rgba(255,255,255,0.9);
+    z-index: 300;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .loading-overlay.active { display: flex; }
+  .loading-spinner {
+    width: 40px; height: 40px;
+    border: 3px solid var(--border);
+    border-top-color: var(--teal);
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+  }
+
+  .loading-text { font-size: 14px; font-weight: 700; color: var(--muted); }
+
+  /* EMPTY */
+  .empty {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--muted);
+  }
+
+  .empty-icon { font-size: 44px; margin-bottom: 10px; }
+  .empty-text { font-size: 14px; font-weight: 600; }
+</style>
+</head>
+<body>
+
+<!-- LOADING OVERLAY -->
+<div class="loading-overlay" id="loading-overlay">
+  <div class="loading-spinner"></div>
+  <div class="loading-text" id="loading-text">Cargando...</div>
+</div>
+
+<!-- SPLASH -->
+<div class="screen active" id="screen-splash">
+  <div class="splash-icon">👑</div>
+  <div class="splash-text">
+    <h1>Reina Elizabeth</h1>
+    <p>Enfermería domiciliaria IPS</p>
+  </div>
+</div>
+
+<!-- AUTH -->
+<div class="screen" id="screen-auth">
+  <div class="auth-header">
+    <h1>Bienvenido 👋</h1>
+    <p>Atención de enfermería en la comodidad de su hogar</p>
+    <div class="auth-tabs">
+      <button class="auth-tab active" onclick="switchTab('login')">Ingresar</button>
+      <button class="auth-tab" onclick="switchTab('registro')">Registrarse</button>
+    </div>
+  </div>
+  <div class="auth-body">
+    <!-- LOGIN -->
+    <div id="tab-login">
+      <div class="form-group">
+        <label>Correo electrónico</label>
+        <input type="email" id="login-email" placeholder="tucorreo@email.com">
+      </div>
+      <div class="form-group">
+        <label>Contraseña</label>
+        <input type="password" id="login-password" placeholder="••••••••">
+      </div>
+      <button class="btn-main" onclick="doLogin()">Ingresar</button>
+      <div class="auth-error" id="login-error"></div>
+    </div>
+
+    <!-- REGISTRO -->
+    <div id="tab-registro" style="display:none">
+      <div class="form-group">
+        <label>Nombre completo</label>
+        <input type="text" id="reg-nombre" placeholder="Juan Pérez">
+      </div>
+      <div class="form-group">
+        <label>Correo electrónico</label>
+        <input type="email" id="reg-email" placeholder="tucorreo@email.com">
+      </div>
+      <div class="form-group">
+        <label>Teléfono</label>
+        <input type="tel" id="reg-telefono" placeholder="3001234567">
+      </div>
+      <div class="form-group">
+        <label>Contraseña</label>
+        <input type="password" id="reg-password" placeholder="Mínimo 6 caracteres">
+      </div>
+      <button class="btn-main" onclick="doRegistro()">Crear cuenta</button>
+      <div class="auth-error" id="reg-error"></div>
+    </div>
+  </div>
+</div>
+
+<!-- APP -->
+<div class="screen" id="screen-app">
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div>
+      <div class="topbar-greeting">Buenos días,</div>
+      <div class="topbar-name" id="app-nombre">Paciente</div>
+    </div>
+    <div class="topbar-avatar" id="app-avatar">P</div>
+  </div>
+
+  <!-- HOME PAGE -->
+  <div class="page active" id="page-home">
+    <div class="hero-card">
+      <h2>¿Necesita atención en casa?</h2>
+      <p>Profesionales verificados listos para atenderle</p>
+      <button class="btn-hero" onclick="showPage('solicitar'); showModal()">
+        ➕ Solicitar servicio
+      </button>
+    </div>
+
+    <div class="section-title">Tipos de servicio</div>
+    <div class="service-grid">
+      <div class="service-card" onclick="selectTipoInicio('curacion')">
+        <div class="service-card-icon">🩹</div>
+        <div class="service-card-name">Curación</div>
+        <div class="service-card-desc">Heridas y úlceras</div>
+      </div>
+      <div class="service-card" onclick="selectTipoInicio('medicacion')">
+        <div class="service-card-icon">💊</div>
+        <div class="service-card-name">Medicación</div>
+        <div class="service-card-desc">Administración</div>
+      </div>
+      <div class="service-card" onclick="selectTipoInicio('inyeccion')">
+        <div class="service-card-icon">💉</div>
+        <div class="service-card-name">Inyección</div>
+        <div class="service-card-desc">IM, IV, SC</div>
+      </div>
+      <div class="service-card" onclick="selectTipoInicio('control')">
+        <div class="service-card-icon">🩺</div>
+        <div class="service-card-name">Control</div>
+        <div class="service-card-desc">Signos vitales</div>
+      </div>
+      <div class="service-card" onclick="selectTipoInicio('cuidado_basico')">
+        <div class="service-card-icon">🛁</div>
+        <div class="service-card-name">Cuidado básico</div>
+        <div class="service-card-desc">Higiene y confort</div>
+      </div>
+      <div class="service-card" onclick="selectTipoInicio('urgencia')">
+        <div class="service-card-icon">🚨</div>
+        <div class="service-card-name">Urgencia</div>
+        <div class="service-card-desc">Atención inmediata</div>
+      </div>
+    </div>
+
+    <div class="section-title">Mis servicios recientes</div>
+    <div id="servicios-recientes">
+      <div class="empty">
+        <div class="empty-icon">📋</div>
+        <div class="empty-text">No tiene servicios aún</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SOLICITAR PAGE -->
+  <div class="page" id="page-solicitar">
+    <div class="step-indicator">
+      <div class="step-dot active" id="step1"></div>
+      <div class="step-dot" id="step2"></div>
+      <div class="step-dot" id="step3"></div>
+    </div>
+
+    <!-- PASO 1: TIPO -->
+    <div id="paso-1">
+      <div class="step-title">¿Qué tipo de atención necesita?</div>
+      <div class="step-subtitle">Seleccione el servicio que requiere</div>
+      <div class="service-grid" id="tipo-grid">
+        <div class="service-card" onclick="seleccionarTipo('curacion', this)">
+          <div class="service-card-icon">🩹</div>
+          <div class="service-card-name">Curación</div>
+          <div class="service-card-desc">Heridas y úlceras</div>
+        </div>
+        <div class="service-card" onclick="seleccionarTipo('medicacion', this)">
+          <div class="service-card-icon">💊</div>
+          <div class="service-card-name">Medicación</div>
+          <div class="service-card-desc">Administración</div>
+        </div>
+        <div class="service-card" onclick="seleccionarTipo('inyeccion', this)">
+          <div class="service-card-icon">💉</div>
+          <div class="service-card-name">Inyección</div>
+          <div class="service-card-desc">IM, IV, SC</div>
+        </div>
+        <div class="service-card" onclick="seleccionarTipo('control', this)">
+          <div class="service-card-icon">🩺</div>
+          <div class="service-card-name">Control</div>
+          <div class="service-card-desc">Signos vitales</div>
+        </div>
+        <div class="service-card" onclick="seleccionarTipo('cuidado_basico', this)">
+          <div class="service-card-icon">🛁</div>
+          <div class="service-card-name">Cuidado básico</div>
+          <div class="service-card-desc">Higiene y confort</div>
+        </div>
+        <div class="service-card" onclick="seleccionarTipo('urgencia', this)">
+          <div class="service-card-icon">🚨</div>
+          <div class="service-card-name">Urgencia</div>
+          <div class="service-card-desc">Atención inmediata</div>
+        </div>
+      </div>
+      <button class="btn-main" onclick="irPaso(2)" id="btn-paso1" disabled style="opacity:0.5">
+        Continuar →
+      </button>
+    </div>
+
+    <!-- PASO 2: DIRECCIÓN -->
+    <div id="paso-2" style="display:none">
+      <div class="step-title">¿Dónde le atendemos?</div>
+      <div class="step-subtitle">Ingrese la dirección de atención</div>
+      <div class="form-group">
+        <label>Dirección completa</label>
+        <input type="text" id="sol-direccion" placeholder="Calle 123 #45-67, Apto 201">
+      </div>
+      <div class="form-group">
+        <label>Ciudad</label>
+        <input type="text" id="sol-ciudad" placeholder="Santa Marta" value="Santa Marta">
+      </div>
+      <div class="form-group">
+        <label>Descripción adicional (opcional)</label>
+        <textarea id="sol-descripcion" placeholder="Información adicional para el profesional..."></textarea>
+      </div>
+      <div style="display:flex;gap:10px">
+        <button class="btn-main" style="background:var(--border);color:var(--ink);flex:0 0 auto;width:50px" onclick="irPaso(1)">←</button>
+        <button class="btn-main" onclick="irPaso(3)" style="flex:1">Continuar →</button>
+      </div>
+    </div>
+
+    <!-- PASO 3: CONFIRMAR -->
+    <div id="paso-3" style="display:none">
+      <div class="step-title">Confirme su solicitud</div>
+      <div class="step-subtitle">Revise los detalles antes de enviar</div>
+
+      <div class="info-card">
+        <div class="info-row">
+          <span class="info-label">Tipo de servicio</span>
+          <span class="info-value" id="confirm-tipo">—</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Dirección</span>
+          <span class="info-value" id="confirm-direccion">—</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Ciudad</span>
+          <span class="info-value" id="confirm-ciudad">—</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Descripción</span>
+          <span class="info-value" id="confirm-desc">—</span>
+        </div>
+      </div>
+
+      <div style="background:var(--amber-pale);border-radius:var(--radius-sm);padding:14px;margin-bottom:16px">
+        <div style="font-size:13px;font-weight:700;color:var(--amber)">⏱ Tiempo estimado de llegada</div>
+        <div style="font-size:12px;color:var(--ink-light);margin-top:4px;font-weight:600">El profesional llegará en 30-60 minutos según disponibilidad</div>
+      </div>
+
+      <div style="display:flex;gap:10px">
+        <button class="btn-main" style="background:var(--border);color:var(--ink);flex:0 0 auto;width:50px" onclick="irPaso(2)">←</button>
+        <button class="btn-main" onclick="enviarSolicitud()" style="flex:1" id="btn-enviar">
+          ✅ Confirmar solicitud
+        </button>
+      </div>
+      <div class="auth-error" id="sol-error"></div>
+    </div>
+
+    <!-- ÉXITO -->
+    <div id="paso-exito" style="display:none">
+      <div class="success-screen">
+        <div class="success-icon">✅</div>
+        <div class="success-title">¡Solicitud enviada!</div>
+        <div class="success-text">Su solicitud fue recibida. Un profesional de enfermería será asignado y se comunicará con usted pronto.</div>
+        <button class="btn-main" onclick="irInicio()" style="width:100%">Volver al inicio</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MIS SERVICIOS PAGE -->
+  <div class="page" id="page-servicios">
+    <div class="section-title">Mis servicios</div>
+    <div id="mis-servicios-list">
+      <div class="loading-spinner" style="margin:40px auto;display:block;border-color:var(--border);border-top-color:var(--teal)"></div>
+    </div>
+  </div>
+
+  <!-- PERFIL PAGE -->
+  <div class="page" id="page-perfil">
+    <div class="profile-header">
+      <div class="profile-avatar" id="perfil-avatar">P</div>
+      <div class="profile-name" id="perfil-nombre">Cargando...</div>
+      <div class="profile-email" id="perfil-email">—</div>
+    </div>
+
+    <div class="info-card">
+      <div class="info-row">
+        <span class="info-label">Teléfono</span>
+        <span class="info-value" id="perfil-telefono">—</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">Rol</span>
+        <span class="info-value">Paciente</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">Estado</span>
+        <span class="badge badge-green">Activo</span>
+      </div>
+    </div>
+
+    <div class="info-card">
+      <div style="font-size:14px;font-weight:700;margin-bottom:12px">📞 Contacto de emergencia</div>
+      <div style="font-size:13px;color:var(--muted);font-weight:600">Reina Elizabeth IPS</div>
+      <div style="font-size:15px;font-weight:800;color:var(--teal);margin-top:4px">📱 300 000 0000</div>
+    </div>
+
+    <button class="btn-outline-red" onclick="doLogout()">Cerrar sesión</button>
+  </div>
+
+  <!-- BOTTOM NAV -->
+  <nav class="bottom-nav">
+    <button class="nav-btn active" onclick="showPage('home', this)">
+      <span class="nav-btn-icon">🏠</span>
+      <span class="nav-btn-label">Inicio</span>
+    </button>
+    <button class="nav-btn" onclick="showPage('solicitar', this); resetSolicitud()">
+      <span class="nav-btn-icon">➕</span>
+      <span class="nav-btn-label">Solicitar</span>
+    </button>
+    <button class="nav-btn" onclick="showPage('servicios', this); loadMisServicios()">
+      <span class="nav-btn-icon">📋</span>
+      <span class="nav-btn-label">Servicios</span>
+    </button>
+    <button class="nav-btn" onclick="showPage('perfil', this); loadPerfil()">
+      <span class="nav-btn-icon">👤</span>
+      <span class="nav-btn-label">Perfil</span>
+    </button>
+  </nav>
+</div>
+
+<script>
+const API = 'https://enfermeria-production.up.railway.app';
+let token = localStorage.getItem('re_p_token') || '';
+let user = JSON.parse(localStorage.getItem('re_p_user') || 'null');
+let pacienteId = localStorage.getItem('re_p_paciente_id') || '';
+let tipoSeleccionado = '';
+
+// ── SPLASH ──
+setTimeout(() => {
+  document.getElementById('screen-splash').classList.remove('active');
+  if (token && user) {
+    initApp();
+  } else {
+    document.getElementById('screen-auth').classList.add('active');
+  }
+}, 1800);
+
+// ── AUTH ──
+function switchTab(tab) {
+  document.getElementById('tab-login').style.display = tab === 'login' ? 'block' : 'none';
+  document.getElementById('tab-registro').style.display = tab === 'registro' ? 'block' : 'none';
+  document.querySelectorAll('.auth-tab').forEach((t, i) => {
+    t.classList.toggle('active', (i === 0 && tab === 'login') || (i === 1 && tab === 'registro'));
+  });
+}
+
+async function doLogin() {
+  const email = document.getElementById('login-email').value.trim();
+  const password = document.getElementById('login-password').value;
+  const errEl = document.getElementById('login-error');
+  errEl.style.display = 'none';
+
+  if (!email || !password) { showError(errEl, 'Complete todos los campos'); return; }
+
+  showLoading('Ingresando...');
+  try {
+    const res = await fetch(`${API}/api/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password })
+    });
+    const data = await res.json();
+    hideLoading();
+    if (!res.ok) throw new Error(data.message || 'Credenciales incorrectas');
+    if (data.usuario.rol !== 'paciente') throw new Error('Esta app es para pacientes. Use el panel admin para administradores.');
+
+    token = data.accessToken;
+    user = data.usuario;
+    localStorage.setItem('re_p_token', token);
+    localStorage.setItem('re_p_user', JSON.stringify(user));
+    await obtenerPacienteId();
+    initApp();
+  } catch(e) {
+    hideLoading();
+    showError(errEl, e.message);
+  }
+}
+
+async function doRegistro() {
+  const nombre = document.getElementById('reg-nombre').value.trim();
+  const email = document.getElementById('reg-email').value.trim();
+  const telefono = document.getElementById('reg-telefono').value.trim();
+  const password = document.getElementById('reg-password').value;
+  const errEl = document.getElementById('reg-error');
+  errEl.style.display = 'none';
+
+  if (!nombre || !email || !password) { showError(errEl, 'Complete todos los campos'); return; }
+  if (password.length < 6) { showError(errEl, 'La contraseña debe tener mínimo 6 caracteres'); return; }
+
+  showLoading('Creando cuenta...');
+  try {
+    const res = await fetch(`${API}/api/auth/registro`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ nombreCompleto: nombre, email, telefono, password, rol: 'paciente' })
+    });
+    const data = await res.json();
+    hideLoading();
+    if (!res.ok) throw new Error(data.message || 'Error al registrarse');
+
+    token = data.accessToken;
+    user = data.usuario;
+    localStorage.setItem('re_p_token', token);
+    localStorage.setItem('re_p_user', JSON.stringify(user));
+    await obtenerPacienteId();
+    initApp();
+  } catch(e) {
+    hideLoading();
+    showError(errEl, e.message);
+  }
+}
+
+async function obtenerPacienteId() {
+  try {
+    const res = await fetch(`${API}/api/pacientes/mi-perfil`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    if (res.ok) {
+      const data = await res.json();
+      pacienteId = data.id;
+      localStorage.setItem('re_p_paciente_id', pacienteId);
+    }
+  } catch(e) {}
+}
+
+function doLogout() {
+  token = ''; user = null; pacienteId = '';
+  localStorage.removeItem('re_p_token');
+  localStorage.removeItem('re_p_user');
+  localStorage.removeItem('re_p_paciente_id');
+  document.getElementById('screen-app').classList.remove('active');
+  document.getElementById('screen-auth').classList.add('active');
+}
+
+// ── INIT APP ──
+function initApp() {
+  document.getElementById('screen-auth').classList.remove('active');
+  document.getElementById('screen-app').classList.add('active');
+
+  const nombre = user?.nombreCompleto || 'Paciente';
+  const hora = new Date().getHours();
+  const saludo = hora < 12 ? 'Buenos días' : hora < 18 ? 'Buenas tardes' : 'Buenas noches';
+
+  document.querySelector('.topbar-greeting').textContent = saludo + ',';
+  document.getElementById('app-nombre').textContent = nombre.split(' ')[0];
+  document.getElementById('app-avatar').textContent = nombre.split(' ').map(w => w[0]).join('').slice(0,2).toUpperCase();
+
+  loadServiciosRecientes();
+}
+
+// ── PAGES ──
+function showPage(name, btn) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById(`page-${name}`).classList.add('active');
+  if (btn) {
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+  }
+}
+
+// ── SERVICIOS ──
+async function loadServiciosRecientes() {
+  const el = document.getElementById('servicios-recientes');
+  try {
+    const res = await fetch(`${API}/api/servicios/mis-servicios?limit=3`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    if (!res.ok) throw new Error();
+    const data = await res.json();
+    if (!data.length) {
+      el.innerHTML = '<div class="empty"><div class="empty-icon">📋</div><div class="empty-text">No tiene servicios aún</div></div>';
+      return;
+    }
+    el.innerHTML = data.map(s => servicioItem(s)).join('');
+  } catch(e) {
+    el.innerHTML = '<div class="empty"><div class="empty-icon">📋</div><div class="empty-text">No tiene servicios aún</div></div>';
+  }
+}
+
+async function loadMisServicios() {
+  const el = document.getElementById('mis-servicios-list');
+  el.innerHTML = '<div style="text-align:center;padding:40px"><div class="loading-spinner" style="margin:0 auto;display:block;border-color:var(--border);border-top-color:var(--teal)"></div></div>';
+  try {
+    const res = await fetch(`${API}/api/servicios/mis-servicios`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    if (!res.ok) throw new Error();
+    const data = await res.json();
+    if (!data.length) {
+      el.innerHTML = '<div class="empty"><div class="empty-icon">📋</div><div class="empty-text">No tiene servicios aún</div></div>';
+      return;
+    }
+    el.innerHTML = data.map(s => servicioItem(s)).join('');
+  } catch(e) {
+    el.innerHTML = '<div class="empty"><div class="empty-icon">📋</div><div class="empty-text">No tiene servicios aún</div></div>';
+  }
+}
+
+function servicioItem(s) {
+  const iconos = { curacion:'🩹', medicacion:'💊', inyeccion:'💉', control:'🩺', cuidado_basico:'🛁', urgencia:'🚨' };
+  const badge = estadoBadge(s.estado);
+  return `<div class="service-item">
+    <div class="service-item-icon">${iconos[s.tipo] || '🏥'}</div>
+    <div class="service-item-info">
+      <div class="service-item-name">${tipoLabel(s.tipo)}</div>
+      <div class="service-item-date">${formatDate(s.createdAt || s.fecha_solicitud)}</div>
+    </div>
+    ${badge}
+  </div>`;
+}
+
+// ── SOLICITAR ──
+function seleccionarTipo(tipo, el) {
+  document.querySelectorAll('#tipo-grid .service-card').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+  tipoSeleccionado = tipo;
+  const btn = document.getElementById('btn-paso1');
+  btn.disabled = false;
+  btn.style.opacity = '1';
+}
+
+function selectTipoInicio(tipo) {
+  showPage('solicitar');
+  document.querySelectorAll('.nav-btn').forEach((b, i) => b.classList.toggle('active', i === 1));
+  resetSolicitud();
+  setTimeout(() => {
+    const cards = document.querySelectorAll('#tipo-grid .service-card');
+    const tipoMap = ['curacion','medicacion','inyeccion','control','cuidado_basico','urgencia'];
+    const idx = tipoMap.indexOf(tipo);
+    if (idx >= 0) seleccionarTipo(tipo, cards[idx]);
+  }, 50);
+}
+
+function irPaso(n) {
+  if (n === 2 && !tipoSeleccionado) return;
+  if (n === 3) {
+    const dir = document.getElementById('sol-direccion').value.trim();
+    if (!dir) { alert('Ingrese la dirección'); return; }
+    document.getElementById('confirm-tipo').textContent = tipoLabel(tipoSeleccionado);
+    document.getElementById('confirm-direccion').textContent = dir;
+    document.getElementById('confirm-ciudad').textContent = document.getElementById('sol-ciudad').value || 'Santa Marta';
+    document.getElementById('confirm-desc').textContent = document.getElementById('sol-descripcion').value || 'Sin descripción';
+  }
+  for (let i = 1; i <= 3; i++) {
+    document.getElementById(`paso-${i}`).style.display = i === n ? 'block' : 'none';
+    document.getElementById(`step${i}`).classList.toggle('active', i <= n);
+  }
+}
+
+function resetSolicitud() {
+  tipoSeleccionado = '';
+  document.querySelectorAll('#tipo-grid .service-card').forEach(c => c.classList.remove('selected'));
+  document.getElementById('btn-paso1').disabled = true;
+  document.getElementById('btn-paso1').style.opacity = '0.5';
+  document.getElementById('sol-direccion').value = '';
+  document.getElementById('sol-descripcion').value = '';
+  document.getElementById('paso-exito').style.display = 'none';
+  for (let i = 1; i <= 3; i++) {
+    document.getElementById(`paso-${i}`).style.display = i === 1 ? 'block' : 'none';
+    document.getElementById(`step${i}`).classList.toggle('active', i === 1);
+  }
+}
+
+async function enviarSolicitud() {
+  const errEl = document.getElementById('sol-error');
+  errEl.style.display = 'none';
+  const btn = document.getElementById('btn-enviar');
+  btn.innerHTML = '<span class="spinner"></span> Enviando...';
+  btn.disabled = true;
+
+  try {
+    const direccion = document.getElementById('sol-direccion').value.trim();
+    const ciudad = document.getElementById('sol-ciudad').value.trim();
+    const descripcion = document.getElementById('sol-descripcion').value.trim();
+
+    const res = await fetch(`${API}/api/servicios`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({
+        tipo: tipoSeleccionado,
+        direccion: `${direccion}, ${ciudad}`,
+        descripcion: descripcion || undefined
+      })
+    });
+
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'Error al enviar la solicitud');
+
+    for (let i = 1; i <= 3; i++) document.getElementById(`paso-${i}`).style.display = 'none';
+    document.getElementById('paso-exito').style.display = 'block';
+    loadServiciosRecientes();
+  } catch(e) {
+    showError(errEl, e.message);
+    btn.innerHTML = '✅ Confirmar solicitud';
+    btn.disabled = false;
+  }
+}
+
+function irInicio() {
+  showPage('home');
+  document.querySelectorAll('.nav-btn').forEach((b, i) => b.classList.toggle('active', i === 0));
+  resetSolicitud();
+}
+
+// ── PERFIL ──
+function loadPerfil() {
+  if (!user) return;
+  const nombre = user.nombreCompleto || 'Paciente';
+  document.getElementById('perfil-nombre').textContent = nombre;
+  document.getElementById('perfil-email').textContent = user.email || '—';
+  document.getElementById('perfil-telefono').textContent = user.telefono || '—';
+  document.getElementById('perfil-avatar').textContent = nombre.split(' ').map(w => w[0]).join('').slice(0,2).toUpperCase();
+}
+
+// ── HELPERS ──
+function showLoading(text) {
+  document.getElementById('loading-text').textContent = text || 'Cargando...';
+  document.getElementById('loading-overlay').classList.add('active');
+}
+
+function hideLoading() {
+  document.getElementById('loading-overlay').classList.remove('active');
+}
+
+function showError(el, msg) {
+  el.textContent = msg;
+  el.style.display = 'block';
+}
+
+function estadoBadge(estado) {
+  const map = {
+    pendiente: 'badge-amber', asignado: 'badge-green',
+    en_camino: 'badge-green', en_curso: 'badge-green',
+    completado: 'badge-gray', cancelado: 'badge-red'
+  };
+  const labels = {
+    pendiente: 'Pendiente', asignado: 'Asignado',
+    en_camino: 'En camino', en_curso: 'En curso',
+    completado: 'Completado', cancelado: 'Cancelado'
+  };
+  return `<span class="badge ${map[estado] || 'badge-gray'}">${labels[estado] || estado}</span>`;
+}
+
+function tipoLabel(tipo) {
+  const map = { curacion:'Curación', medicacion:'Medicación', inyeccion:'Inyección', control:'Control', cuidado_basico:'Cuidado básico', urgencia:'Urgencia' };
+  return map[tipo] || tipo;
+}
+
+function formatDate(d) {
+  if (!d) return '—';
+  return new Date(d).toLocaleDateString('es-CO', { day:'2-digit', month:'short', year:'numeric' });
+}
+</script>
+</body>
+</html>
