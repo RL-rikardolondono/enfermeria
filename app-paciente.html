@@ -1148,9 +1148,11 @@ async function enviarSolicitud() {
         'Authorization': `Bearer ${token}`
       },
       body: JSON.stringify({
-        tipo: tipoSeleccionado,
-        direccion: `${direccion}, ${ciudad}`,
-        descripcion: descripcion || undefined
+        tipo: 'rutina',
+        descripcion: descripcion || 'Servicio de enfermeria solicitado',
+        latDestino: 11.2408,
+        lngDestino: -74.1990,
+        direccionDestino: direccion + ', ' + ciudad,
       })
     });
 
