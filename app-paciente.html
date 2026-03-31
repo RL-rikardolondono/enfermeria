@@ -960,7 +960,7 @@ async function doRegistro() {
     const res = await fetch(`${API}/api/auth/register`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ nombreCompleto: nombre, email, telefono, password, rol: 'paciente' })
+      body: JSON.stringify({ nombreCompleto: nombre, email, telefono: telefono ? (telefono.startsWith("+") ? telefono : "+57" + telefono.replace(/\D/g, "")) : undefined, password, rol: "paciente" })
     });
     const data = await res.json();
     hideLoading();
