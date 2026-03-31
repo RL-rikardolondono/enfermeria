@@ -930,7 +930,7 @@ async function doLogin() {
     const data = await res.json();
     hideLoading();
     if (!res.ok) throw new Error(data.message || 'Credenciales incorrectas');
-    if (data.usuario.rol !== 'paciente') throw new Error('Esta app es para pacientes. Use el panel admin para administradores.');
+    if (data.usuario.rol === 'admin') throw new Error('Use el panel admin para administradores.');
 
     token = data.accessToken;
     user = data.usuario;
@@ -957,7 +957,7 @@ async function doRegistro() {
 
   showLoading('Creando cuenta...');
   try {
-    const res = await fetch(`${API}/api/auth/registro`, {
+    const res = await fetch(`${API}/api/auth/register`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ nombreCompleto: nombre, email, telefono, password, rol: 'paciente' })
