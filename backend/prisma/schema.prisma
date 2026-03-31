@@ -1,6 +1,6 @@
 generator client {
   provider      = "prisma-client-js"
-  binaryTargets = ["native", "linux-musl-openssl-3.0.x", "debian-openssl-3.0.x"]
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
 }
 
 datasource db {
@@ -62,77 +62,71 @@ model Usuario {
   fotoUrl        String?       @map("foto_url") @db.VarChar(500)
   createdAt      DateTime      @default(now()) @map("created_at")
   updatedAt      DateTime      @updatedAt @map("updated_at")
-
-  sesiones      Sesion[]
-  paciente      Paciente?
-  profesional   Profesional?
+  sesiones       Sesion[]
+  paciente       Paciente?
+  profesional    Profesional?
   notificaciones Notificacion[]
-
   @@map("usuarios")
 }
 
 model Sesion {
-  id          String   @id @default(uuid())
-  usuarioId   String   @map("usuario_id")
-  tokenHash   String?  @map("token_hash") @db.VarChar(500)
-  refreshHash String?  @map("refresh_hash") @db.VarChar(500)
-  dispositivo String?  @db.VarChar(200)
-  ip          String?  @db.VarChar(50)
-  activa      Boolean  @default(true)
+  id          String    @id @default(uuid())
+  usuarioId   String    @map("usuario_id")
+  tokenHash   String?   @map("token_hash") @db.VarChar(500)
+  refreshHash String?   @map("refresh_hash") @db.VarChar(500)
+  dispositivo String?   @db.VarChar(200)
+  ip          String?   @db.VarChar(50)
+  activa      Boolean   @default(true)
   expiresAt   DateTime? @map("expires_at")
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
-
-  usuario Usuario @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
-
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+  usuario     Usuario   @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
   @@map("sesiones")
 }
 
 model Paciente {
-  id                       String    @id @default(uuid())
-  usuarioId                String    @unique @map("usuario_id")
-  fechaNacimiento          DateTime? @map("fecha_nacimiento") @db.Date
-  genero                   String?   @db.VarChar(20)
-  tipoSangre               String?   @map("tipo_sangre") @db.VarChar(5)
-  alergias                 String?
-  antecedentes             String?
-  eps                      String?   @db.VarChar(100)
-  regimen                  String?   @db.VarChar(50)
-  documentoTipo            String?   @map("documento_tipo") @db.VarChar(50)
-  documentoNumero          String?   @map("documento_numero") @db.VarChar(50)
-  direccionBase            String?   @map("direccion_base") @db.VarChar(500)
-  direccionPrincipal       String?   @map("direccion_principal") @db.VarChar(500)
-  ciudad                   String?   @db.VarChar(100)
-  barrio                   String?   @db.VarChar(100)
-  estrato                  Int?
-  latBase                  Decimal?  @map("lat_base") @db.Decimal(10, 8)
-  lngBase                  Decimal?  @map("lng_base") @db.Decimal(11, 8)
-  latitud                  Decimal?  @db.Decimal(10, 8)
-  longitud                 Decimal?  @db.Decimal(11, 8)
-  contactoEmergencia       String?   @map("contacto_emergencia") @db.VarChar(200)
-  contactoEmergenciaNombre String?   @map("contacto_emergencia_nombre") @db.VarChar(200)
-  contactoEmergenciaTelefono String? @map("contacto_emergencia_telefono") @db.VarChar(20)
-  contactoEmergenciaRelacion String? @map("contacto_emergencia_relacion") @db.VarChar(50)
-  medicamentosActuales     String?   @map("medicamentos_actuales")
-  condicionesCronicas      String?   @map("condiciones_cronicas")
-  observaciones            String?
-  numeroHistoria           String?   @map("numero_historia") @db.VarChar(100)
-  peso                     Decimal?  @db.Decimal(5, 2)
-  talla                    Decimal?  @db.Decimal(5, 2)
-  imc                      Decimal?  @db.Decimal(5, 2)
-  grupoEtnico              String?   @map("grupo_etnico") @db.VarChar(100)
-  ocupacion                String?   @db.VarChar(100)
-  nivelEducativo           String?   @map("nivel_educativo") @db.VarChar(100)
-  estadoCivil              String?   @map("estado_civil") @db.VarChar(50)
-  nombreAcudiente          String?   @map("nombre_acudiente") @db.VarChar(200)
-  telefonoAcudiente        String?   @map("telefono_acudiente") @db.VarChar(20)
-  activo                   Boolean   @default(true)
-  createdAt                DateTime  @default(now()) @map("created_at")
-  updatedAt                DateTime  @updatedAt @map("updated_at")
-
-  usuario  Usuario    @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
-  servicios Servicio[]
-
+  id                         String    @id @default(uuid())
+  usuarioId                  String    @unique @map("usuario_id")
+  fechaNacimiento            DateTime? @map("fecha_nacimiento") @db.Date
+  genero                     String?   @db.VarChar(20)
+  tipoSangre                 String?   @map("tipo_sangre") @db.VarChar(5)
+  alergias                   String?
+  antecedentes               String?
+  eps                        String?   @db.VarChar(100)
+  regimen                    String?   @db.VarChar(50)
+  documentoTipo              String?   @map("documento_tipo") @db.VarChar(50)
+  documentoNumero            String?   @map("documento_numero") @db.VarChar(50)
+  direccionBase              String?   @map("direccion_base") @db.VarChar(500)
+  direccionPrincipal         String?   @map("direccion_principal") @db.VarChar(500)
+  ciudad                     String?   @db.VarChar(100)
+  barrio                     String?   @db.VarChar(100)
+  estrato                    Int?
+  latBase                    Decimal?  @map("lat_base") @db.Decimal(10, 8)
+  lngBase                    Decimal?  @map("lng_base") @db.Decimal(11, 8)
+  latitud                    Decimal?  @db.Decimal(10, 8)
+  longitud                   Decimal?  @db.Decimal(11, 8)
+  contactoEmergencia         String?   @map("contacto_emergencia") @db.VarChar(200)
+  contactoEmergenciaNombre   String?   @map("contacto_emergencia_nombre") @db.VarChar(200)
+  contactoEmergenciaTelefono String?   @map("contacto_emergencia_telefono") @db.VarChar(20)
+  contactoEmergenciaRelacion String?   @map("contacto_emergencia_relacion") @db.VarChar(50)
+  medicamentosActuales       String?   @map("medicamentos_actuales")
+  condicionesCronicas        String?   @map("condiciones_cronicas")
+  observaciones              String?
+  numeroHistoria             String?   @map("numero_historia") @db.VarChar(100)
+  peso                       Decimal?  @db.Decimal(5, 2)
+  talla                      Decimal?  @db.Decimal(5, 2)
+  imc                        Decimal?  @db.Decimal(5, 2)
+  grupoEtnico                String?   @map("grupo_etnico") @db.VarChar(100)
+  ocupacion                  String?   @db.VarChar(100)
+  nivelEducativo             String?   @map("nivel_educativo") @db.VarChar(100)
+  estadoCivil                String?   @map("estado_civil") @db.VarChar(50)
+  nombreAcudiente            String?   @map("nombre_acudiente") @db.VarChar(200)
+  telefonoAcudiente          String?   @map("telefono_acudiente") @db.VarChar(20)
+  activo                     Boolean   @default(true)
+  createdAt                  DateTime  @default(now()) @map("created_at")
+  updatedAt                  DateTime  @updatedAt @map("updated_at")
+  usuario                    Usuario   @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  servicios                  Servicio[]
   @@map("pacientes")
 }
 
@@ -150,4 +144,113 @@ model Profesional {
   radioAtencion       Decimal?           @map("radio_atencion") @db.Decimal(8, 2)
   calificacionPromedio Decimal?          @map("calificacion_promedio") @db.Decimal(3, 2)
   totalServicios      Int                @default(0) @map("total_servicios")
-  tarifaHora          Decimal?           @map("tarifa_hora") @db.Decimal(12
+  tarifaHora          Decimal?           @map("tarifa_hora") @db.Decimal(12, 2)
+  anosExperiencia     Int?               @map("anos_experiencia")
+  hojaVidaUrl         String?            @map("hoja_vida_url") @db.VarChar(500)
+  fotoUrl             String?            @map("foto_url") @db.VarChar(500)
+  banco               String?            @db.VarChar(100)
+  cuentaBancaria      String?            @map("cuenta_bancaria") @db.VarChar(100)
+  tipoCuenta          String?            @map("tipo_cuenta") @db.VarChar(50)
+  verificadoPor       String?            @map("verificado_por")
+  verificadoEn        DateTime?          @map("verificado_en")
+  activo              Boolean            @default(true)
+  createdAt           DateTime           @default(now()) @map("created_at")
+  updatedAt           DateTime           @updatedAt @map("updated_at")
+  usuario             Usuario            @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  documentos          DocumentoProfesional[]
+  servicios           Servicio[]
+  evoluciones         Evolucion[]
+  tracking            TrackingHistorial[]
+  @@map("profesionales")
+}
+
+model DocumentoProfesional {
+  id            String      @id @default(uuid())
+  profesionalId String      @map("profesional_id")
+  tipo          String      @db.VarChar(100)
+  url           String      @db.VarChar(500)
+  createdAt     DateTime    @default(now()) @map("created_at")
+  profesional   Profesional @relation(fields: [profesionalId], references: [id], onDelete: Cascade)
+  @@map("documentos_profesional")
+}
+
+model Servicio {
+  id                     String         @id @default(uuid())
+  pacienteId             String?        @map("paciente_id")
+  profesionalId          String?        @map("profesional_id")
+  tipo                   TipoServicio
+  estado                 EstadoServicio @default(pendiente)
+  descripcion            String?
+  direccion              String?        @db.VarChar(500)
+  lat                    Decimal?       @db.Decimal(10, 8)
+  lng                    Decimal?       @db.Decimal(11, 8)
+  notas                  String?
+  codigo                 String?        @db.VarChar(50)
+  prioridad              String?        @default("normal") @db.VarChar(20)
+  fechaSolicitud         DateTime       @default(now()) @map("fecha_solicitud")
+  fechaInicio            DateTime?      @map("fecha_inicio")
+  fechaFin               DateTime?      @map("fecha_fin")
+  monto                  Decimal?       @db.Decimal(12, 2)
+  createdAt              DateTime       @default(now()) @map("created_at")
+  updatedAt              DateTime       @updatedAt @map("updated_at")
+  paciente               Paciente?      @relation(fields: [pacienteId], references: [id])
+  profesional            Profesional?   @relation(fields: [profesionalId], references: [id])
+  evoluciones            Evolucion[]
+  pago                   Pago?
+  tracking               TrackingHistorial[]
+  @@map("servicios")
+}
+
+model Evolucion {
+  id                String      @id @default(uuid())
+  servicioId        String      @map("servicio_id")
+  profesionalId     String?     @map("profesional_id")
+  tensionSistolica  Int?        @map("tension_sistolica")
+  tensionDiastolica Int?        @map("tension_diastolica")
+  frecuenciaCardiaca Int?       @map("frecuencia_cardiaca")
+  temperatura       Decimal?    @db.Decimal(4, 1)
+  saturacionOxigeno Int?        @map("saturacion_oxigeno")
+  glucemia          Int?
+  observaciones     String?
+  procedimientos    String?
+  createdAt         DateTime    @default(now()) @map("created_at")
+  servicio          Servicio    @relation(fields: [servicioId], references: [id], onDelete: Cascade)
+  profesional       Profesional? @relation(fields: [profesionalId], references: [id])
+  @@map("evoluciones")
+}
+
+model Pago {
+  id                String     @id @default(uuid())
+  servicioId        String     @unique @map("servicio_id")
+  monto             Decimal    @db.Decimal(12, 2)
+  estado            EstadoPago @default(pendiente)
+  referenciaExterna String?    @map("referencia_externa") @db.VarChar(200)
+  createdAt         DateTime   @default(now()) @map("created_at")
+  servicio          Servicio   @relation(fields: [servicioId], references: [id])
+  @@map("pagos")
+}
+
+model Notificacion {
+  id        String   @id @default(uuid())
+  usuarioId String   @map("usuario_id")
+  tipo      String?  @db.VarChar(100)
+  titulo    String?  @db.VarChar(200)
+  cuerpo    String?
+  leida     Boolean  @default(false)
+  datos     Json?
+  createdAt DateTime @default(now()) @map("created_at")
+  usuario   Usuario  @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  @@map("notificaciones")
+}
+
+model TrackingHistorial {
+  id            String      @id @default(uuid())
+  servicioId    String      @map("servicio_id")
+  profesionalId String      @map("profesional_id")
+  lat           Decimal     @db.Decimal(10, 8)
+  lng           Decimal     @db.Decimal(11, 8)
+  createdAt     DateTime    @default(now()) @map("created_at")
+  servicio      Servicio    @relation(fields: [servicioId], references: [id], onDelete: Cascade)
+  profesional   Profesional @relation(fields: [profesionalId], references: [id])
+  @@map("tracking_historial")
+}
