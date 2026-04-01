@@ -900,6 +900,8 @@ function initApp() {
   document.getElementById('app-nombre').textContent = nombre.split(' ')[0];
   document.getElementById('app-avatar').textContent = nombre.split(' ').map(w => w[0]).join('').slice(0,2).toUpperCase();
   loadServiciosRecientes();
+  if (notifInterval) clearInterval(notifInterval);
+  notifInterval = setInterval(loadServiciosRecientes, 20000);
 }
 
 function showPage(name, btn) {
@@ -909,6 +911,23 @@ function showPage(name, btn) {
     document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
   }
+}
+
+let lastEstados = {};
+let notifInterval = null;
+
+function mostrarNotif(msg, color) {
+  let notif = document.getElementById('notif-banner');
+  if (!notif) {
+    notif = document.createElement('div');
+    notif.id = 'notif-banner';
+    document.body.appendChild(notif);
+  }
+  notif.style.cssText = `position:fixed;top:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;background:${color || '#1B6B5A'};color:white;padding:16px 20px;font-size:14px;font-weight:700;z-index:1000;text-align:center;box-shadow:0 4px 20px rgba(0,0,0,0.2);`;
+  notif.textContent = msg;
+  notif.style.display = 'block';
+  clearTimeout(notif._t);
+  notif._t = setTimeout(() => { notif.style.display = 'none'; }, 5000);
 }
 
 async function loadServiciosRecientes() {
@@ -924,6 +943,13 @@ async function loadServiciosRecientes() {
       el.innerHTML = '<div class="empty"><div class="empty-icon">📋</div><div class="empty-text">No tiene servicios aún</div></div>';
       return;
     }
+    const msgs = { asignado:['✅ ¡Un enfermero aceptó su solicitud!','#2E7D52'], en_camino:['🚗 El enfermero está en camino','#E8932A'], en_curso:['▶️ El servicio ha comenzado','#1B6B5A'], completado:['🎉 Servicio completado','#2E7D52'], cancelado:['❌ Servicio cancelado','#C44040'] };
+    items.forEach(s => {
+      if (lastEstados[s.id] && lastEstados[s.id] !== s.estado && msgs[s.estado]) {
+        mostrarNotif(msgs[s.estado][0], msgs[s.estado][1]);
+      }
+      lastEstados[s.id] = s.estado;
+    });
     el.innerHTML = items.map(s => servicioItem(s)).join('');
   } catch(e) {
     el.innerHTML = '<div class="empty"><div class="empty-icon">📋</div><div class="empty-text">No tiene servicios aún</div></div>';
