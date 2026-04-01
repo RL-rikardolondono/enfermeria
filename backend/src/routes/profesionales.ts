@@ -5,107 +5,128 @@ import { autenticar, requerirRol } from '../middleware/auth'
 
 export async function profesionalesRoutes(app: FastifyInstance) {
 
-  // GET /api/profesionales/cercanos?lat=&lng=&radio=
-  app.get('/cercanos', async (request) => {
-    const query = z.object({
-      lat: z.coerce.number(),
-      lng: z.coerce.number(),
-      radio: z.coerce.number().default(15),
-      especialidad: z.string().optional(),
+  // GET /api/profesionales — listar profesionales disponibles
+  app.get('/', { preHandler: autenticar }, async (request) => {
+    const { page = 1, limit = 20 } = z.object({
+      page: z.coerce.number().default(1),
+      limit: z.coerce.number().max(50).default(20),
     }).parse(request.query)
 
-    const cercanos = await prisma.$queryRaw<any[]>`
-      SELECT p.id, u.nombre_completo, u.foto_url,
-        p.calificacion_promedio, p.total_servicios, p.especialidades,
-        ROUND((ST_Distance(
-          up.geom,
-          ST_SetSRID(ST_MakePoint(${query.lng}, ${query.lat}), 4326)::geography
-        ) / 1000)::DECIMAL, 2) AS distancia_km,
-        up.lat, up.lng
-      FROM profesionales p
-      JOIN usuarios u ON u.id = p.usuario_id
-      JOIN ubicacion_profesional up ON up.profesional_id = p.id
-      WHERE p.estado_verificacion = 'aprobado'
-        AND p.disponible = TRUE AND up.en_servicio = FALSE AND u.estado = 'activo'
-        AND (${query.especialidad ?? null} IS NULL OR ${query.especialidad ?? null} = ANY(p.especialidades))
-        AND ST_DWithin(up.geom,
-          ST_SetSRID(ST_MakePoint(${query.lng}, ${query.lat}), 4326)::geography,
-          ${query.radio * 1000})
-      ORDER BY distancia_km ASC, p.calificacion_promedio DESC
-      LIMIT 10
-    `
-    return cercanos
+    const [total, items] = await prisma.$transaction([
+      prisma.profesional.count({ where: { activo: true } }),
+      prisma.profesional.findMany({
+        where: { activo: true },
+        skip: (page - 1) * limit,
+        take: limit,
+        include: {
+          usuario: {
+            select: { nombreCompleto: true, email: true, telefono: true, fotoUrl: true },
+          },
+        },
+      }),
+    ])
+
+    return { total, page, limit, items }
   })
 
   // GET /api/profesionales/:id
   app.get('/:id', { preHandler: autenticar }, async (request, reply) => {
     const { id } = z.object({ id: z.string().uuid() }).parse(request.params)
-    const prof = await prisma.profesional.findUnique({
+    const profesional = await prisma.profesional.findUnique({
       where: { id },
       include: {
-        usuario: { select: { nombreCompleto: true, email: true, telefono: true, fotoUrl: true } },
-        ubicacion: true,
+        usuario: {
+          select: { nombreCompleto: true, email: true, telefono: true, fotoUrl: true },
+        },
         documentos: true,
       },
     })
-    if (!prof) return reply.status(404).send({ error: 'Profesional no encontrado' })
-    return prof
+    if (!profesional) return reply.status(404).send({ error: 'Profesional no encontrado' })
+    return profesional
   })
 
-  // PUT /api/profesionales/:id/ubicacion — GPS update (cada 5s)
-  app.put('/:id/ubicacion', { preHandler: requerirRol('profesional') }, async (request) => {
-    const { id } = z.object({ id: z.string().uuid() }).parse(request.params)
-    const { lat, lng } = z.object({ lat: z.number(), lng: z.number() }).parse(request.body)
-
-    await prisma.ubicacionProfesional.upsert({
-      where: { profesionalId: id },
-      update: { lat, lng, updatedAt: new Date() },
-      create: { profesionalId: id, lat, lng },
-    })
-
-    return { ok: true }
-  })
-
-  // PATCH /api/profesionales/:id/disponibilidad
-  app.patch('/:id/disponibilidad', { preHandler: requerirRol('profesional') }, async (request) => {
-    const { id } = z.object({ id: z.string().uuid() }).parse(request.params)
-    const { disponible } = z.object({ disponible: z.boolean() }).parse(request.body)
-
-    const prof = await prisma.profesional.update({
-      where: { id },
-      data: { disponible },
-      select: { id: true, disponible: true },
-    })
-    return prof
-  })
-
-  // PUT /api/profesionales/:id/perfil
-  app.put('/:id/perfil', { preHandler: requerirRol('profesional') }, async (request) => {
+  // PUT /api/profesionales/:id — actualizar perfil
+  app.put('/:id', { preHandler: autenticar }, async (request, reply) => {
     const { id } = z.object({ id: z.string().uuid() }).parse(request.params)
     const body = z.object({
-      titulo: z.string().optional(),
-      universidad: z.string().optional(),
-      anioGraduacion: z.number().optional(),
-      especialidades: z.array(z.string()).optional(),
-      radioServicioKm: z.number().min(1).max(50).optional(),
+      especialidad: z.string().optional(),
+      registroProfesional: z.string().optional(),
       tarifaHora: z.number().optional(),
+      anosExperiencia: z.number().optional(),
+      banco: z.string().optional(),
+      cuentaBancaria: z.string().optional(),
+      tipoCuenta: z.string().optional(),
+      lat: z.number().optional(),
+      lng: z.number().optional(),
+      disponible: z.boolean().optional(),
     }).parse(request.body)
 
-    return prisma.profesional.update({ where: { id }, data: body })
+    const actualizado = await prisma.profesional.update({
+      where: { id },
+      data: body,
+    })
+    return actualizado
+  })
+
+  // PUT /api/profesionales/:id/disponibilidad
+  app.put('/:id/disponibilidad', { preHandler: autenticar }, async (request, reply) => {
+    const { id } = z.object({ id: z.string().uuid() }).parse(request.params)
+    const { disponible, lat, lng } = z.object({
+      disponible: z.boolean(),
+      lat: z.number().optional(),
+      lng: z.number().optional(),
+    }).parse(request.body)
+
+    const actualizado = await prisma.profesional.update({
+      where: { id },
+      data: { disponible, lat, lng },
+    })
+    return actualizado
+  })
+
+  // PUT /api/profesionales/:id/verificar — admin aprueba o rechaza
+  app.put('/:id/verificar', { preHandler: requerirRol('admin') }, async (request, reply) => {
+    const { id } = z.object({ id: z.string().uuid() }).parse(request.params)
+    const { estado } = z.object({
+      estado: z.enum(['aprobado', 'rechazado']),
+    }).parse(request.body)
+
+    const actualizado = await prisma.profesional.update({
+      where: { id },
+      data: {
+        estadoVerificacion: estado,
+        verificadoPor: request.usuario.id,
+        verificadoEn: new Date(),
+      },
+    })
+    return actualizado
   })
 
   // GET /api/profesionales/:id/servicios
-  app.get('/:id/servicios', { preHandler: requerirRol('profesional', 'admin') }, async (request) => {
+  app.get('/:id/servicios', { preHandler: autenticar }, async (request) => {
     const { id } = z.object({ id: z.string().uuid() }).parse(request.params)
-    const { estado } = z.object({ estado: z.string().optional() }).parse(request.query)
+    const { page = 1, limit = 10 } = z.object({
+      page: z.coerce.number().default(1),
+      limit: z.coerce.number().max(50).default(10),
+    }).parse(request.query)
 
-    return prisma.servicio.findMany({
-      where: { profesionalId: id, ...(estado ? { estado: estado as any } : {}) },
-      orderBy: { createdAt: 'desc' },
-      take: 50,
-      include: {
-        paciente: { include: { usuario: { select: { nombreCompleto: true } } } },
-      },
-    })
+    const [total, items] = await prisma.$transaction([
+      prisma.servicio.count({ where: { profesionalId: id } }),
+      prisma.servicio.findMany({
+        where: { profesionalId: id },
+        orderBy: { createdAt: 'desc' },
+        skip: (page - 1) * limit,
+        take: limit,
+        include: {
+          paciente: {
+            include: {
+              usuario: { select: { nombreCompleto: true, telefono: true } },
+            },
+          },
+        },
+      }),
+    ])
+
+    return { total, page, limit, items }
   })
 }
