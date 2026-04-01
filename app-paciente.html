@@ -46,11 +46,9 @@
     overflow-x: hidden;
   }
 
-  /* ── SCREENS ── */
   .screen { display: none; min-height: 100vh; flex-direction: column; }
   .screen.active { display: flex; }
 
-  /* ── SPLASH ── */
   #screen-splash {
     background: linear-gradient(160deg, var(--teal-dark) 0%, var(--teal) 60%, var(--teal-light) 100%);
     align-items: center;
@@ -82,10 +80,7 @@
     to { opacity: 1; transform: translateY(0); }
   }
 
-  /* ── AUTH ── */
-  #screen-auth {
-    background: white;
-  }
+  #screen-auth { background: white; }
 
   .auth-header {
     background: linear-gradient(160deg, var(--teal-dark), var(--teal));
@@ -118,10 +113,7 @@
     transition: all 0.2s;
   }
 
-  .auth-tab.active {
-    background: white;
-    color: var(--teal);
-  }
+  .auth-tab.active { background: white; color: var(--teal); }
 
   .auth-body { padding: 28px; flex: 1; }
 
@@ -184,13 +176,11 @@
     display: none;
   }
 
-  /* ── APP SHELL ── */
   #screen-app {
     background: var(--cream);
     padding-bottom: calc(70px + var(--safe-bottom));
   }
 
-  /* TOP BAR */
   .topbar {
     background: white;
     padding: 16px 20px 12px;
@@ -212,7 +202,6 @@
     font-size: 18px; font-weight: 800; color: white;
   }
 
-  /* BOTTOM NAV */
   .bottom-nav {
     position: fixed;
     bottom: 0; left: 50%;
@@ -244,11 +233,9 @@
   .nav-btn.active .nav-btn-label { color: var(--teal); }
   .nav-btn.active .nav-btn-icon { transform: scale(1.1); }
 
-  /* PAGES */
   .page { display: none; padding: 20px; }
   .page.active { display: block; }
 
-  /* HOME PAGE */
   .hero-card {
     background: linear-gradient(135deg, var(--teal-dark), var(--teal-light));
     border-radius: 20px;
@@ -296,7 +283,6 @@
     margin-bottom: 14px;
   }
 
-  /* SERVICE TYPES */
   .service-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -325,7 +311,6 @@
   .service-card-name { font-size: 13px; font-weight: 700; color: var(--ink); }
   .service-card-desc { font-size: 11px; color: var(--muted); font-weight: 600; }
 
-  /* RECENT SERVICES */
   .service-item {
     background: white;
     border-radius: var(--radius);
@@ -350,7 +335,6 @@
   .service-item-name { font-size: 14px; font-weight: 700; }
   .service-item-date { font-size: 12px; color: var(--muted); font-weight: 600; }
 
-  /* BADGE */
   .badge {
     display: inline-flex;
     align-items: center;
@@ -365,7 +349,6 @@
   .badge-red { background: var(--red-pale); color: var(--red); }
   .badge-gray { background: var(--border); color: var(--muted); }
 
-  /* SOLICITAR PAGE */
   .step-indicator {
     display: flex;
     gap: 6px;
@@ -382,20 +365,9 @@
 
   .step-dot.active { background: var(--teal); }
 
-  .step-title {
-    font-size: 20px;
-    font-weight: 800;
-    margin-bottom: 6px;
-  }
+  .step-title { font-size: 20px; font-weight: 800; margin-bottom: 6px; }
+  .step-subtitle { font-size: 13px; color: var(--muted); font-weight: 600; margin-bottom: 20px; }
 
-  .step-subtitle {
-    font-size: 13px;
-    color: var(--muted);
-    font-weight: 600;
-    margin-bottom: 20px;
-  }
-
-  /* PERFIL PAGE */
   .profile-header {
     background: linear-gradient(135deg, var(--teal-dark), var(--teal));
     border-radius: 20px;
@@ -452,54 +424,6 @@
     margin-top: 8px;
   }
 
-  /* MODAL */
-  .modal-overlay {
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.5);
-    z-index: 200;
-    display: none;
-    align-items: flex-end;
-    justify-content: center;
-  }
-
-  .modal-overlay.active { display: flex; }
-
-  .modal {
-    background: white;
-    border-radius: 24px 24px 0 0;
-    padding: 28px 24px calc(24px + var(--safe-bottom));
-    width: 100%;
-    max-width: 430px;
-    animation: slideUp 0.3s ease;
-  }
-
-  @keyframes slideUp {
-    from { transform: translateY(100%); }
-    to { transform: translateY(0); }
-  }
-
-  .modal-handle {
-    width: 40px; height: 4px;
-    background: var(--border);
-    border-radius: 2px;
-    margin: 0 auto 20px;
-  }
-
-  .modal-title {
-    font-size: 20px;
-    font-weight: 800;
-    margin-bottom: 6px;
-  }
-
-  .modal-subtitle {
-    font-size: 13px;
-    color: var(--muted);
-    font-weight: 600;
-    margin-bottom: 20px;
-  }
-
-  /* SUCCESS */
   .success-screen {
     display: flex;
     flex-direction: column;
@@ -529,7 +453,6 @@
   .success-title { font-size: 24px; font-weight: 800; margin-bottom: 8px; }
   .success-text { font-size: 14px; color: var(--muted); font-weight: 600; line-height: 1.6; margin-bottom: 28px; }
 
-  /* SPINNER */
   .spinner {
     width: 20px; height: 20px;
     border: 2px solid rgba(255,255,255,0.3);
@@ -541,7 +464,6 @@
 
   @keyframes spin { to { transform: rotate(360deg); } }
 
-  /* LOADING OVERLAY */
   .loading-overlay {
     position: fixed; inset: 0;
     background: rgba(255,255,255,0.9);
@@ -564,20 +486,13 @@
 
   .loading-text { font-size: 14px; font-weight: 700; color: var(--muted); }
 
-  /* EMPTY */
-  .empty {
-    text-align: center;
-    padding: 40px 20px;
-    color: var(--muted);
-  }
-
+  .empty { text-align: center; padding: 40px 20px; color: var(--muted); }
   .empty-icon { font-size: 44px; margin-bottom: 10px; }
   .empty-text { font-size: 14px; font-weight: 600; }
 </style>
 </head>
 <body>
 
-<!-- LOADING OVERLAY -->
 <div class="loading-overlay" id="loading-overlay">
   <div class="loading-spinner"></div>
   <div class="loading-text" id="loading-text">Cargando...</div>
@@ -603,7 +518,6 @@
     </div>
   </div>
   <div class="auth-body">
-    <!-- LOGIN -->
     <div id="tab-login">
       <div class="form-group">
         <label>Correo electrónico</label>
@@ -617,7 +531,6 @@
       <div class="auth-error" id="login-error"></div>
     </div>
 
-    <!-- REGISTRO -->
     <div id="tab-registro" style="display:none">
       <div class="form-group">
         <label>Nombre completo</label>
@@ -643,7 +556,6 @@
 
 <!-- APP -->
 <div class="screen" id="screen-app">
-  <!-- TOPBAR -->
   <div class="topbar">
     <div>
       <div class="topbar-greeting">Buenos días,</div>
@@ -652,12 +564,12 @@
     <div class="topbar-avatar" id="app-avatar">P</div>
   </div>
 
-  <!-- HOME PAGE -->
+  <!-- HOME -->
   <div class="page active" id="page-home">
     <div class="hero-card">
       <h2>¿Necesita atención en casa?</h2>
       <p>Profesionales verificados listos para atenderle</p>
-      <button class="btn-hero" onclick="showPage('solicitar'); showModal()">
+      <button class="btn-hero" onclick="showPage('solicitar'); resetSolicitud()">
         ➕ Solicitar servicio
       </button>
     </div>
@@ -705,7 +617,7 @@
     </div>
   </div>
 
-  <!-- SOLICITAR PAGE -->
+  <!-- SOLICITAR -->
   <div class="page" id="page-solicitar">
     <div class="step-indicator">
       <div class="step-dot active" id="step1"></div>
@@ -713,7 +625,6 @@
       <div class="step-dot" id="step3"></div>
     </div>
 
-    <!-- PASO 1: TIPO -->
     <div id="paso-1">
       <div class="step-title">¿Qué tipo de atención necesita?</div>
       <div class="step-subtitle">Seleccione el servicio que requiere</div>
@@ -754,7 +665,6 @@
       </button>
     </div>
 
-    <!-- PASO 2: DIRECCIÓN -->
     <div id="paso-2" style="display:none">
       <div class="step-title">¿Dónde le atendemos?</div>
       <div class="step-subtitle">Ingrese la dirección de atención</div>
@@ -776,7 +686,6 @@
       </div>
     </div>
 
-    <!-- PASO 3: CONFIRMAR -->
     <div id="paso-3" style="display:none">
       <div class="step-title">Confirme su solicitud</div>
       <div class="step-subtitle">Revise los detalles antes de enviar</div>
@@ -814,7 +723,6 @@
       <div class="auth-error" id="sol-error"></div>
     </div>
 
-    <!-- ÉXITO -->
     <div id="paso-exito" style="display:none">
       <div class="success-screen">
         <div class="success-icon">✅</div>
@@ -825,7 +733,7 @@
     </div>
   </div>
 
-  <!-- MIS SERVICIOS PAGE -->
+  <!-- MIS SERVICIOS -->
   <div class="page" id="page-servicios">
     <div class="section-title">Mis servicios</div>
     <div id="mis-servicios-list">
@@ -833,7 +741,7 @@
     </div>
   </div>
 
-  <!-- PERFIL PAGE -->
+  <!-- PERFIL -->
   <div class="page" id="page-perfil">
     <div class="profile-header">
       <div class="profile-avatar" id="perfil-avatar">P</div>
@@ -865,7 +773,6 @@
     <button class="btn-outline-red" onclick="doLogout()">Cerrar sesión</button>
   </div>
 
-  <!-- BOTTOM NAV -->
   <nav class="bottom-nav">
     <button class="nav-btn active" onclick="showPage('home', this)">
       <span class="nav-btn-icon">🏠</span>
@@ -893,7 +800,6 @@ let user = JSON.parse(localStorage.getItem('re_p_user') || 'null');
 let pacienteId = localStorage.getItem('re_p_paciente_id') || '';
 let tipoSeleccionado = '';
 
-// ── SPLASH ──
 setTimeout(() => {
   document.getElementById('screen-splash').classList.remove('active');
   if (token && user) {
@@ -903,7 +809,6 @@ setTimeout(() => {
   }
 }, 1800);
 
-// ── AUTH ──
 function switchTab(tab) {
   document.getElementById('tab-login').style.display = tab === 'login' ? 'block' : 'none';
   document.getElementById('tab-registro').style.display = tab === 'registro' ? 'block' : 'none';
@@ -917,9 +822,7 @@ async function doLogin() {
   const password = document.getElementById('login-password').value;
   const errEl = document.getElementById('login-error');
   errEl.style.display = 'none';
-
   if (!email || !password) { showError(errEl, 'Complete todos los campos'); return; }
-
   showLoading('Ingresando...');
   try {
     const res = await fetch(`${API}/api/auth/login`, {
@@ -931,12 +834,10 @@ async function doLogin() {
     hideLoading();
     if (!res.ok) throw new Error(data.message || 'Credenciales incorrectas');
     if (data.usuario.rol === 'admin') throw new Error('Use el panel admin para administradores.');
-
     token = data.accessToken;
     user = data.usuario;
     localStorage.setItem('re_p_token', token);
     localStorage.setItem('re_p_user', JSON.stringify(user));
-    await obtenerPacienteId();
     initApp();
   } catch(e) {
     hideLoading();
@@ -951,44 +852,33 @@ async function doRegistro() {
   const password = document.getElementById('reg-password').value;
   const errEl = document.getElementById('reg-error');
   errEl.style.display = 'none';
-
   if (!nombre || !email || !password) { showError(errEl, 'Complete todos los campos'); return; }
   if (password.length < 6) { showError(errEl, 'La contraseña debe tener mínimo 6 caracteres'); return; }
-
   showLoading('Creando cuenta...');
   try {
     const res = await fetch(`${API}/api/auth/register`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ nombreCompleto: nombre, email, telefono: telefono ? (telefono.startsWith("+") ? telefono : "+57" + telefono.replace(/\D/g, "")) : undefined, password, rol: "paciente" })
+      body: JSON.stringify({
+        nombreCompleto: nombre,
+        email,
+        telefono: telefono ? (telefono.startsWith('+') ? telefono : '+57' + telefono.replace(/\D/g, '')) : undefined,
+        password,
+        rol: 'paciente'
+      })
     });
     const data = await res.json();
     hideLoading();
     if (!res.ok) throw new Error(data.message || 'Error al registrarse');
-
     token = data.accessToken;
     user = data.usuario;
     localStorage.setItem('re_p_token', token);
     localStorage.setItem('re_p_user', JSON.stringify(user));
-    await obtenerPacienteId();
     initApp();
   } catch(e) {
     hideLoading();
     showError(errEl, e.message);
   }
-}
-
-async function obtenerPacienteId() {
-  try {
-    const res = await fetch(`${API}/api/pacientes/mi-perfil`, {
-      headers: { 'Authorization': `Bearer ${token}` }
-    });
-    if (res.ok) {
-      const data = await res.json();
-      pacienteId = data.id;
-      localStorage.setItem('re_p_paciente_id', pacienteId);
-    }
-  } catch(e) {}
 }
 
 function doLogout() {
@@ -1000,23 +890,18 @@ function doLogout() {
   document.getElementById('screen-auth').classList.add('active');
 }
 
-// ── INIT APP ──
 function initApp() {
   document.getElementById('screen-auth').classList.remove('active');
   document.getElementById('screen-app').classList.add('active');
-
   const nombre = user?.nombreCompleto || 'Paciente';
   const hora = new Date().getHours();
   const saludo = hora < 12 ? 'Buenos días' : hora < 18 ? 'Buenas tardes' : 'Buenas noches';
-
   document.querySelector('.topbar-greeting').textContent = saludo + ',';
   document.getElementById('app-nombre').textContent = nombre.split(' ')[0];
   document.getElementById('app-avatar').textContent = nombre.split(' ').map(w => w[0]).join('').slice(0,2).toUpperCase();
-
   loadServiciosRecientes();
 }
 
-// ── PAGES ──
 function showPage(name, btn) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.getElementById(`page-${name}`).classList.add('active');
@@ -1026,20 +911,20 @@ function showPage(name, btn) {
   }
 }
 
-// ── SERVICIOS ──
 async function loadServiciosRecientes() {
   const el = document.getElementById('servicios-recientes');
   try {
-    const res = await fetch(`${API}/api/servicios/mis-servicios?limit=3`, {
+    const res = await fetch(`${API}/api/servicios?limit=3`, {
       headers: { 'Authorization': `Bearer ${token}` }
     });
     if (!res.ok) throw new Error();
     const data = await res.json();
-    if (!data.length) {
+    const items = data.items || data;
+    if (!items.length) {
       el.innerHTML = '<div class="empty"><div class="empty-icon">📋</div><div class="empty-text">No tiene servicios aún</div></div>';
       return;
     }
-    el.innerHTML = data.map(s => servicioItem(s)).join('');
+    el.innerHTML = items.map(s => servicioItem(s)).join('');
   } catch(e) {
     el.innerHTML = '<div class="empty"><div class="empty-icon">📋</div><div class="empty-text">No tiene servicios aún</div></div>';
   }
@@ -1049,16 +934,17 @@ async function loadMisServicios() {
   const el = document.getElementById('mis-servicios-list');
   el.innerHTML = '<div style="text-align:center;padding:40px"><div class="loading-spinner" style="margin:0 auto;display:block;border-color:var(--border);border-top-color:var(--teal)"></div></div>';
   try {
-    const res = await fetch(`${API}/api/servicios/mis-servicios`, {
+    const res = await fetch(`${API}/api/servicios`, {
       headers: { 'Authorization': `Bearer ${token}` }
     });
     if (!res.ok) throw new Error();
     const data = await res.json();
-    if (!data.length) {
+    const items = data.items || data;
+    if (!items.length) {
       el.innerHTML = '<div class="empty"><div class="empty-icon">📋</div><div class="empty-text">No tiene servicios aún</div></div>';
       return;
     }
-    el.innerHTML = data.map(s => servicioItem(s)).join('');
+    el.innerHTML = items.map(s => servicioItem(s)).join('');
   } catch(e) {
     el.innerHTML = '<div class="empty"><div class="empty-icon">📋</div><div class="empty-text">No tiene servicios aún</div></div>';
   }
@@ -1071,13 +957,12 @@ function servicioItem(s) {
     <div class="service-item-icon">${iconos[s.tipo] || '🏥'}</div>
     <div class="service-item-info">
       <div class="service-item-name">${tipoLabel(s.tipo)}</div>
-      <div class="service-item-date">${formatDate(s.createdAt || s.fecha_solicitud)}</div>
+      <div class="service-item-date">${formatDate(s.createdAt || s.fechaSolicitud)}</div>
     </div>
     ${badge}
   </div>`;
 }
 
-// ── SOLICITAR ──
 function seleccionarTipo(tipo, el) {
   document.querySelectorAll('#tipo-grid .service-card').forEach(c => c.classList.remove('selected'));
   el.classList.add('selected');
@@ -1138,7 +1023,7 @@ async function enviarSolicitud() {
 
   try {
     const direccion = document.getElementById('sol-direccion').value.trim();
-    const ciudad = document.getElementById('sol-ciudad').value.trim();
+    const ciudad = document.getElementById('sol-ciudad').value.trim() || 'Santa Marta';
     const descripcion = document.getElementById('sol-descripcion').value.trim();
 
     const res = await fetch(`${API}/api/servicios`, {
@@ -1157,7 +1042,7 @@ async function enviarSolicitud() {
     });
 
     const data = await res.json();
-    if (!res.ok) throw new Error(data.message || 'Error al enviar la solicitud');
+    if (!res.ok) throw new Error(JSON.stringify(data));
 
     for (let i = 1; i <= 3; i++) document.getElementById(`paso-${i}`).style.display = 'none';
     document.getElementById('paso-exito').style.display = 'block';
@@ -1175,7 +1060,6 @@ function irInicio() {
   resetSolicitud();
 }
 
-// ── PERFIL ──
 function loadPerfil() {
   if (!user) return;
   const nombre = user.nombreCompleto || 'Paciente';
@@ -1185,7 +1069,6 @@ function loadPerfil() {
   document.getElementById('perfil-avatar').textContent = nombre.split(' ').map(w => w[0]).join('').slice(0,2).toUpperCase();
 }
 
-// ── HELPERS ──
 function showLoading(text) {
   document.getElementById('loading-text').textContent = text || 'Cargando...';
   document.getElementById('loading-overlay').classList.add('active');
@@ -1201,16 +1084,8 @@ function showError(el, msg) {
 }
 
 function estadoBadge(estado) {
-  const map = {
-    pendiente: 'badge-amber', asignado: 'badge-green',
-    en_camino: 'badge-green', en_curso: 'badge-green',
-    completado: 'badge-gray', cancelado: 'badge-red'
-  };
-  const labels = {
-    pendiente: 'Pendiente', asignado: 'Asignado',
-    en_camino: 'En camino', en_curso: 'En curso',
-    completado: 'Completado', cancelado: 'Cancelado'
-  };
+  const map = { pendiente:'badge-amber', asignado:'badge-green', en_camino:'badge-green', en_curso:'badge-green', completado:'badge-gray', cancelado:'badge-red' };
+  const labels = { pendiente:'Pendiente', asignado:'Asignado', en_camino:'En camino', en_curso:'En curso', completado:'Completado', cancelado:'Cancelado' };
   return `<span class="badge ${map[estado] || 'badge-gray'}">${labels[estado] || estado}</span>`;
 }
 
