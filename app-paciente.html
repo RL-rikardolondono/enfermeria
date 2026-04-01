@@ -979,14 +979,85 @@ async function loadMisServicios() {
 function servicioItem(s) {
   const iconos = { curacion:'🩹', medicacion:'💊', inyeccion:'💉', control:'🩺', cuidado_basico:'🛁', urgencia:'🚨' };
   const badge = estadoBadge(s.estado);
-  return `<div class="service-item">
-    <div class="service-item-icon">${iconos[s.tipo] || '🏥'}</div>
-    <div class="service-item-info">
-      <div class="service-item-name">${tipoLabel(s.tipo)}</div>
-      <div class="service-item-date">${formatDate(s.createdAt || s.fechaSolicitud)}</div>
+  const btnPago = s.estado === 'completado' ? `<button onclick="iniciarPago('${s.id}', event)" style="margin-top:8px;width:100%;padding:10px;background:#1B6B5A;color:white;border:none;border-radius:10px;font-family:Nunito,sans-serif;font-size:13px;font-weight:700;cursor:pointer">💳 Pagar servicio</button>` : '';
+  return `<div class="service-item" style="flex-direction:column;align-items:stretch">
+    <div style="display:flex;align-items:center;gap:14px">
+      <div class="service-item-icon">${iconos[s.tipo] || '🏥'}</div>
+      <div class="service-item-info">
+        <div class="service-item-name">${tipoLabel(s.tipo)}</div>
+        <div class="service-item-date">${formatDate(s.createdAt || s.fechaSolicitud)}</div>
+      </div>
+      ${badge}
     </div>
-    ${badge}
+    ${btnPago}
   </div>`;
+}
+
+async function iniciarPago(servicioId, e) {
+  e.stopPropagation();
+  showLoading('Preparando pago...');
+  try {
+    const res = await fetch(`${API}/api/pagos/iniciar`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify({ servicioId })
+    });
+    const data = await res.json();
+    hideLoading();
+    if (!res.ok) throw new Error(data.error || 'Error al iniciar pago');
+    mostrarWidgetWompi(data);
+  } catch(e) {
+    hideLoading();
+    alert('Error: ' + e.message);
+  }
+}
+
+function mostrarWidgetWompi(datos) {
+  // Crear overlay de pago
+  let overlay = document.getElementById('wompi-overlay');
+  if (overlay) overlay.remove();
+  overlay = document.createElement('div');
+  overlay.id = 'wompi-overlay';
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:500;display:flex;align-items:center;justify-content:center;padding:20px';
+  overlay.innerHTML = `
+    <div style="background:white;border-radius:20px;padding:24px;width:100%;max-width:380px;text-align:center">
+      <div style="font-size:24px;margin-bottom:8px">💳</div>
+      <div style="font-family:Nunito,sans-serif;font-size:18px;font-weight:800;color:#1A1714;margin-bottom:4px">Pago seguro</div>
+      <div style="font-family:Nunito,sans-serif;font-size:13px;color:#9A918A;margin-bottom:20px">Reina Elizabeth IPS</div>
+      <div style="background:#E8F4F1;border-radius:12px;padding:16px;margin-bottom:20px">
+        <div style="font-family:Nunito,sans-serif;font-size:13px;color:#4A4540;font-weight:600">Total a pagar</div>
+        <div style="font-family:Nunito,sans-serif;font-size:28px;font-weight:800;color:#1B6B5A">$${(datos.monto/100).toLocaleString('es-CO')} COP</div>
+      </div>
+      <form id="wompi-form">
+        <script src="https://checkout.wompi.co/widget.js"
+          data-render="button"
+          data-public-key="${datos.publicKey}"
+          data-currency="${datos.moneda}"
+          data-amount-in-cents="${datos.monto}"
+          data-reference="${datos.referencia}"
+          data-signature:integrity="${datos.firma}"
+          data-redirect-url="${datos.redirectUrl}"
+          data-customer-data:email="${datos.email}"
+          style="width:100%">
+        </script>
+      </form>
+      <button onclick="document.getElementById('wompi-overlay').remove()" style="margin-top:12px;width:100%;padding:12px;background:#FDECEC;color:#C44040;border:none;border-radius:12px;font-family:Nunito,sans-serif;font-size:14px;font-weight:700;cursor:pointer">Cancelar</button>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+  // Ejecutar el script de Wompi
+  const script = document.createElement('script');
+  script.src = 'https://checkout.wompi.co/widget.js';
+  script.setAttribute('data-render', 'button');
+  script.setAttribute('data-public-key', datos.publicKey);
+  script.setAttribute('data-currency', datos.moneda);
+  script.setAttribute('data-amount-in-cents', datos.monto);
+  script.setAttribute('data-reference', datos.referencia);
+  script.setAttribute('data-signature:integrity', datos.firma);
+  script.setAttribute('data-redirect-url', datos.redirectUrl);
+  if (datos.email) script.setAttribute('data-customer-data:email', datos.email);
+  const form = document.getElementById('wompi-form');
+  if (form) { form.innerHTML = ''; form.appendChild(script); }
 }
 
 function seleccionarTipo(tipo, el) {
