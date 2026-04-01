@@ -1083,28 +1083,35 @@ async function loadStats() {
 async function loadSolicitudes() {
   const el = document.getElementById('solicitudes-list');
   try {
-    const res = await fetch(`${API}/api/servicios`, {
+    // Cargar solicitudes pendientes del sistema
+    const resPend = await fetch(`${API}/api/servicios/pendientes`, {
       headers: { 'Authorization': `Bearer ${token}` }
     });
-    if (!res.ok) throw new Error();
-    const data = await res.json();
-    const items = (data.items || []).filter(s => s.estado === 'pendiente');
-    document.getElementById('badge-pendientes').textContent = items.length;
-
-    // Check for active service
-    const activos = (data.items || []).filter(s => ['asignado','en_camino','en_curso'].includes(s.estado));
-    if (activos.length > 0) {
-      mostrarServicioActivo(activos[0]);
-    } else {
-      document.getElementById('servicio-activo-container').style.display = 'none';
-      servicioActivoId = null;
+    if (resPend.ok) {
+      const dataPend = await resPend.json();
+      const items = dataPend.items || [];
+      document.getElementById('badge-pendientes').textContent = items.length;
+      if (!items.length) {
+        el.innerHTML = '<div class="empty"><div class="empty-icon">📭</div><div class="empty-text">Sin solicitudes pendientes</div></div>';
+      } else {
+        el.innerHTML = items.map(s => solicitudCard(s)).join('');
+      }
     }
 
-    if (!items.length) {
-      el.innerHTML = '<div class="empty"><div class="empty-icon">📭</div><div class="empty-text">Sin solicitudes pendientes</div></div>';
-      return;
+    // Cargar servicio activo del profesional
+    const resMios = await fetch(`${API}/api/servicios`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    if (resMios.ok) {
+      const dataMios = await resMios.json();
+      const activos = (dataMios.items || []).filter(s => ['asignado','en_camino','en_curso'].includes(s.estado));
+      if (activos.length > 0) {
+        mostrarServicioActivo(activos[0]);
+      } else {
+        document.getElementById('servicio-activo-container').style.display = 'none';
+        servicioActivoId = null;
+      }
     }
-    el.innerHTML = items.map(s => solicitudCard(s)).join('');
   } catch(e) {
     el.innerHTML = '<div class="empty"><div class="empty-icon">📭</div><div class="empty-text">Sin solicitudes por ahora</div></div>';
   }
