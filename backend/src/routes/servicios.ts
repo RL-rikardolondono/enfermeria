@@ -179,4 +179,28 @@ export async function serviciosRoutes(app: FastifyInstance) {
 
     return { total, page, limit, items }
   })
+// GET /api/servicios/pendientes — profesionales ven todas las solicitudes pendientes
+  app.get('/pendientes', { preHandler: requerirRol('profesional', 'admin') }, async (request) => {
+    const { page = 1, limit = 20 } = z.object({
+      page: z.coerce.number().default(1),
+      limit: z.coerce.number().max(50).default(20),
+    }).parse(request.query)
+
+    const [total, items] = await prisma.$transaction([
+      prisma.servicio.count({ where: { estado: 'pendiente' } }),
+      prisma.servicio.findMany({
+        where: { estado: 'pendiente' },
+        orderBy: { createdAt: 'asc' },
+        skip: (page - 1) * limit,
+        take: limit,
+        include: {
+          paciente: {
+            include: { usuario: { select: { nombreCompleto: true, telefono: true } } },
+          },
+        },
+      }),
+    ])
+
+    return { total, page, limit, items }
+  })
 }
