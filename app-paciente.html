@@ -1149,10 +1149,10 @@ async function enviarSolicitud() {
       },
       body: JSON.stringify({
         tipo: 'rutina',
-        descripcion: descripcion || 'Servicio de enfermeria solicitado',
-        latDestino: 11.2408,
-        lngDestino: -74.1990,
-        direccionDestino: direccion + ', ' + ciudad,
+        descripcion: descripcion || tipoLabel(tipoSeleccionado) + ' - Servicio solicitado',
+        direccion: direccion + ', ' + ciudad,
+        lat: 11.2408,
+        lng: -74.1990,
       })
     });
 
