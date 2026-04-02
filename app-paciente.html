@@ -189,7 +189,7 @@ body{font-family:'Nunito',sans-serif;background:var(--cream);color:var(--ink);mi
       <div class="step-subtitle">Ingrese la dirección de atención</div>
       <div class="form-group"><label>Dirección completa</label><input type="text" id="sol-direccion" placeholder="Calle 123 #45-67"></div>
       <div class="form-group"><label>Ciudad</label><input type="text" id="sol-ciudad" value="Santa Marta" placeholder="Santa Marta"></div>
-      <div class="form-group"><label>Descripción adicional (opcional)</label><textarea id="sol-descripcion" placeholder="Información adicional..."></textarea></div>
+      <div class="form-group"><label>Descripción del servicio <span style="color:var(--red)">*</span></label><textarea id="sol-descripcion" placeholder="Mínimo 5 caracteres. Ej: Curación de herida en pierna derecha..."></textarea><div style="font-size:11px;color:var(--muted);margin-top:4px;font-weight:600">Mínimo 5 caracteres</div></div>
       <div style="display:flex;gap:10px">
         <button class="btn-main" style="background:var(--border);color:var(--ink);flex:0 0 auto;width:50px" onclick="irPaso(1)">←</button>
         <button class="btn-main" onclick="irPaso(3)" style="flex:1">Continuar →</button>
@@ -450,7 +450,9 @@ function irPaso(n) {
   if (n===2 && !tipoSeleccionado) return;
   if (n===3) {
     const dir = document.getElementById('sol-direccion').value.trim();
+    const desc = document.getElementById('sol-descripcion').value.trim();
     if (!dir) { alert('Ingrese la dirección'); return; }
+    if (desc.length < 5) { alert('La descripción debe tener mínimo 5 caracteres'); return; }
     document.getElementById('confirm-tipo').textContent = tipoLabel(tipoSeleccionado);
     document.getElementById('confirm-direccion').textContent = dir;
     document.getElementById('confirm-ciudad').textContent = document.getElementById('sol-ciudad').value||'Santa Marta';
