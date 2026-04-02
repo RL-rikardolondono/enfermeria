@@ -388,51 +388,18 @@ async function loadMisServicios() {
 function servicioItem(s) {
   const iconos = {curacion:'🩹',medicacion:'💊',inyeccion:'💉',control:'🩺',cuidado_basico:'🛁',urgencia:'🚨'};
   const badge = estadoBadge(s.estado);
-  const btnPago = s.estado === 'completado' && !s.calificacion ? '<button class="btn-pago" onclick="iniciarPago(''+s.id+'',event)">💳 Pagar servicio</button>' : '';
-  const btnCal = s.estado === 'completado' && !s.calificacion ? '<button class="btn-pago" style="background:var(--amber);margin-top:6px" onclick="mostrarCalificacion(''+s.id+'')">⭐ Calificar servicio</button>' : '';
-  const calificado = s.calificacion ? '<div style="font-size:12px;color:var(--amber);margin-top:6px;font-weight:700">'+'⭐'.repeat(s.calificacion)+' Calificado</div>' : '';
-  return '<div class="service-item"><div class="service-item-row"><div class="service-item-icon">'+(iconos[s.tipo]||'🏥')+'</div><div class="service-item-info"><div class="service-item-name">'+tipoLabel(s.tipo)+'</div><div class="service-item-date">'+formatDate(s.createdAt||s.fechaSolicitud)+'</div></div>'+badge+'</div>'+calificado+btnPago+btnCal+'</div>';
-}
-
-function mostrarCalificacion(servicioId) {
-  let overlay = document.getElementById('cal-overlay');
-  if (overlay) overlay.remove();
-  estrellaSeleccionada = 0;
-  overlay = document.createElement('div');
-  overlay.id = 'cal-overlay';
-  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:500;display:flex;align-items:center;justify-content:center;padding:20px;box-sizing:border-box';
-  overlay.innerHTML = '<div style="background:white;border-radius:20px;padding:24px;width:100%;max-width:380px"><div style="font-size:20px;font-weight:800;color:#1A1714;margin-bottom:6px;font-family:Nunito,sans-serif">⭐ Calificar servicio</div><div style="font-size:13px;color:#9A918A;margin-bottom:20px;font-family:Nunito,sans-serif">¿Cómo fue su experiencia?</div><div style="display:flex;gap:8px;justify-content:center;margin-bottom:20px" id="estrellas-container"><button onclick="selEstrella(1)" id="est-1" style="font-size:36px;background:none;border:none;cursor:pointer">☆</button><button onclick="selEstrella(2)" id="est-2" style="font-size:36px;background:none;border:none;cursor:pointer">☆</button><button onclick="selEstrella(3)" id="est-3" style="font-size:36px;background:none;border:none;cursor:pointer">☆</button><button onclick="selEstrella(4)" id="est-4" style="font-size:36px;background:none;border:none;cursor:pointer">☆</button><button onclick="selEstrella(5)" id="est-5" style="font-size:36px;background:none;border:none;cursor:pointer">☆</button></div><textarea id="cal-comentario" placeholder="Comentario opcional..." style="width:100%;padding:12px;border:1.5px solid #E8E0D8;border-radius:10px;font-family:Nunito,sans-serif;font-size:13px;resize:none;height:80px;outline:none;margin-bottom:12px;box-sizing:border-box"></textarea><button onclick="enviarCalificacion(''+servicioId+'')" style="width:100%;padding:14px;background:#1B6B5A;color:white;border:none;border-radius:14px;font-family:Nunito,sans-serif;font-size:15px;font-weight:800;cursor:pointer;margin-bottom:8px">Enviar calificación</button><button onclick="document.getElementById('cal-overlay').remove()" style="width:100%;padding:12px;background:#FDECEC;color:#C44040;border:none;border-radius:14px;font-family:Nunito,sans-serif;font-size:14px;font-weight:700;cursor:pointer">Cancelar</button></div>';
-  document.body.appendChild(overlay);
-}
-
-let estrellaSeleccionada = 0;
-function selEstrella(n) {
-  estrellaSeleccionada = n;
-  for (let i=1;i<=5;i++) {
-    const el = document.getElementById('est-'+i);
-    if (el) el.textContent = i <= n ? '⭐' : '☆';
+  let extra = '';
+  if (s.estado === 'completado') {
+    if (s.calificacion) {
+      extra += '<div style="font-size:12px;color:#E8932A;margin-top:6px;font-weight:700">' + '⭐'.repeat(s.calificacion) + ' Calificado</div>';
+    } else {
+      extra += '<button class="btn-pago" onclick="iniciarPago('' + s.id + '',event)">💳 Pagar servicio</button>';
+      extra += '<button class="btn-pago" style="background:#E8932A;margin-top:6px" onclick="mostrarCalificacion('' + s.id + '')">⭐ Calificar servicio</button>';
+    }
   }
+  return '<div class="service-item"><div class="service-item-row"><div class="service-item-icon">' + (iconos[s.tipo]||'🏥') + '</div><div class="service-item-info"><div class="service-item-name">' + tipoLabel(s.tipo) + '</div><div class="service-item-date">' + formatDate(s.createdAt||s.fechaSolicitud) + '</div></div>' + badge + '</div>' + extra + '</div>';
 }
 
-async function enviarCalificacion(servicioId) {
-  if (!estrellaSeleccionada) { alert('Seleccione una calificación de 1 a 5 estrellas'); return; }
-  const comentario = document.getElementById('cal-comentario').value.trim();
-  showLoading('Enviando calificación...');
-  try {
-    const res = await fetch(API+'/api/servicios/'+servicioId+'/calificar', {
-      method:'POST',
-      headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
-      body:JSON.stringify({puntuacion:estrellaSeleccionada,comentario:comentario||undefined})
-    });
-    hideLoading();
-    if (!res.ok) throw new Error('Error al calificar');
-    document.getElementById('cal-overlay').remove();
-    estrellaSeleccionada = 0;
-    mostrarNotif('✅ ¡Gracias por su calificación!', '#2E7D52');
-    loadMisServicios();
-    loadServiciosRecientes();
-  } catch(e) { hideLoading(); alert('Error: '+e.message); }
-}
 
 async function iniciarPago(servicioId, e) {
   e.stopPropagation();
