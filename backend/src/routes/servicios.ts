@@ -57,9 +57,11 @@ export async function serviciosRoutes(app: FastifyInstance) {
     if (usuario.rol === 'paciente') {
       const paciente = await prisma.paciente.findUnique({ where: { usuarioId: usuario.id } })
       if (paciente) where = { pacienteId: paciente.id }
-    } else if (usuario.rol === 'profesional') {
+   } else if (usuario.rol === 'profesional') {
       const profesional = await prisma.profesional.findUnique({ where: { usuarioId: usuario.id } })
       if (profesional) where = { profesionalId: profesional.id }
+    } else if (usuario.rol === 'admin') {
+      where = {}
     }
 
     const [total, items] = await prisma.$transaction([
