@@ -226,4 +226,25 @@ export async function serviciosRoutes(app: FastifyInstance) {
 
     return { total, page, limit, items }
   })
+// POST /api/servicios/:id/calificar
+  app.post('/:id/calificar', { preHandler: autenticar }, async (request, reply) => {
+    const { id } = z.object({ id: z.string().uuid() }).parse(request.params)
+    const { puntuacion, comentario } = z.object({
+      puntuacion: z.number().min(1).max(5),
+      comentario: z.string().optional(),
+    }).parse(request.body)
+
+    const servicio = await prisma.servicio.findUnique({
+      where: { id },
+      include: { paciente: true },
+    })
+    if (!servicio) return reply.status(404).send({ error: 'Servicio no encontrado' })
+
+    const actualizado = await prisma.servicio.update({
+      where: { id },
+      data: { calificacion: puntuacion, comentarioCalificacion: comentario },
+    })
+
+    return actualizado
+  })
 }
