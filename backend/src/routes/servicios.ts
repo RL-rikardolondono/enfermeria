@@ -26,7 +26,7 @@ export async function serviciosRoutes(app: FastifyInstance) {
     const servicio = await prisma.servicio.create({
       data: {
         pacienteId: paciente.id,
-        tipo: 'curacion',
+        tipo: body.tipo as any,
         descripcion: body.descripcion,
         direccion: body.direccion,
         lat: body.lat,
