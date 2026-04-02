@@ -106,11 +106,32 @@ export async function serviciosRoutes(app: FastifyInstance) {
   })
 
   // PUT /api/servicios/:id/estado — cambiar estado
+ // PUT /api/servicios/:id/estado
   app.put('/:id/estado', { preHandler: autenticar }, async (request, reply) => {
     const { id } = z.object({ id: z.string().uuid() }).parse(request.params)
     const { estado } = z.object({
       estado: z.enum(['asignado', 'en_camino', 'en_curso', 'completado', 'cancelado']),
     }).parse(request.body)
+
+    let profesionalId: string | undefined
+    if (estado === 'asignado' && request.usuario.rol === 'profesional') {
+      const profesional = await prisma.profesional.findUnique({
+        where: { usuarioId: request.usuario.id }
+      })
+      profesionalId = profesional?.id
+    }
+
+    const servicio = await prisma.servicio.update({
+      where: { id },
+      data: {
+        estado,
+        ...(profesionalId && { profesionalId }),
+        fechaInicio: estado === 'en_curso' ? new Date() : undefined,
+        fechaFin: estado === 'completado' ? new Date() : undefined,
+      },
+    })
+    return servicio
+  })
 
     const servicio = await prisma.servicio.update({
       where: { id },
