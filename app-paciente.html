@@ -307,7 +307,11 @@ function servicioItem(s) {
       for(var i=0;i<s.calificacion;i++) stars += '&#x2605;';
       extra += '<div style="font-size:12px;color:#E8932A;margin-top:6px;font-weight:700">'+stars+' Calificado</div>';
     } else {
-      extra += '<button class="btn-pago" data-sid="'+s.id+'" onclick="iniciarPago(this.dataset.sid,event)">&#x1F4B3; Pagar servicio</button>';
+      if (!s.pago || s.pago.estado !== 'aprobado') {
+        extra += '<button class="btn-pago" data-sid="'+s.id+'" onclick="iniciarPago(this.dataset.sid,event)">&#x1F4B3; Pagar servicio</button>';
+      } else {
+        extra += '<div style="font-size:12px;color:#2E7D52;margin-top:6px;font-weight:700">&#x2705; Pago realizado</div>';
+      }
       extra += '<button class="btn-pago" data-sid="'+s.id+'" style="background:#E8932A;margin-top:6px" onclick="mostrarCalificacion(this.dataset.sid)">&#x2B50; Calificar servicio</button>';
     }
   }
