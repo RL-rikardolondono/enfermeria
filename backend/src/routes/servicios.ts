@@ -79,6 +79,7 @@ export async function serviciosRoutes(app: FastifyInstance) {
             include: { usuario: { select: { nombreCompleto: true, telefono: true } } },
           },
         },
+          pago: true,
       }),
     ])
 
