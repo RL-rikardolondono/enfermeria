@@ -9,7 +9,7 @@ export async function serviciosRoutes(app: FastifyInstance) {
   // POST /api/servicios — crear solicitud
   app.post('/', { preHandler: autenticar }, async (request, reply) => {
     const body = z.object({
-      tipo: z.enum(['rutina', 'urgente', 'emergencia']),
+      tipo: z.string().min(1),
       descripcion: z.string().min(5).max(500),
       direccion: z.string().min(5),
       lat: z.number().optional(),
@@ -26,7 +26,7 @@ export async function serviciosRoutes(app: FastifyInstance) {
     const servicio = await prisma.servicio.create({
       data: {
         pacienteId: paciente.id,
-        tipo: body.tipo as any,
+        tipo: 'curacion' as any,
         descripcion: body.descripcion,
         direccion: body.direccion,
         lat: body.lat,
@@ -52,12 +52,12 @@ export async function serviciosRoutes(app: FastifyInstance) {
     }).parse(request.query)
 
     const usuario = request.usuario
-
     let where: any = {}
+
     if (usuario.rol === 'paciente') {
       const paciente = await prisma.paciente.findUnique({ where: { usuarioId: usuario.id } })
       if (paciente) where = { pacienteId: paciente.id }
-   } else if (usuario.rol === 'profesional') {
+    } else if (usuario.rol === 'profesional') {
       const profesional = await prisma.profesional.findUnique({ where: { usuarioId: usuario.id } })
       if (profesional) where = { profesionalId: profesional.id }
     } else if (usuario.rol === 'admin') {
@@ -78,8 +78,33 @@ export async function serviciosRoutes(app: FastifyInstance) {
           profesional: {
             include: { usuario: { select: { nombreCompleto: true, telefono: true } } },
           },
-        },
           pago: true,
+        },
+      }),
+    ])
+
+    return { total, page, limit, items }
+  })
+
+  // GET /api/servicios/pendientes — profesionales ven solicitudes pendientes
+  app.get('/pendientes', { preHandler: requerirRol('profesional', 'admin') }, async (request) => {
+    const { page = 1, limit = 20 } = z.object({
+      page: z.coerce.number().default(1),
+      limit: z.coerce.number().max(50).default(20),
+    }).parse(request.query)
+
+    const [total, items] = await prisma.$transaction([
+      prisma.servicio.count({ where: { estado: 'pendiente' } }),
+      prisma.servicio.findMany({
+        where: { estado: 'pendiente' },
+        orderBy: { createdAt: 'asc' },
+        skip: (page - 1) * limit,
+        take: limit,
+        include: {
+          paciente: {
+            include: { usuario: { select: { nombreCompleto: true, telefono: true } } },
+          },
+        },
       }),
     ])
 
@@ -92,13 +117,11 @@ export async function serviciosRoutes(app: FastifyInstance) {
     const servicio = await prisma.servicio.findUnique({
       where: { id },
       include: {
-          paciente: {
-            include: { usuario: { select: { nombreCompleto: true, telefono: true } } },
-          },
-          profesional: {
-            include: { usuario: { select: { nombreCompleto: true, telefono: true } } },
-          },
-          pago: true,
+        paciente: {
+          include: { usuario: { select: { nombreCompleto: true, telefono: true } } },
+        },
+        profesional: {
+          include: { usuario: { select: { nombreCompleto: true, telefono: true } } },
         },
         evoluciones: true,
         pago: true,
@@ -108,8 +131,7 @@ export async function serviciosRoutes(app: FastifyInstance) {
     return servicio
   })
 
-  // PUT /api/servicios/:id/estado — cambiar estado
- // PUT /api/servicios/:id/estado
+  // PUT /api/servicios/:id/estado
   app.put('/:id/estado', { preHandler: autenticar }, async (request, reply) => {
     const { id } = z.object({ id: z.string().uuid() }).parse(request.params)
     const { estado } = z.object({
@@ -136,18 +158,7 @@ export async function serviciosRoutes(app: FastifyInstance) {
     return servicio
   })
 
-    const servicio = await prisma.servicio.update({
-      where: { id },
-      data: {
-        estado,
-        fechaInicio: estado === 'en_curso' ? new Date() : undefined,
-        fechaFin: estado === 'completado' ? new Date() : undefined,
-      },
-    })
-    return servicio
-  })
-
-  // POST /api/servicios/:id/evolucion — registrar evolución
+  // POST /api/servicios/:id/evolucion
   app.post('/:id/evolucion', { preHandler: requerirRol('profesional', 'admin') }, async (request, reply) => {
     const { id } = z.object({ id: z.string().uuid() }).parse(request.params)
     const body = z.object({
@@ -175,7 +186,7 @@ export async function serviciosRoutes(app: FastifyInstance) {
     return reply.status(201).send(evolucion)
   })
 
-  // GET /api/servicios/admin/todos — admin ve todos
+  // GET /api/servicios/admin/todos
   app.get('/admin/todos', { preHandler: requerirRol('admin') }, async (request) => {
     const { page = 1, limit = 20, estado } = z.object({
       page: z.coerce.number().default(1),
@@ -205,31 +216,8 @@ export async function serviciosRoutes(app: FastifyInstance) {
 
     return { total, page, limit, items }
   })
-// GET /api/servicios/pendientes — profesionales ven todas las solicitudes pendientes
-  app.get('/pendientes', { preHandler: requerirRol('profesional', 'admin') }, async (request) => {
-    const { page = 1, limit = 20 } = z.object({
-      page: z.coerce.number().default(1),
-      limit: z.coerce.number().max(50).default(20),
-    }).parse(request.query)
 
-    const [total, items] = await prisma.$transaction([
-      prisma.servicio.count({ where: { estado: 'pendiente' } }),
-      prisma.servicio.findMany({
-        where: { estado: 'pendiente' },
-        orderBy: { createdAt: 'asc' },
-        skip: (page - 1) * limit,
-        take: limit,
-        include: {
-          paciente: {
-            include: { usuario: { select: { nombreCompleto: true, telefono: true } } },
-          },
-        },
-      }),
-    ])
-
-    return { total, page, limit, items }
-  })
-// POST /api/servicios/:id/calificar
+  // POST /api/servicios/:id/calificar
   app.post('/:id/calificar', { preHandler: autenticar }, async (request, reply) => {
     const { id } = z.object({ id: z.string().uuid() }).parse(request.params)
     const { puntuacion, comentario } = z.object({
@@ -237,10 +225,7 @@ export async function serviciosRoutes(app: FastifyInstance) {
       comentario: z.string().optional(),
     }).parse(request.body)
 
-    const servicio = await prisma.servicio.findUnique({
-      where: { id },
-      include: { paciente: true },
-    })
+    const servicio = await prisma.servicio.findUnique({ where: { id } })
     if (!servicio) return reply.status(404).send({ error: 'Servicio no encontrado' })
 
     const actualizado = await prisma.servicio.update({
