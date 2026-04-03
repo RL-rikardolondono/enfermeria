@@ -91,11 +91,13 @@ export async function serviciosRoutes(app: FastifyInstance) {
     const servicio = await prisma.servicio.findUnique({
       where: { id },
       include: {
-        paciente: {
-          include: { usuario: { select: { nombreCompleto: true, telefono: true } } },
-        },
-        profesional: {
-          include: { usuario: { select: { nombreCompleto: true, telefono: true } } },
+          paciente: {
+            include: { usuario: { select: { nombreCompleto: true, telefono: true } } },
+          },
+          profesional: {
+            include: { usuario: { select: { nombreCompleto: true, telefono: true } } },
+          },
+          pago: true,
         },
         evoluciones: true,
         pago: true,
