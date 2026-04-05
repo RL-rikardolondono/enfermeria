@@ -79,8 +79,7 @@ model Sesion {
   activa      Boolean   @default(true)
   expiresAt   DateTime? @map("expires_at")
   createdAt   DateTime  @default(now()) @map("created_at")
-  calificacion           Int?
-comentarioCalificacion String?        @map("comentario_calificacion")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
   usuario     Usuario   @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
   @@map("sesiones")
 }
@@ -132,36 +131,36 @@ model Paciente {
 }
 
 model Profesional {
-  id                  String             @id @default(uuid())
-  usuarioId           String             @unique @map("usuario_id")
-  especialidad        String?            @db.VarChar(100)
-  registroProfesional String?            @map("registro_profesional") @db.VarChar(100)
-  estadoVerificacion  EstadoVerificacion @default(pendiente) @map("estado_verificacion")
-  disponible          Boolean            @default(false)
-  lat                 Decimal?           @db.Decimal(10, 8)
-  lng                 Decimal?           @db.Decimal(11, 8)
-  latBase             Decimal?           @map("lat_base") @db.Decimal(10, 8)
-  lngBase             Decimal?           @map("lng_base") @db.Decimal(11, 8)
-  radioAtencion       Decimal?           @map("radio_atencion") @db.Decimal(8, 2)
-  calificacionPromedio Decimal?          @map("calificacion_promedio") @db.Decimal(3, 2)
-  totalServicios      Int                @default(0) @map("total_servicios")
-  tarifaHora          Decimal?           @map("tarifa_hora") @db.Decimal(12, 2)
-  anosExperiencia     Int?               @map("anos_experiencia")
-  hojaVidaUrl         String?            @map("hoja_vida_url") @db.VarChar(500)
-  fotoUrl             String?            @map("foto_url") @db.VarChar(500)
-  banco               String?            @db.VarChar(100)
-  cuentaBancaria      String?            @map("cuenta_bancaria") @db.VarChar(100)
-  tipoCuenta          String?            @map("tipo_cuenta") @db.VarChar(50)
-  verificadoPor       String?            @map("verificado_por")
-  verificadoEn        DateTime?          @map("verificado_en")
-  activo              Boolean            @default(true)
-  createdAt           DateTime           @default(now()) @map("created_at")
-  updatedAt           DateTime           @updatedAt @map("updated_at")
-  usuario             Usuario            @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
-  documentos          DocumentoProfesional[]
-  servicios           Servicio[]
-  evoluciones         Evolucion[]
-  tracking            TrackingHistorial[]
+  id                   String             @id @default(uuid())
+  usuarioId            String             @unique @map("usuario_id")
+  especialidad         String?            @db.VarChar(100)
+  registroProfesional  String?            @map("registro_profesional") @db.VarChar(100)
+  estadoVerificacion   EstadoVerificacion @default(pendiente) @map("estado_verificacion")
+  disponible           Boolean            @default(false)
+  lat                  Decimal?           @db.Decimal(10, 8)
+  lng                  Decimal?           @db.Decimal(11, 8)
+  latBase              Decimal?           @map("lat_base") @db.Decimal(10, 8)
+  lngBase              Decimal?           @map("lng_base") @db.Decimal(11, 8)
+  radioAtencion        Decimal?           @map("radio_atencion") @db.Decimal(8, 2)
+  calificacionPromedio Decimal?           @map("calificacion_promedio") @db.Decimal(3, 2)
+  totalServicios       Int                @default(0) @map("total_servicios")
+  tarifaHora           Decimal?           @map("tarifa_hora") @db.Decimal(12, 2)
+  anosExperiencia      Int?               @map("anos_experiencia")
+  hojaVidaUrl          String?            @map("hoja_vida_url") @db.VarChar(500)
+  fotoUrl              String?            @map("foto_url") @db.VarChar(500)
+  banco                String?            @db.VarChar(100)
+  cuentaBancaria       String?            @map("cuenta_bancaria") @db.VarChar(100)
+  tipoCuenta           String?            @map("tipo_cuenta") @db.VarChar(50)
+  verificadoPor        String?            @map("verificado_por")
+  verificadoEn         DateTime?          @map("verificado_en")
+  activo               Boolean            @default(true)
+  createdAt            DateTime           @default(now()) @map("created_at")
+  updatedAt            DateTime           @updatedAt @map("updated_at")
+  usuario              Usuario            @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  documentos           DocumentoProfesional[]
+  servicios            Servicio[]
+  evoluciones          Evolucion[]
+  tracking             TrackingHistorial[]
   @@map("profesionales")
 }
 
@@ -192,6 +191,8 @@ model Servicio {
   fechaInicio            DateTime?      @map("fecha_inicio")
   fechaFin               DateTime?      @map("fecha_fin")
   monto                  Decimal?       @db.Decimal(12, 2)
+  calificacion           Int?
+  comentarioCalificacion String?        @map("comentario_calificacion")
   createdAt              DateTime       @default(now()) @map("created_at")
   updatedAt              DateTime       @updatedAt @map("updated_at")
   paciente               Paciente?      @relation(fields: [pacienteId], references: [id])
@@ -203,20 +204,20 @@ model Servicio {
 }
 
 model Evolucion {
-  id                String      @id @default(uuid())
-  servicioId        String      @map("servicio_id")
-  profesionalId     String?     @map("profesional_id")
-  tensionSistolica  Int?        @map("tension_sistolica")
-  tensionDiastolica Int?        @map("tension_diastolica")
-  frecuenciaCardiaca Int?       @map("frecuencia_cardiaca")
-  temperatura       Decimal?    @db.Decimal(4, 1)
-  saturacionOxigeno Int?        @map("saturacion_oxigeno")
-  glucemia          Int?
-  observaciones     String?
-  procedimientos    String?
-  createdAt         DateTime    @default(now()) @map("created_at")
-  servicio          Servicio    @relation(fields: [servicioId], references: [id], onDelete: Cascade)
-  profesional       Profesional? @relation(fields: [profesionalId], references: [id])
+  id                 String       @id @default(uuid())
+  servicioId         String       @map("servicio_id")
+  profesionalId      String?      @map("profesional_id")
+  tensionSistolica   Int?         @map("tension_sistolica")
+  tensionDiastolica  Int?         @map("tension_diastolica")
+  frecuenciaCardiaca Int?         @map("frecuencia_cardiaca")
+  temperatura        Decimal?     @db.Decimal(4, 1)
+  saturacionOxigeno  Int?         @map("saturacion_oxigeno")
+  glucemia           Int?
+  observaciones      String?
+  procedimientos     String?
+  createdAt          DateTime     @default(now()) @map("created_at")
+  servicio           Servicio     @relation(fields: [servicioId], references: [id], onDelete: Cascade)
+  profesional        Profesional? @relation(fields: [profesionalId], references: [id])
   @@map("evoluciones")
 }
 
