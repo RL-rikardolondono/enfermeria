@@ -42,7 +42,7 @@ async function bootstrap() {
   // Auth
   await app.register(jwt, {
     secret: process.env.JWT_SECRET!,
-    sign: { expiresIn: '24h' },,
+    sign: { expiresIn: '24h' },
   })
 
   // Archivos y WebSocket
