@@ -9,685 +9,148 @@
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Syne:wght@700;800&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #0F1923;
-    --bg2: #162030;
-    --bg3: #1E2D3E;
-    --card: #1A2A3A;
-    --border: rgba(255,255,255,0.08);
-    --teal: #00D4AA;
-    --teal-dim: rgba(0,212,170,0.15);
-    --teal-glow: rgba(0,212,170,0.3);
-    --amber: #FFB547;
-    --amber-dim: rgba(255,181,71,0.15);
-    --red: #FF5C5C;
-    --red-dim: rgba(255,92,92,0.15);
-    --blue: #4D9FFF;
-    --blue-dim: rgba(77,159,255,0.15);
-    --white: #FFFFFF;
-    --text: #E8EDF2;
-    --muted: #6B8099;
-    --radius: 18px;
-    --radius-sm: 12px;
+    --bg: #0F1923; --bg2: #162030; --bg3: #1E2D3E; --card: #1A2A3A;
+    --border: rgba(255,255,255,0.08); --teal: #00D4AA; --teal-dim: rgba(0,212,170,0.15);
+    --teal-glow: rgba(0,212,170,0.3); --amber: #FFB547; --amber-dim: rgba(255,181,71,0.15);
+    --red: #FF5C5C; --red-dim: rgba(255,92,92,0.15); --blue: #4D9FFF;
+    --blue-dim: rgba(77,159,255,0.15); --white: #FFFFFF; --text: #E8EDF2;
+    --muted: #6B8099; --radius: 18px; --radius-sm: 12px;
     --safe-bottom: env(safe-area-inset-bottom, 16px);
   }
-
   * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-
-  body {
-    font-family: 'Space Grotesk', sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    min-height: 100vh;
-    max-width: 430px;
-    margin: 0 auto;
-    overflow-x: hidden;
-  }
-
+  body { font-family: 'Space Grotesk', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; max-width: 430px; margin: 0 auto; overflow-x: hidden; }
   .screen { display: none; min-height: 100vh; flex-direction: column; }
   .screen.active { display: flex; }
 
-  /* SPLASH */
-  #screen-splash {
-    background: var(--bg);
-    align-items: center;
-    justify-content: center;
-    gap: 16px;
-    position: relative;
-    overflow: hidden;
-  }
-
-  #screen-splash::before {
-    content: '';
-    position: absolute;
-    width: 300px; height: 300px;
-    background: radial-gradient(circle, rgba(0,212,170,0.15) 0%, transparent 70%);
-    top: 50%; left: 50%;
-    transform: translate(-50%, -50%);
-    animation: pulse 2s ease-in-out infinite;
-  }
-
-  @keyframes pulse {
-    0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.7; }
-    50% { transform: translate(-50%, -50%) scale(1.2); opacity: 1; }
-  }
-
-  .splash-badge {
-    width: 90px; height: 90px;
-    border: 2px solid var(--teal);
-    border-radius: 24px;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 44px;
-    position: relative;
-    z-index: 1;
-    animation: fadeIn 0.5s ease;
-    box-shadow: 0 0 40px var(--teal-glow);
-  }
-
+  #screen-splash { background: var(--bg); align-items: center; justify-content: center; gap: 16px; position: relative; overflow: hidden; }
+  #screen-splash::before { content: ''; position: absolute; width: 300px; height: 300px; background: radial-gradient(circle, rgba(0,212,170,0.15) 0%, transparent 70%); top: 50%; left: 50%; transform: translate(-50%, -50%); animation: pulse 2s ease-in-out infinite; }
+  @keyframes pulse { 0%, 100% { transform: translate(-50%,-50%) scale(1); opacity: 0.7; } 50% { transform: translate(-50%,-50%) scale(1.2); opacity: 1; } }
+  .splash-badge { width: 90px; height: 90px; border: 2px solid var(--teal); border-radius: 24px; display: flex; align-items: center; justify-content: center; font-size: 44px; position: relative; z-index: 1; animation: fadeIn 0.5s ease; box-shadow: 0 0 40px var(--teal-glow); }
   @keyframes fadeIn { from { opacity: 0; transform: scale(0.8); } to { opacity: 1; transform: scale(1); } }
-
   .splash-text { text-align: center; z-index: 1; animation: slideUp 0.5s ease 0.2s both; }
   .splash-text h1 { font-family: 'Syne', sans-serif; font-size: 26px; color: var(--white); }
   .splash-text p { font-size: 13px; color: var(--muted); margin-top: 4px; }
-  .splash-role {
-    background: var(--teal-dim);
-    border: 1px solid var(--teal);
-    color: var(--teal);
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 2px;
-    padding: 6px 16px;
-    border-radius: 20px;
-    z-index: 1;
-    animation: slideUp 0.5s ease 0.3s both;
-  }
-
+  .splash-role { background: var(--teal-dim); border: 1px solid var(--teal); color: var(--teal); font-size: 11px; font-weight: 700; letter-spacing: 2px; padding: 6px 16px; border-radius: 20px; z-index: 1; animation: slideUp 0.5s ease 0.3s both; }
   @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 
-  /* AUTH */
   #screen-auth { background: var(--bg); }
-
-  .auth-top {
-    padding: 60px 24px 32px;
-    position: relative;
-  }
-
-  .auth-top::after {
-    content: '';
-    position: absolute;
-    bottom: 0; left: 0; right: 0;
-    height: 1px;
-    background: linear-gradient(90deg, transparent, var(--teal), transparent);
-  }
-
-  .auth-top h1 {
-    font-family: 'Syne', sans-serif;
-    font-size: 28px;
-    color: var(--white);
-    margin-bottom: 6px;
-  }
-
+  .auth-top { padding: 60px 24px 32px; position: relative; }
+  .auth-top::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, transparent, var(--teal), transparent); }
+  .auth-top h1 { font-family: 'Syne', sans-serif; font-size: 28px; color: var(--white); margin-bottom: 6px; }
   .auth-top p { font-size: 14px; color: var(--muted); }
-
-  .auth-tabs {
-    display: flex;
-    gap: 4px;
-    background: var(--bg3);
-    border-radius: var(--radius-sm);
-    padding: 4px;
-    margin-top: 20px;
-  }
-
-  .auth-tab {
-    flex: 1;
-    padding: 9px;
-    border: none;
-    background: transparent;
-    color: var(--muted);
-    font-family: 'Space Grotesk', sans-serif;
-    font-size: 13px;
-    font-weight: 600;
-    cursor: pointer;
-    border-radius: 9px;
-    transition: all 0.2s;
-  }
-
+  .auth-tabs { display: flex; gap: 4px; background: var(--bg3); border-radius: var(--radius-sm); padding: 4px; margin-top: 20px; }
+  .auth-tab { flex: 1; padding: 9px; border: none; background: transparent; color: var(--muted); font-family: 'Space Grotesk', sans-serif; font-size: 13px; font-weight: 600; cursor: pointer; border-radius: 9px; transition: all 0.2s; }
   .auth-tab.active { background: var(--teal); color: var(--bg); }
-
   .auth-body { padding: 24px; flex: 1; }
-
   .form-group { margin-bottom: 14px; }
-
-  .form-group label {
-    display: block;
-    font-size: 12px;
-    font-weight: 600;
-    color: var(--muted);
-    margin-bottom: 7px;
-    letter-spacing: 0.5px;
-    text-transform: uppercase;
-  }
-
-  .form-group input, .form-group select {
-    width: 100%;
-    padding: 13px 16px;
-    border: 1px solid var(--border);
-    border-radius: var(--radius-sm);
-    font-family: 'Space Grotesk', sans-serif;
-    font-size: 15px;
-    background: var(--bg3);
-    color: var(--text);
-    outline: none;
-    transition: border-color 0.2s;
-    appearance: none;
-  }
-
-  .form-group input:focus, .form-group select:focus {
-    border-color: var(--teal);
-    box-shadow: 0 0 0 3px var(--teal-dim);
-  }
-
-  .btn-main {
-    width: 100%;
-    padding: 15px;
-    background: var(--teal);
-    color: var(--bg);
-    border: none;
-    border-radius: var(--radius);
-    font-family: 'Space Grotesk', sans-serif;
-    font-size: 15px;
-    font-weight: 700;
-    cursor: pointer;
-    transition: all 0.15s;
-    margin-top: 6px;
-    letter-spacing: 0.3px;
-  }
-
+  .form-group label { display: block; font-size: 12px; font-weight: 600; color: var(--muted); margin-bottom: 7px; letter-spacing: 0.5px; text-transform: uppercase; }
+  .form-group input, .form-group select { width: 100%; padding: 13px 16px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-family: 'Space Grotesk', sans-serif; font-size: 15px; background: var(--bg3); color: var(--text); outline: none; transition: border-color 0.2s; appearance: none; }
+  .form-group input:focus, .form-group select:focus { border-color: var(--teal); box-shadow: 0 0 0 3px var(--teal-dim); }
+  .form-group input.error-field { border-color: var(--red); }
+  .field-hint { font-size: 11px; color: var(--muted); margin-top: 4px; }
+  .btn-main { width: 100%; padding: 15px; background: var(--teal); color: var(--bg); border: none; border-radius: var(--radius); font-family: 'Space Grotesk', sans-serif; font-size: 15px; font-weight: 700; cursor: pointer; transition: all 0.15s; margin-top: 6px; letter-spacing: 0.3px; }
   .btn-main:active { transform: scale(0.98); opacity: 0.9; }
+  .auth-error { background: var(--red-dim); border: 1px solid var(--red); color: var(--red); padding: 11px 14px; border-radius: var(--radius-sm); font-size: 13px; font-weight: 600; margin-top: 10px; display: none; }
 
-  .auth-error {
-    background: var(--red-dim);
-    border: 1px solid var(--red);
-    color: var(--red);
-    padding: 11px 14px;
-    border-radius: var(--radius-sm);
-    font-size: 13px;
-    font-weight: 600;
-    margin-top: 10px;
-    display: none;
-  }
-
-  /* APP SHELL */
-  #screen-app {
-    background: var(--bg);
-    padding-bottom: calc(70px + var(--safe-bottom));
-  }
-
-  .topbar {
-    background: var(--bg2);
-    padding: 16px 20px 14px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    position: sticky; top: 0; z-index: 50;
-    border-bottom: 1px solid var(--border);
-  }
-
+  #screen-app { background: var(--bg); padding-bottom: calc(70px + var(--safe-bottom)); }
+  .topbar { background: var(--bg2); padding: 16px 20px 14px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 50; border-bottom: 1px solid var(--border); }
   .topbar-left { display: flex; flex-direction: column; gap: 2px; }
   .topbar-greeting { font-size: 12px; color: var(--muted); font-weight: 500; }
   .topbar-name { font-family: 'Syne', sans-serif; font-size: 17px; color: var(--white); }
-
   .topbar-right { display: flex; align-items: center; gap: 10px; }
-
-  .status-pill {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    padding: 6px 12px;
-    border-radius: 20px;
-    font-size: 12px;
-    font-weight: 700;
-    cursor: pointer;
-    transition: all 0.2s;
-    border: none;
-    font-family: 'Space Grotesk', sans-serif;
-  }
-
+  .status-pill { display: flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 700; cursor: pointer; transition: all 0.2s; border: none; font-family: 'Space Grotesk', sans-serif; }
   .status-pill.disponible { background: var(--teal-dim); color: var(--teal); border: 1px solid var(--teal); }
   .status-pill.ocupado { background: var(--amber-dim); color: var(--amber); border: 1px solid var(--amber); }
   .status-dot { width: 7px; height: 7px; border-radius: 50%; }
   .status-pill.disponible .status-dot { background: var(--teal); animation: blink 1.5s ease-in-out infinite; }
   .status-pill.ocupado .status-dot { background: var(--amber); }
-
   @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
 
-  .bottom-nav {
-    position: fixed;
-    bottom: 0; left: 50%;
-    transform: translateX(-50%);
-    width: 100%; max-width: 430px;
-    background: var(--bg2);
-    border-top: 1px solid var(--border);
-    display: flex;
-    padding: 8px 0 calc(8px + var(--safe-bottom));
-    z-index: 50;
-  }
-
-  .nav-btn {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 4px;
-    border: none;
-    background: none;
-    cursor: pointer;
-    padding: 4px 0;
-  }
-
+  .bottom-nav { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 430px; background: var(--bg2); border-top: 1px solid var(--border); display: flex; padding: 8px 0 calc(8px + var(--safe-bottom)); z-index: 50; }
+  .nav-btn { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; border: none; background: none; cursor: pointer; padding: 4px 0; }
   .nav-btn-icon { font-size: 20px; }
   .nav-btn-label { font-size: 10px; font-weight: 600; color: var(--muted); font-family: 'Space Grotesk', sans-serif; letter-spacing: 0.3px; }
   .nav-btn.active .nav-btn-label { color: var(--teal); }
-
   .page { display: none; padding: 20px; }
   .page.active { display: block; }
 
-  /* STATS ROW */
-  .stats-row {
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
-    gap: 10px;
-    margin-bottom: 20px;
-  }
-
-  .stat-card {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-sm);
-    padding: 14px 12px;
-    text-align: center;
-  }
-
+  .stats-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 20px; }
+  .stat-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 14px 12px; text-align: center; }
   .stat-value { font-family: 'Syne', sans-serif; font-size: 22px; color: var(--white); }
   .stat-label { font-size: 11px; color: var(--muted); font-weight: 500; margin-top: 2px; }
 
-  /* SECTION */
-  .section-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 12px;
-  }
+  .section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+  .section-title { font-family: 'Syne', sans-serif; font-size: 16px; color: var(--white); }
+  .section-badge { background: var(--teal-dim); color: var(--teal); font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 20px; }
 
-  .section-title {
-    font-family: 'Syne', sans-serif;
-    font-size: 16px;
-    color: var(--white);
-  }
-
-  .section-badge {
-    background: var(--teal-dim);
-    color: var(--teal);
-    font-size: 11px;
-    font-weight: 700;
-    padding: 3px 10px;
-    border-radius: 20px;
-  }
-
-  /* SOLICITUD CARD */
-  .solicitud-card {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 18px;
-    margin-bottom: 12px;
-    position: relative;
-    overflow: hidden;
-    transition: border-color 0.2s;
-  }
-
+  .solicitud-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px; margin-bottom: 12px; position: relative; overflow: hidden; }
   .solicitud-card.urgente { border-left: 3px solid var(--red); }
   .solicitud-card.normal { border-left: 3px solid var(--teal); }
-
-  .solicitud-card::before {
-    content: '';
-    position: absolute;
-    top: 0; right: 0;
-    width: 80px; height: 80px;
-    background: radial-gradient(circle at top right, rgba(0,212,170,0.05), transparent);
-  }
-
-  .sol-header {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    margin-bottom: 12px;
-  }
-
-  .sol-tipo {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-
-  .sol-icon {
-    width: 40px; height: 40px;
-    background: var(--teal-dim);
-    border-radius: 10px;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 20px;
-  }
-
+  .sol-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 12px; }
+  .sol-tipo { display: flex; align-items: center; gap: 8px; }
+  .sol-icon { width: 40px; height: 40px; background: var(--teal-dim); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 20px; }
   .sol-icon.urgente { background: var(--red-dim); }
-
   .sol-name { font-weight: 700; font-size: 15px; color: var(--white); }
   .sol-sub { font-size: 12px; color: var(--muted); margin-top: 2px; }
-
-  .badge {
-    font-size: 11px;
-    font-weight: 700;
-    padding: 4px 10px;
-    border-radius: 20px;
-  }
-
+  .badge { font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 20px; }
   .badge-teal { background: var(--teal-dim); color: var(--teal); }
   .badge-amber { background: var(--amber-dim); color: var(--amber); }
   .badge-red { background: var(--red-dim); color: var(--red); }
   .badge-blue { background: var(--blue-dim); color: var(--blue); }
   .badge-gray { background: rgba(107,128,153,0.2); color: var(--muted); }
-
   .sol-info { margin-bottom: 14px; }
-
-  .sol-info-row {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 13px;
-    color: var(--muted);
-    margin-bottom: 5px;
-  }
-
+  .sol-info-row { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--muted); margin-bottom: 5px; }
   .sol-info-row span { color: var(--text); font-weight: 500; }
-
   .sol-actions { display: flex; gap: 8px; }
+  .btn-accept { flex: 1; padding: 11px; background: var(--teal); color: var(--bg); border: none; border-radius: var(--radius-sm); font-family: 'Space Grotesk', sans-serif; font-size: 13px; font-weight: 700; cursor: pointer; }
+  .btn-reject { padding: 11px 14px; background: var(--red-dim); color: var(--red); border: 1px solid var(--red); border-radius: var(--radius-sm); font-family: 'Space Grotesk', sans-serif; font-size: 13px; font-weight: 700; cursor: pointer; }
 
-  .btn-accept {
-    flex: 1;
-    padding: 11px;
-    background: var(--teal);
-    color: var(--bg);
-    border: none;
-    border-radius: var(--radius-sm);
-    font-family: 'Space Grotesk', sans-serif;
-    font-size: 13px;
-    font-weight: 700;
-    cursor: pointer;
-    transition: all 0.15s;
-  }
-
-  .btn-accept:active { opacity: 0.8; }
-
-  .btn-reject {
-    padding: 11px 14px;
-    background: var(--red-dim);
-    color: var(--red);
-    border: 1px solid var(--red);
-    border-radius: var(--radius-sm);
-    font-family: 'Space Grotesk', sans-serif;
-    font-size: 13px;
-    font-weight: 700;
-    cursor: pointer;
-    transition: all 0.15s;
-  }
-
-  /* SERVICIO ACTIVO */
-  .activo-card {
-    background: linear-gradient(135deg, #0D2E25, #0F2027);
-    border: 1px solid var(--teal);
-    border-radius: var(--radius);
-    padding: 20px;
-    margin-bottom: 20px;
-    box-shadow: 0 0 30px var(--teal-dim);
-  }
-
-  .activo-label {
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 2px;
-    color: var(--teal);
-    margin-bottom: 10px;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-  }
-
-  .activo-label::before {
-    content: '';
-    width: 6px; height: 6px;
-    background: var(--teal);
-    border-radius: 50%;
-    animation: blink 1s infinite;
-  }
-
+  .activo-card { background: linear-gradient(135deg, #0D2E25, #0F2027); border: 1px solid var(--teal); border-radius: var(--radius); padding: 20px; margin-bottom: 20px; box-shadow: 0 0 30px var(--teal-dim); }
+  .activo-label { font-size: 11px; font-weight: 700; letter-spacing: 2px; color: var(--teal); margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+  .activo-label::before { content: ''; width: 6px; height: 6px; background: var(--teal); border-radius: 50%; animation: blink 1s infinite; }
   .activo-tipo { font-family: 'Syne', sans-serif; font-size: 20px; color: var(--white); margin-bottom: 6px; }
   .activo-dir { font-size: 13px; color: var(--muted); margin-bottom: 16px; }
-
   .estado-btns { display: flex; flex-direction: column; gap: 8px; }
-
-  .btn-estado {
-    width: 100%;
-    padding: 12px;
-    border: none;
-    border-radius: var(--radius-sm);
-    font-family: 'Space Grotesk', sans-serif;
-    font-size: 13px;
-    font-weight: 700;
-    cursor: pointer;
-    transition: all 0.15s;
-  }
-
+  .btn-estado { width: 100%; padding: 12px; border: none; border-radius: var(--radius-sm); font-family: 'Space Grotesk', sans-serif; font-size: 13px; font-weight: 700; cursor: pointer; }
   .btn-en-camino { background: var(--blue-dim); color: var(--blue); border: 1px solid var(--blue); }
   .btn-en-curso { background: var(--amber-dim); color: var(--amber); border: 1px solid var(--amber); }
   .btn-completar { background: var(--teal); color: var(--bg); }
 
-  /* EVOLUCION FORM */
-  .evolucion-form {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 18px;
-    margin-top: 14px;
-  }
-
-  .vitales-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
-    margin-bottom: 12px;
-  }
-
-  .vital-input {
-    background: var(--bg3);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-sm);
-    padding: 10px 12px;
-  }
-
+  .evolucion-form { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px; margin-top: 14px; }
+  .vitales-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
+  .vital-input { background: var(--bg3); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 10px 12px; }
   .vital-label { font-size: 10px; color: var(--muted); font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; margin-bottom: 4px; }
-  .vital-field {
-    width: 100%;
-    background: transparent;
-    border: none;
-    outline: none;
-    font-family: 'Space Grotesk', sans-serif;
-    font-size: 16px;
-    font-weight: 700;
-    color: var(--teal);
-  }
-
-  textarea.form-area {
-    width: 100%;
-    background: var(--bg3);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-sm);
-    padding: 12px;
-    font-family: 'Space Grotesk', sans-serif;
-    font-size: 13px;
-    color: var(--text);
-    outline: none;
-    resize: none;
-    height: 70px;
-    margin-bottom: 10px;
-  }
-
+  .vital-field { width: 100%; background: transparent; border: none; outline: none; font-family: 'Space Grotesk', sans-serif; font-size: 16px; font-weight: 700; color: var(--teal); }
+  textarea.form-area { width: 100%; background: var(--bg3); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 12px; font-family: 'Space Grotesk', sans-serif; font-size: 13px; color: var(--text); outline: none; resize: none; height: 70px; margin-bottom: 10px; }
   textarea.form-area:focus { border-color: var(--teal); }
 
-  /* HISTORIAL */
-  .historial-item {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 16px;
-    margin-bottom: 10px;
-    display: flex;
-    align-items: center;
-    gap: 14px;
-  }
-
-  .hist-icon {
-    width: 42px; height: 42px;
-    border-radius: 12px;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 20px;
-    flex-shrink: 0;
-  }
-
+  .historial-item { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; margin-bottom: 10px; display: flex; align-items: center; gap: 14px; }
+  .hist-icon { width: 42px; height: 42px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; }
   .hist-info { flex: 1; }
   .hist-tipo { font-size: 14px; font-weight: 700; color: var(--white); }
   .hist-fecha { font-size: 12px; color: var(--muted); margin-top: 2px; }
 
-  /* PERFIL */
-  .perfil-hero {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 24px;
-    text-align: center;
-    margin-bottom: 16px;
-    position: relative;
-    overflow: hidden;
-  }
-
-  .perfil-hero::before {
-    content: '';
-    position: absolute;
-    top: -30px; left: 50%;
-    transform: translateX(-50%);
-    width: 200px; height: 200px;
-    background: radial-gradient(circle, var(--teal-dim), transparent);
-  }
-
-  .perfil-avatar {
-    width: 70px; height: 70px;
-    border: 2px solid var(--teal);
-    border-radius: 20px;
-    display: flex; align-items: center; justify-content: center;
-    font-family: 'Syne', sans-serif;
-    font-size: 26px;
-    color: var(--teal);
-    margin: 0 auto 12px;
-    background: var(--teal-dim);
-    position: relative;
-  }
-
+  .perfil-hero { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 24px; text-align: center; margin-bottom: 16px; position: relative; overflow: hidden; }
+  .perfil-hero::before { content: ''; position: absolute; top: -30px; left: 50%; transform: translateX(-50%); width: 200px; height: 200px; background: radial-gradient(circle, var(--teal-dim), transparent); }
+  .perfil-avatar { width: 70px; height: 70px; border: 2px solid var(--teal); border-radius: 20px; display: flex; align-items: center; justify-content: center; font-family: 'Syne', sans-serif; font-size: 26px; color: var(--teal); margin: 0 auto 12px; background: var(--teal-dim); position: relative; }
   .perfil-name { font-family: 'Syne', sans-serif; font-size: 20px; color: var(--white); }
   .perfil-role { font-size: 13px; color: var(--teal); font-weight: 600; margin-top: 4px; }
-
-  .info-card {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 18px;
-    margin-bottom: 12px;
-  }
-
-  .info-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 10px 0;
-    border-bottom: 1px solid var(--border);
-    font-size: 13px;
-  }
-
+  .info-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px; margin-bottom: 12px; }
+  .info-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
   .info-row:last-child { border-bottom: none; }
   .info-label { color: var(--muted); font-weight: 500; }
   .info-value { color: var(--text); font-weight: 600; }
+  .btn-danger { width: 100%; padding: 14px; background: var(--red-dim); color: var(--red); border: 1px solid var(--red); border-radius: var(--radius); font-family: 'Space Grotesk', sans-serif; font-size: 14px; font-weight: 700; cursor: pointer; margin-top: 8px; }
 
-  .btn-danger {
-    width: 100%;
-    padding: 14px;
-    background: var(--red-dim);
-    color: var(--red);
-    border: 1px solid var(--red);
-    border-radius: var(--radius);
-    font-family: 'Space Grotesk', sans-serif;
-    font-size: 14px;
-    font-weight: 700;
-    cursor: pointer;
-    margin-top: 8px;
-  }
-
-  /* LOADING */
-  .loading-overlay {
-    position: fixed; inset: 0;
-    background: rgba(15,25,35,0.9);
-    z-index: 300;
-    display: none;
-    align-items: center;
-    justify-content: center;
-    flex-direction: column;
-    gap: 12px;
-    backdrop-filter: blur(4px);
-  }
-
+  .loading-overlay { position: fixed; inset: 0; background: rgba(15,25,35,0.9); z-index: 300; display: none; align-items: center; justify-content: center; flex-direction: column; gap: 12px; backdrop-filter: blur(4px); }
   .loading-overlay.active { display: flex; }
-
-  .loading-ring {
-    width: 44px; height: 44px;
-    border: 2px solid var(--border);
-    border-top-color: var(--teal);
-    border-radius: 50%;
-    animation: spin 0.7s linear infinite;
-  }
-
+  .loading-ring { width: 44px; height: 44px; border: 2px solid var(--border); border-top-color: var(--teal); border-radius: 50%; animation: spin 0.7s linear infinite; }
   @keyframes spin { to { transform: rotate(360deg); } }
   .loading-text { font-size: 13px; color: var(--muted); font-weight: 600; }
-
-  .spinner {
-    width: 16px; height: 16px;
-    border: 2px solid rgba(15,25,35,0.3);
-    border-top-color: var(--bg);
-    border-radius: 50%;
-    animation: spin 0.7s linear infinite;
-    display: inline-block;
-    vertical-align: middle;
-    margin-right: 6px;
-  }
-
-  .empty {
-    text-align: center;
-    padding: 50px 20px;
-    color: var(--muted);
-  }
-
+  .empty { text-align: center; padding: 50px 20px; color: var(--muted); }
   .empty-icon { font-size: 40px; margin-bottom: 10px; opacity: 0.5; }
   .empty-text { font-size: 14px; font-weight: 500; }
-
-  .divider {
-    height: 1px;
-    background: var(--border);
-    margin: 16px 0;
-  }
+  .divider { height: 1px; background: var(--border); margin: 16px 0; }
 </style>
 </head>
 <body>
@@ -733,21 +196,22 @@
 
     <div id="tab-registro" style="display:none">
       <div class="form-group">
-        <label>Nombre completo</label>
-        <input type="text" id="reg-nombre" placeholder="Enf. María García">
+        <label>Nombre completo *</label>
+        <input type="text" id="reg-nombre" placeholder="Ej: María García">
       </div>
       <div class="form-group">
-        <label>Correo electrónico</label>
+        <label>Correo electrónico *</label>
         <input type="email" id="reg-email" placeholder="tucorreo@email.com">
       </div>
       <div class="form-group">
-        <label>Teléfono</label>
-        <input type="tel" id="reg-telefono" placeholder="3001234567">
+        <label>Teléfono celular *</label>
+        <input type="tel" id="reg-telefono" placeholder="Ej: 3001234567">
+        <div class="field-hint">Solo números, sin espacios ni guiones</div>
       </div>
       <div class="form-group">
         <label>Especialidad</label>
         <select id="reg-especialidad">
-          <option value="">Seleccione...</option>
+          <option value="">Seleccione una especialidad...</option>
           <option>Enfermería general</option>
           <option>Cuidados intensivos</option>
           <option>Heridas y ostomías</option>
@@ -757,8 +221,9 @@
         </select>
       </div>
       <div class="form-group">
-        <label>Contraseña</label>
-        <input type="password" id="reg-password" placeholder="Mínimo 6 caracteres">
+        <label>Contraseña *</label>
+        <input type="password" id="reg-password" placeholder="Mínimo 8 caracteres">
+        <div class="field-hint">Debe tener al menos 8 caracteres</div>
       </div>
       <button class="btn-main" onclick="doRegistro()">Crear cuenta</button>
       <div class="auth-error" id="reg-error"></div>
@@ -784,9 +249,8 @@
     </div>
   </div>
 
-  <!-- INICIO -->
   <div class="page active" id="page-inicio">
-    <div class="stats-row" id="stats-row">
+    <div class="stats-row">
       <div class="stat-card">
         <div class="stat-value" id="stat-hoy">0</div>
         <div class="stat-label">Hoy</div>
@@ -801,46 +265,26 @@
       </div>
     </div>
 
-    <!-- SERVICIO ACTIVO -->
     <div id="servicio-activo-container" style="display:none">
       <div class="section-header">
         <div class="section-title">Servicio activo</div>
         <span class="badge badge-teal">EN CURSO</span>
       </div>
-      <div class="activo-card" id="activo-card">
+      <div class="activo-card">
         <div class="activo-label">SERVICIO ACTIVO</div>
         <div class="activo-tipo" id="activo-tipo">—</div>
         <div class="activo-dir" id="activo-dir">—</div>
         <div class="estado-btns" id="estado-btns"></div>
       </div>
-
       <div class="evolucion-form" id="evolucion-form" style="display:none">
         <div class="section-title" style="margin-bottom:14px;font-size:14px">📋 Registrar evolución</div>
         <div class="vitales-grid">
-          <div class="vital-input">
-            <div class="vital-label">T/A Sistólica</div>
-            <input class="vital-field" type="number" id="v-sistolica" placeholder="120">
-          </div>
-          <div class="vital-input">
-            <div class="vital-label">T/A Diastólica</div>
-            <input class="vital-field" type="number" id="v-diastolica" placeholder="80">
-          </div>
-          <div class="vital-input">
-            <div class="vital-label">FC (lpm)</div>
-            <input class="vital-field" type="number" id="v-fc" placeholder="72">
-          </div>
-          <div class="vital-input">
-            <div class="vital-label">Temp (°C)</div>
-            <input class="vital-field" type="number" id="v-temp" placeholder="36.5" step="0.1">
-          </div>
-          <div class="vital-input">
-            <div class="vital-label">SpO2 (%)</div>
-            <input class="vital-field" type="number" id="v-spo2" placeholder="98">
-          </div>
-          <div class="vital-input">
-            <div class="vital-label">Glucemia</div>
-            <input class="vital-field" type="number" id="v-glucemia" placeholder="100">
-          </div>
+          <div class="vital-input"><div class="vital-label">T/A Sistólica</div><input class="vital-field" type="number" id="v-sistolica" placeholder="120"></div>
+          <div class="vital-input"><div class="vital-label">T/A Diastólica</div><input class="vital-field" type="number" id="v-diastolica" placeholder="80"></div>
+          <div class="vital-input"><div class="vital-label">FC (lpm)</div><input class="vital-field" type="number" id="v-fc" placeholder="72"></div>
+          <div class="vital-input"><div class="vital-label">Temp (°C)</div><input class="vital-field" type="number" id="v-temp" placeholder="36.5" step="0.1"></div>
+          <div class="vital-input"><div class="vital-label">SpO2 (%)</div><input class="vital-field" type="number" id="v-spo2" placeholder="98"></div>
+          <div class="vital-input"><div class="vital-label">Glucemia</div><input class="vital-field" type="number" id="v-glucemia" placeholder="100"></div>
         </div>
         <textarea class="form-area" id="v-observaciones" placeholder="Observaciones del servicio..."></textarea>
         <textarea class="form-area" id="v-procedimientos" placeholder="Procedimientos realizados..."></textarea>
@@ -849,20 +293,15 @@
       <div class="divider"></div>
     </div>
 
-    <!-- SOLICITUDES PENDIENTES -->
     <div class="section-header">
       <div class="section-title">Solicitudes pendientes</div>
       <span class="badge badge-amber" id="badge-pendientes">0</span>
     </div>
     <div id="solicitudes-list">
-      <div class="empty">
-        <div class="empty-icon">📭</div>
-        <div class="empty-text">Sin solicitudes por ahora</div>
-      </div>
+      <div class="empty"><div class="empty-icon">📭</div><div class="empty-text">Sin solicitudes por ahora</div></div>
     </div>
   </div>
 
-  <!-- HISTORIAL -->
   <div class="page" id="page-historial">
     <div class="section-header" style="margin-bottom:16px">
       <div class="section-title">Mi historial</div>
@@ -872,60 +311,35 @@
     </div>
   </div>
 
-  <!-- PERFIL -->
   <div class="page" id="page-perfil">
     <div class="perfil-hero">
       <div class="perfil-avatar" id="perfil-avatar">E</div>
       <div class="perfil-name" id="perfil-nombre">Cargando...</div>
       <div class="perfil-role">Profesional de Enfermería</div>
     </div>
-
     <div class="info-card">
-      <div class="info-row">
-        <span class="info-label">Email</span>
-        <span class="info-value" id="perfil-email">—</span>
-      </div>
-      <div class="info-row">
-        <span class="info-label">Teléfono</span>
-        <span class="info-value" id="perfil-tel">—</span>
-      </div>
-      <div class="info-row">
-        <span class="info-label">Verificación</span>
-        <span id="perfil-verificacion" class="badge badge-amber">Pendiente</span>
-      </div>
-      <div class="info-row">
-        <span class="info-label">Servicios totales</span>
-        <span class="info-value" id="perfil-servicios">0</span>
-      </div>
-      <div class="info-row">
-        <span class="info-label">Calificación</span>
-        <span class="info-value" id="perfil-cal">—</span>
-      </div>
+      <div class="info-row"><span class="info-label">Email</span><span class="info-value" id="perfil-email">—</span></div>
+      <div class="info-row"><span class="info-label">Teléfono</span><span class="info-value" id="perfil-tel">—</span></div>
+      <div class="info-row"><span class="info-label">Verificación</span><span id="perfil-verificacion" class="badge badge-amber">Pendiente</span></div>
+      <div class="info-row"><span class="info-label">Servicios totales</span><span class="info-value" id="perfil-servicios">0</span></div>
+      <div class="info-row"><span class="info-label">Calificación</span><span class="info-value" id="perfil-cal">—</span></div>
     </div>
-
     <div class="info-card">
       <div style="font-size:12px;color:var(--muted);font-weight:600;letter-spacing:1px;text-transform:uppercase;margin-bottom:12px">Soporte</div>
-      <div class="info-row">
-        <span class="info-label">Reina Elizabeth IPS</span>
-        <span class="info-value" style="color:var(--teal)">📱 300 000 0000</span>
-      </div>
+      <div class="info-row"><span class="info-label">Reina Elizabeth IPS</span><span class="info-value" style="color:var(--teal)">📱 300 000 0000</span></div>
     </div>
-
     <button class="btn-danger" onclick="doLogout()">Cerrar sesión</button>
   </div>
 
   <nav class="bottom-nav">
-    <button class="nav-btn active" onclick="showPage('inicio', this); loadInicio()">
-      <span class="nav-btn-icon">🏠</span>
-      <span class="nav-btn-label">Inicio</span>
+    <button class="nav-btn active" onclick="showPage('inicio',this);loadInicio()">
+      <span class="nav-btn-icon">🏠</span><span class="nav-btn-label">Inicio</span>
     </button>
-    <button class="nav-btn" onclick="showPage('historial', this); loadHistorial()">
-      <span class="nav-btn-icon">📋</span>
-      <span class="nav-btn-label">Historial</span>
+    <button class="nav-btn" onclick="showPage('historial',this);loadHistorial()">
+      <span class="nav-btn-icon">📋</span><span class="nav-btn-label">Historial</span>
     </button>
-    <button class="nav-btn" onclick="showPage('perfil', this); loadPerfil()">
-      <span class="nav-btn-icon">👤</span>
-      <span class="nav-btn-label">Perfil</span>
+    <button class="nav-btn" onclick="showPage('perfil',this);loadPerfil()">
+      <span class="nav-btn-icon">👤</span><span class="nav-btn-label">Perfil</span>
     </button>
   </nav>
 </div>
@@ -934,13 +348,11 @@
 const API = 'https://enfermeria-production.up.railway.app';
 let token = localStorage.getItem('re_e_token') || '';
 let user = JSON.parse(localStorage.getItem('re_e_user') || 'null');
-let profesionalId = localStorage.getItem('re_e_prof_id') || '';
 let disponible = false;
 let servicioActivoId = null;
 let refreshInterval = null;
 
-// SPLASH
-setTimeout(() => {
+setTimeout(function() {
   document.getElementById('screen-splash').classList.remove('active');
   if (token && user) {
     initApp();
@@ -952,7 +364,7 @@ setTimeout(() => {
 function switchTab(tab) {
   document.getElementById('tab-login').style.display = tab === 'login' ? 'block' : 'none';
   document.getElementById('tab-registro').style.display = tab === 'registro' ? 'block' : 'none';
-  document.querySelectorAll('.auth-tab').forEach((t, i) => {
+  document.querySelectorAll('.auth-tab').forEach(function(t, i) {
     t.classList.toggle('active', (i === 0 && tab === 'login') || (i === 1 && tab === 'registro'));
   });
 }
@@ -962,23 +374,23 @@ async function doLogin() {
   const password = document.getElementById('login-password').value;
   const errEl = document.getElementById('login-error');
   errEl.style.display = 'none';
-  if (!email || !password) { showError(errEl, 'Complete todos los campos'); return; }
+  if (!email) { showError(errEl, 'Por favor ingrese su correo electrónico'); return; }
+  if (!password) { showError(errEl, 'Por favor ingrese su contraseña'); return; }
   showLoading('Ingresando...');
   try {
-    const res = await fetch(`${API}/api/auth/login`, {
+    const res = await fetch(API + '/api/auth/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password })
     });
     const data = await res.json();
     hideLoading();
-    if (!res.ok) throw new Error(data.message || 'Credenciales incorrectas');
+    if (!res.ok) throw new Error('Correo o contraseña incorrectos');
     if (data.usuario.rol === 'paciente') throw new Error('Esta app es para profesionales. Use la app de pacientes.');
     token = data.accessToken;
     user = data.usuario;
     localStorage.setItem('re_e_token', token);
     localStorage.setItem('re_e_user', JSON.stringify(user));
-    await obtenerProfesionalId();
     initApp();
   } catch(e) {
     hideLoading();
@@ -989,33 +401,57 @@ async function doLogin() {
 async function doRegistro() {
   const nombre = document.getElementById('reg-nombre').value.trim();
   const email = document.getElementById('reg-email').value.trim();
-  const telefono = document.getElementById('reg-telefono').value.trim();
+  const telefonoRaw = document.getElementById('reg-telefono').value.trim();
   const password = document.getElementById('reg-password').value;
   const errEl = document.getElementById('reg-error');
   errEl.style.display = 'none';
-  if (!nombre || !email || !password) { showError(errEl, 'Complete los campos obligatorios'); return; }
-  if (password.length < 6) { showError(errEl, 'Contraseña mínimo 6 caracteres'); return; }
+
+  // Validaciones con mensajes claros
+  if (!nombre) { showError(errEl, '⚠️ Por favor ingrese su nombre completo'); return; }
+  if (nombre.length < 3) { showError(errEl, '⚠️ El nombre debe tener al menos 3 caracteres'); return; }
+  if (!email) { showError(errEl, '⚠️ Por favor ingrese su correo electrónico'); return; }
+  if (!email.includes('@') || !email.includes('.')) { showError(errEl, '⚠️ El correo electrónico no es válido. Ejemplo: nombre@gmail.com'); return; }
+  if (!telefonoRaw) { showError(errEl, '⚠️ Por favor ingrese su número de teléfono celular'); return; }
+
+  // Limpiar teléfono — solo dígitos
+  const telefonoDigitos = telefonoRaw.replace(/\D/g, '');
+  if (telefonoDigitos.length < 7 || telefonoDigitos.length > 15) {
+    showError(errEl, '⚠️ Teléfono inválido. Ingrese solo los números. Ejemplo: 3001234567');
+    return;
+  }
+
+  if (!password) { showError(errEl, '⚠️ Por favor ingrese una contraseña'); return; }
+  if (password.length < 8) { showError(errEl, '⚠️ La contraseña debe tener mínimo 8 caracteres'); return; }
+
+  // Formatear teléfono con +57 si no lo tiene
+  const telefono = telefonoRaw.startsWith('+') ? telefonoRaw : '+57' + telefonoDigitos;
+
   showLoading('Creando cuenta...');
   try {
-    const res = await fetch(`${API}/api/auth/register`, {
+    const res = await fetch(API + '/api/auth/register', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         nombreCompleto: nombre,
-        email,
-        telefono: telefono ? (telefono.startsWith('+') ? telefono : '+57' + telefono.replace(/\D/g,'')) : undefined,
-        password,
+        email: email,
+        telefono: telefono,
+        password: password,
         rol: 'profesional'
       })
     });
     const data = await res.json();
     hideLoading();
-    if (!res.ok) throw new Error(data.message || 'Error al registrarse');
+    if (!res.ok) {
+      // Traducir errores del servidor a mensajes claros
+      let msg = data.message || 'Error al crear la cuenta';
+      if (msg.includes('email') || msg.includes('correo')) msg = '⚠️ Este correo ya está registrado. Use otro correo o inicie sesión.';
+      else if (msg.includes('telefono') || msg.includes('phone')) msg = '⚠️ Este teléfono ya está registrado.';
+      throw new Error(msg);
+    }
     token = data.accessToken;
     user = data.usuario;
     localStorage.setItem('re_e_token', token);
     localStorage.setItem('re_e_user', JSON.stringify(user));
-    await obtenerProfesionalId();
     initApp();
   } catch(e) {
     hideLoading();
@@ -1023,21 +459,11 @@ async function doRegistro() {
   }
 }
 
-async function obtenerProfesionalId() {
-  try {
-    const res = await fetch(`${API}/api/profesionales?limit=1`, {
-      headers: { 'Authorization': `Bearer ${token}` }
-    });
-    // Try to get profile from servicios endpoint
-  } catch(e) {}
-}
-
 function doLogout() {
   clearInterval(refreshInterval);
-  token = ''; user = null; profesionalId = '';
+  token = ''; user = null;
   localStorage.removeItem('re_e_token');
   localStorage.removeItem('re_e_user');
-  localStorage.removeItem('re_e_prof_id');
   document.getElementById('screen-app').classList.remove('active');
   document.getElementById('screen-auth').classList.add('active');
 }
@@ -1045,17 +471,17 @@ function doLogout() {
 function initApp() {
   document.getElementById('screen-auth').classList.remove('active');
   document.getElementById('screen-app').classList.add('active');
-  const nombre = user?.nombreCompleto || 'Profesional';
+  const nombre = (user && user.nombreCompleto) ? user.nombreCompleto : 'Profesional';
   document.getElementById('app-nombre').textContent = nombre.split(' ')[0];
   loadInicio();
   refreshInterval = setInterval(loadSolicitudes, 30000);
 }
 
 function showPage(name, btn) {
-  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  document.getElementById(`page-${name}`).classList.add('active');
+  document.querySelectorAll('.page').forEach(function(p){ p.classList.remove('active'); });
+  document.getElementById('page-' + name).classList.add('active');
   if (btn) {
-    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.nav-btn').forEach(function(b){ b.classList.remove('active'); });
     btn.classList.add('active');
   }
 }
@@ -1067,14 +493,14 @@ async function loadInicio() {
 
 async function loadStats() {
   try {
-    const res = await fetch(`${API}/api/servicios`, {
-      headers: { 'Authorization': `Bearer ${token}` }
+    const res = await fetch(API + '/api/servicios', {
+      headers: { 'Authorization': 'Bearer ' + token }
     });
     if (!res.ok) return;
     const data = await res.json();
     const items = data.items || [];
     const hoy = new Date().toDateString();
-    const hoyCount = items.filter(s => new Date(s.createdAt).toDateString() === hoy).length;
+    const hoyCount = items.filter(function(s){ return new Date(s.createdAt).toDateString() === hoy; }).length;
     document.getElementById('stat-hoy').textContent = hoyCount;
     document.getElementById('stat-total').textContent = data.total || items.length;
   } catch(e) {}
@@ -1083,9 +509,8 @@ async function loadStats() {
 async function loadSolicitudes() {
   const el = document.getElementById('solicitudes-list');
   try {
-    // Cargar solicitudes pendientes del sistema
-    const resPend = await fetch(`${API}/api/servicios/pendientes`, {
-      headers: { 'Authorization': `Bearer ${token}` }
+    const resPend = await fetch(API + '/api/servicios/pendientes', {
+      headers: { 'Authorization': 'Bearer ' + token }
     });
     if (resPend.ok) {
       const dataPend = await resPend.json();
@@ -1094,17 +519,16 @@ async function loadSolicitudes() {
       if (!items.length) {
         el.innerHTML = '<div class="empty"><div class="empty-icon">📭</div><div class="empty-text">Sin solicitudes pendientes</div></div>';
       } else {
-        el.innerHTML = items.map(s => solicitudCard(s)).join('');
+        el.innerHTML = items.map(function(s){ return solicitudCard(s); }).join('');
       }
     }
 
-    // Cargar servicio activo del profesional
-    const resMios = await fetch(`${API}/api/servicios`, {
-      headers: { 'Authorization': `Bearer ${token}` }
+    const resMios = await fetch(API + '/api/servicios', {
+      headers: { 'Authorization': 'Bearer ' + token }
     });
     if (resMios.ok) {
       const dataMios = await resMios.json();
-      const activos = (dataMios.items || []).filter(s => ['asignado','en_camino','en_curso'].includes(s.estado));
+      const activos = (dataMios.items || []).filter(function(s){ return ['asignado','en_camino','en_curso'].includes(s.estado); });
       if (activos.length > 0) {
         mostrarServicioActivo(activos[0]);
       } else {
@@ -1120,29 +544,22 @@ async function loadSolicitudes() {
 function solicitudCard(s) {
   const iconos = { curacion:'🩹', medicacion:'💊', inyeccion:'💉', control:'🩺', cuidado_basico:'🛁', urgencia:'🚨' };
   const urgente = s.tipo === 'urgencia';
-  const pacNombre = s.paciente?.usuario?.nombreCompleto || 'Paciente';
+  const pacNombre = (s.paciente && s.paciente.usuario) ? s.paciente.usuario.nombreCompleto : 'Paciente';
   const fecha = formatDate(s.createdAt || s.fechaSolicitud);
-  return `<div class="solicitud-card ${urgente ? 'urgente' : 'normal'}">
-    <div class="sol-header">
-      <div class="sol-tipo">
-        <div class="sol-icon ${urgente ? 'urgente' : ''}">${iconos[s.tipo] || '🏥'}</div>
-        <div>
-          <div class="sol-name">${tipoLabel(s.tipo)}</div>
-          <div class="sol-sub">${pacNombre}</div>
-        </div>
-      </div>
-      <span class="badge ${urgente ? 'badge-red' : 'badge-teal'}">${urgente ? 'URGENTE' : 'RUTINA'}</span>
-    </div>
-    <div class="sol-info">
-      <div class="sol-info-row">📍 <span>${s.direccion || 'Sin dirección'}</span></div>
-      <div class="sol-info-row">🕐 <span>${fecha}</span></div>
-      ${s.descripcion ? `<div class="sol-info-row">📝 <span>${s.descripcion}</span></div>` : ''}
-    </div>
-    <div class="sol-actions">
-      <button class="btn-accept" onclick="aceptarServicio('${s.id}')">✅ Aceptar</button>
-      <button class="btn-reject" onclick="rechazarServicio('${s.id}')">✕</button>
-    </div>
-  </div>`;
+  return '<div class="solicitud-card ' + (urgente ? 'urgente' : 'normal') + '">' +
+    '<div class="sol-header"><div class="sol-tipo">' +
+    '<div class="sol-icon ' + (urgente ? 'urgente' : '') + '">' + (iconos[s.tipo] || '🏥') + '</div>' +
+    '<div><div class="sol-name">' + tipoLabel(s.tipo) + '</div><div class="sol-sub">' + pacNombre + '</div></div></div>' +
+    '<span class="badge ' + (urgente ? 'badge-red' : 'badge-teal') + '">' + (urgente ? 'URGENTE' : 'RUTINA') + '</span></div>' +
+    '<div class="sol-info">' +
+    '<div class="sol-info-row">📍 <span>' + (s.direccion || 'Sin dirección') + '</span></div>' +
+    '<div class="sol-info-row">🕐 <span>' + fecha + '</span></div>' +
+    (s.descripcion ? '<div class="sol-info-row">📝 <span>' + s.descripcion + '</span></div>' : '') +
+    '</div>' +
+    '<div class="sol-actions">' +
+    '<button class="btn-accept" onclick="aceptarServicio(\'' + s.id + '\')">✅ Aceptar</button>' +
+    '<button class="btn-reject" onclick="rechazarServicio(\'' + s.id + '\')">✕</button>' +
+    '</div></div>';
 }
 
 function mostrarServicioActivo(s) {
@@ -1150,18 +567,15 @@ function mostrarServicioActivo(s) {
   document.getElementById('servicio-activo-container').style.display = 'block';
   document.getElementById('activo-tipo').textContent = tipoLabel(s.tipo);
   document.getElementById('activo-dir').textContent = s.direccion || 'Sin dirección';
-
   const btns = document.getElementById('estado-btns');
-  const estadoActual = s.estado;
-
   let html = '';
-  if (estadoActual === 'asignado') {
-    html = `<button class="btn-estado btn-en-camino" onclick="cambiarEstado('${s.id}','en_camino')">🚗 Voy en camino</button>`;
-  } else if (estadoActual === 'en_camino') {
-    html = `<button class="btn-estado btn-en-curso" onclick="cambiarEstado('${s.id}','en_curso')">▶️ Iniciar servicio</button>`;
-  } else if (estadoActual === 'en_curso') {
+  if (s.estado === 'asignado') {
+    html = '<button class="btn-estado btn-en-camino" onclick="cambiarEstado(\'' + s.id + '\',\'en_camino\')">🚗 Voy en camino</button>';
+  } else if (s.estado === 'en_camino') {
+    html = '<button class="btn-estado btn-en-curso" onclick="cambiarEstado(\'' + s.id + '\',\'en_curso\')">▶️ Iniciar servicio</button>';
+  } else if (s.estado === 'en_curso') {
     document.getElementById('evolucion-form').style.display = 'block';
-    html = `<button class="btn-estado btn-completar" onclick="completarServicio('${s.id}')">✅ Completar servicio</button>`;
+    html = '<button class="btn-estado btn-completar" onclick="completarServicio(\'' + s.id + '\')">✅ Completar servicio</button>';
   }
   btns.innerHTML = html;
 }
@@ -1169,9 +583,9 @@ function mostrarServicioActivo(s) {
 async function aceptarServicio(id) {
   showLoading('Aceptando servicio...');
   try {
-    const res = await fetch(`${API}/api/servicios/${id}/estado`, {
+    const res = await fetch(API + '/api/servicios/' + id + '/estado', {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
       body: JSON.stringify({ estado: 'asignado' })
     });
     hideLoading();
@@ -1179,16 +593,16 @@ async function aceptarServicio(id) {
     await loadInicio();
   } catch(e) {
     hideLoading();
-    alert('Error al aceptar el servicio');
+    alert('Error al aceptar el servicio. Intente de nuevo.');
   }
 }
 
 async function rechazarServicio(id) {
   if (!confirm('¿Rechazar esta solicitud?')) return;
   try {
-    await fetch(`${API}/api/servicios/${id}/estado`, {
+    await fetch(API + '/api/servicios/' + id + '/estado', {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
       body: JSON.stringify({ estado: 'cancelado' })
     });
     await loadInicio();
@@ -1198,17 +612,17 @@ async function rechazarServicio(id) {
 async function cambiarEstado(id, estado) {
   showLoading('Actualizando...');
   try {
-    const res = await fetch(`${API}/api/servicios/${id}/estado`, {
+    const res = await fetch(API + '/api/servicios/' + id + '/estado', {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-      body: JSON.stringify({ estado })
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+      body: JSON.stringify({ estado: estado })
     });
     hideLoading();
     if (!res.ok) throw new Error();
     await loadInicio();
   } catch(e) {
     hideLoading();
-    alert('Error al actualizar el estado');
+    alert('Error al actualizar el estado. Intente de nuevo.');
   }
 }
 
@@ -1229,62 +643,53 @@ async function guardarEvolucion() {
     observaciones: document.getElementById('v-observaciones').value || undefined,
     procedimientos: document.getElementById('v-procedimientos').value || undefined,
   };
-
   showLoading('Guardando evolución...');
   try {
-    const res = await fetch(`${API}/api/servicios/${servicioActivoId}/evolucion`, {
+    const res = await fetch(API + '/api/servicios/' + servicioActivoId + '/evolucion', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
       body: JSON.stringify(body)
     });
     hideLoading();
     if (!res.ok) throw new Error();
     alert('✅ Evolución guardada correctamente');
-    // Clear form
     ['v-sistolica','v-diastolica','v-fc','v-temp','v-spo2','v-glucemia','v-observaciones','v-procedimientos']
-      .forEach(id => document.getElementById(id).value = '');
+      .forEach(function(id){ document.getElementById(id).value = ''; });
   } catch(e) {
     hideLoading();
-    alert('Error al guardar la evolución');
+    alert('Error al guardar la evolución. Intente de nuevo.');
   }
 }
 
 async function toggleDisponible() {
   disponible = !disponible;
   const btn = document.getElementById('status-btn');
-  const label = document.getElementById('status-label');
-  btn.className = `status-pill ${disponible ? 'disponible' : 'ocupado'}`;
-  btn.querySelector('.status-dot').className = 'status-dot';
-  label.textContent = disponible ? 'Disponible' : 'No disponible';
+  btn.className = 'status-pill ' + (disponible ? 'disponible' : 'ocupado');
+  document.getElementById('status-label').textContent = disponible ? 'Disponible' : 'No disponible';
 }
 
 async function loadHistorial() {
   const el = document.getElementById('historial-list');
   el.innerHTML = '<div style="text-align:center;padding:40px"><div class="loading-ring" style="margin:0 auto;display:block"></div></div>';
   try {
-    const res = await fetch(`${API}/api/servicios`, {
-      headers: { 'Authorization': `Bearer ${token}` }
+    const res = await fetch(API + '/api/servicios', {
+      headers: { 'Authorization': 'Bearer ' + token }
     });
     if (!res.ok) throw new Error();
     const data = await res.json();
-    const items = (data.items || []).filter(s => ['completado','cancelado'].includes(s.estado));
+    const items = (data.items || []).filter(function(s){ return ['completado','cancelado'].includes(s.estado); });
     if (!items.length) {
       el.innerHTML = '<div class="empty"><div class="empty-icon">📋</div><div class="empty-text">Sin historial aún</div></div>';
       return;
     }
     const iconos = { curacion:'🩹', medicacion:'💊', inyeccion:'💉', control:'🩺', cuidado_basico:'🛁', urgencia:'🚨' };
-    el.innerHTML = items.map(s => `
-      <div class="historial-item">
-        <div class="hist-icon" style="background:${s.estado==='completado'?'var(--teal-dim)':'var(--red-dim)'}">
-          ${iconos[s.tipo] || '🏥'}
-        </div>
-        <div class="hist-info">
-          <div class="hist-tipo">${tipoLabel(s.tipo)}</div>
-          <div class="hist-fecha">${formatDate(s.createdAt)}</div>
-        </div>
-        <span class="badge ${s.estado==='completado'?'badge-teal':'badge-red'}">${s.estado==='completado'?'Completado':'Cancelado'}</span>
-      </div>
-    `).join('');
+    el.innerHTML = items.map(function(s){
+      return '<div class="historial-item">' +
+        '<div class="hist-icon" style="background:' + (s.estado==='completado'?'var(--teal-dim)':'var(--red-dim)') + '">' + (iconos[s.tipo]||'🏥') + '</div>' +
+        '<div class="hist-info"><div class="hist-tipo">' + tipoLabel(s.tipo) + '</div><div class="hist-fecha">' + formatDate(s.createdAt) + '</div></div>' +
+        '<span class="badge ' + (s.estado==='completado'?'badge-teal':'badge-red') + '">' + (s.estado==='completado'?'Completado':'Cancelado') + '</span>' +
+        '</div>';
+    }).join('');
   } catch(e) {
     el.innerHTML = '<div class="empty"><div class="empty-icon">📋</div><div class="empty-text">Sin historial aún</div></div>';
   }
@@ -1296,10 +701,9 @@ function loadPerfil() {
   document.getElementById('perfil-nombre').textContent = nombre;
   document.getElementById('perfil-email').textContent = user.email || '—';
   document.getElementById('perfil-tel').textContent = user.telefono || '—';
-  document.getElementById('perfil-avatar').textContent = nombre.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+  document.getElementById('perfil-avatar').textContent = nombre.split(' ').map(function(w){return w[0];}).join('').slice(0,2).toUpperCase();
 }
 
-// HELPERS
 function showLoading(text) {
   document.getElementById('loading-text').textContent = text || 'Cargando...';
   document.getElementById('loading-overlay').classList.add('active');
