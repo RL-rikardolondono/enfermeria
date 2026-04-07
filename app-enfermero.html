@@ -21,7 +21,6 @@
   body { font-family: 'Space Grotesk', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; max-width: 430px; margin: 0 auto; overflow-x: hidden; }
   .screen { display: none; min-height: 100vh; flex-direction: column; }
   .screen.active { display: flex; }
-
   #screen-splash { background: var(--bg); align-items: center; justify-content: center; gap: 16px; position: relative; overflow: hidden; }
   #screen-splash::before { content: ''; position: absolute; width: 300px; height: 300px; background: radial-gradient(circle, rgba(0,212,170,0.15) 0%, transparent 70%); top: 50%; left: 50%; transform: translate(-50%, -50%); animation: pulse 2s ease-in-out infinite; }
   @keyframes pulse { 0%, 100% { transform: translate(-50%,-50%) scale(1); opacity: 0.7; } 50% { transform: translate(-50%,-50%) scale(1.2); opacity: 1; } }
@@ -32,7 +31,6 @@
   .splash-text p { font-size: 13px; color: var(--muted); margin-top: 4px; }
   .splash-role { background: var(--teal-dim); border: 1px solid var(--teal); color: var(--teal); font-size: 11px; font-weight: 700; letter-spacing: 2px; padding: 6px 16px; border-radius: 20px; z-index: 1; animation: slideUp 0.5s ease 0.3s both; }
   @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-
   #screen-auth { background: var(--bg); }
   .auth-top { padding: 60px 24px 32px; position: relative; }
   .auth-top::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, transparent, var(--teal), transparent); }
@@ -46,12 +44,10 @@
   .form-group label { display: block; font-size: 12px; font-weight: 600; color: var(--muted); margin-bottom: 7px; letter-spacing: 0.5px; text-transform: uppercase; }
   .form-group input, .form-group select { width: 100%; padding: 13px 16px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-family: 'Space Grotesk', sans-serif; font-size: 15px; background: var(--bg3); color: var(--text); outline: none; transition: border-color 0.2s; appearance: none; }
   .form-group input:focus, .form-group select:focus { border-color: var(--teal); box-shadow: 0 0 0 3px var(--teal-dim); }
-  .form-group input.error-field { border-color: var(--red); }
   .field-hint { font-size: 11px; color: var(--muted); margin-top: 4px; }
-  .btn-main { width: 100%; padding: 15px; background: var(--teal); color: var(--bg); border: none; border-radius: var(--radius); font-family: 'Space Grotesk', sans-serif; font-size: 15px; font-weight: 700; cursor: pointer; transition: all 0.15s; margin-top: 6px; letter-spacing: 0.3px; }
+  .btn-main { width: 100%; padding: 15px; background: var(--teal); color: var(--bg); border: none; border-radius: var(--radius); font-family: 'Space Grotesk', sans-serif; font-size: 15px; font-weight: 700; cursor: pointer; transition: all 0.15s; margin-top: 6px; }
   .btn-main:active { transform: scale(0.98); opacity: 0.9; }
   .auth-error { background: var(--red-dim); border: 1px solid var(--red); color: var(--red); padding: 11px 14px; border-radius: var(--radius-sm); font-size: 13px; font-weight: 600; margin-top: 10px; display: none; }
-
   #screen-app { background: var(--bg); padding-bottom: calc(70px + var(--safe-bottom)); }
   .topbar { background: var(--bg2); padding: 16px 20px 14px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 50; border-bottom: 1px solid var(--border); }
   .topbar-left { display: flex; flex-direction: column; gap: 2px; }
@@ -65,7 +61,6 @@
   .status-pill.disponible .status-dot { background: var(--teal); animation: blink 1.5s ease-in-out infinite; }
   .status-pill.ocupado .status-dot { background: var(--amber); }
   @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
-
   .bottom-nav { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 430px; background: var(--bg2); border-top: 1px solid var(--border); display: flex; padding: 8px 0 calc(8px + var(--safe-bottom)); z-index: 50; }
   .nav-btn { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; border: none; background: none; cursor: pointer; padding: 4px 0; }
   .nav-btn-icon { font-size: 20px; }
@@ -73,17 +68,22 @@
   .nav-btn.active .nav-btn-label { color: var(--teal); }
   .page { display: none; padding: 20px; }
   .page.active { display: block; }
-
   .stats-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 20px; }
   .stat-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 14px 12px; text-align: center; }
   .stat-value { font-family: 'Syne', sans-serif; font-size: 22px; color: var(--white); }
   .stat-label { font-size: 11px; color: var(--muted); font-weight: 500; margin-top: 2px; }
-
+  .aviso-pendiente { background: var(--amber-dim); border: 1px solid var(--amber); border-radius: var(--radius-sm); padding: 14px 16px; margin-bottom: 16px; display: none; }
+  .aviso-pendiente-titulo { font-size: 13px; font-weight: 700; color: var(--amber); margin-bottom: 4px; }
+  .aviso-pendiente-texto { font-size: 12px; color: var(--text); line-height: 1.5; }
   .section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
   .section-title { font-family: 'Syne', sans-serif; font-size: 16px; color: var(--white); }
-  .section-badge { background: var(--teal-dim); color: var(--teal); font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 20px; }
-
-  .solicitud-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px; margin-bottom: 12px; position: relative; overflow: hidden; }
+  .badge { font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 20px; }
+  .badge-teal { background: var(--teal-dim); color: var(--teal); }
+  .badge-amber { background: var(--amber-dim); color: var(--amber); }
+  .badge-red { background: var(--red-dim); color: var(--red); }
+  .badge-blue { background: var(--blue-dim); color: var(--blue); }
+  .badge-gray { background: rgba(107,128,153,0.2); color: var(--muted); }
+  .solicitud-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px; margin-bottom: 12px; }
   .solicitud-card.urgente { border-left: 3px solid var(--red); }
   .solicitud-card.normal { border-left: 3px solid var(--teal); }
   .sol-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 12px; }
@@ -92,19 +92,12 @@
   .sol-icon.urgente { background: var(--red-dim); }
   .sol-name { font-weight: 700; font-size: 15px; color: var(--white); }
   .sol-sub { font-size: 12px; color: var(--muted); margin-top: 2px; }
-  .badge { font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 20px; }
-  .badge-teal { background: var(--teal-dim); color: var(--teal); }
-  .badge-amber { background: var(--amber-dim); color: var(--amber); }
-  .badge-red { background: var(--red-dim); color: var(--red); }
-  .badge-blue { background: var(--blue-dim); color: var(--blue); }
-  .badge-gray { background: rgba(107,128,153,0.2); color: var(--muted); }
   .sol-info { margin-bottom: 14px; }
   .sol-info-row { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--muted); margin-bottom: 5px; }
   .sol-info-row span { color: var(--text); font-weight: 500; }
   .sol-actions { display: flex; gap: 8px; }
   .btn-accept { flex: 1; padding: 11px; background: var(--teal); color: var(--bg); border: none; border-radius: var(--radius-sm); font-family: 'Space Grotesk', sans-serif; font-size: 13px; font-weight: 700; cursor: pointer; }
   .btn-reject { padding: 11px 14px; background: var(--red-dim); color: var(--red); border: 1px solid var(--red); border-radius: var(--radius-sm); font-family: 'Space Grotesk', sans-serif; font-size: 13px; font-weight: 700; cursor: pointer; }
-
   .activo-card { background: linear-gradient(135deg, #0D2E25, #0F2027); border: 1px solid var(--teal); border-radius: var(--radius); padding: 20px; margin-bottom: 20px; box-shadow: 0 0 30px var(--teal-dim); }
   .activo-label { font-size: 11px; font-weight: 700; letter-spacing: 2px; color: var(--teal); margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
   .activo-label::before { content: ''; width: 6px; height: 6px; background: var(--teal); border-radius: 50%; animation: blink 1s infinite; }
@@ -115,7 +108,6 @@
   .btn-en-camino { background: var(--blue-dim); color: var(--blue); border: 1px solid var(--blue); }
   .btn-en-curso { background: var(--amber-dim); color: var(--amber); border: 1px solid var(--amber); }
   .btn-completar { background: var(--teal); color: var(--bg); }
-
   .evolucion-form { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px; margin-top: 14px; }
   .vitales-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
   .vital-input { background: var(--bg3); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 10px 12px; }
@@ -123,13 +115,11 @@
   .vital-field { width: 100%; background: transparent; border: none; outline: none; font-family: 'Space Grotesk', sans-serif; font-size: 16px; font-weight: 700; color: var(--teal); }
   textarea.form-area { width: 100%; background: var(--bg3); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 12px; font-family: 'Space Grotesk', sans-serif; font-size: 13px; color: var(--text); outline: none; resize: none; height: 70px; margin-bottom: 10px; }
   textarea.form-area:focus { border-color: var(--teal); }
-
   .historial-item { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; margin-bottom: 10px; display: flex; align-items: center; gap: 14px; }
   .hist-icon { width: 42px; height: 42px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; }
   .hist-info { flex: 1; }
   .hist-tipo { font-size: 14px; font-weight: 700; color: var(--white); }
   .hist-fecha { font-size: 12px; color: var(--muted); margin-top: 2px; }
-
   .perfil-hero { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 24px; text-align: center; margin-bottom: 16px; position: relative; overflow: hidden; }
   .perfil-hero::before { content: ''; position: absolute; top: -30px; left: 50%; transform: translateX(-50%); width: 200px; height: 200px; background: radial-gradient(circle, var(--teal-dim), transparent); }
   .perfil-avatar { width: 70px; height: 70px; border: 2px solid var(--teal); border-radius: 20px; display: flex; align-items: center; justify-content: center; font-family: 'Syne', sans-serif; font-size: 26px; color: var(--teal); margin: 0 auto 12px; background: var(--teal-dim); position: relative; }
@@ -141,7 +131,6 @@
   .info-label { color: var(--muted); font-weight: 500; }
   .info-value { color: var(--text); font-weight: 600; }
   .btn-danger { width: 100%; padding: 14px; background: var(--red-dim); color: var(--red); border: 1px solid var(--red); border-radius: var(--radius); font-family: 'Space Grotesk', sans-serif; font-size: 14px; font-weight: 700; cursor: pointer; margin-top: 8px; }
-
   .loading-overlay { position: fixed; inset: 0; background: rgba(15,25,35,0.9); z-index: 300; display: none; align-items: center; justify-content: center; flex-direction: column; gap: 12px; backdrop-filter: blur(4px); }
   .loading-overlay.active { display: flex; }
   .loading-ring { width: 44px; height: 44px; border: 2px solid var(--border); border-top-color: var(--teal); border-radius: 50%; animation: spin 0.7s linear infinite; }
@@ -160,17 +149,12 @@
   <div class="loading-text" id="loading-text">Cargando...</div>
 </div>
 
-<!-- SPLASH -->
 <div class="screen active" id="screen-splash">
   <div class="splash-badge">🩺</div>
-  <div class="splash-text">
-    <h1>Reina Elizabeth IPS</h1>
-    <p>Plataforma de profesionales</p>
-  </div>
+  <div class="splash-text"><h1>Reina Elizabeth IPS</h1><p>Plataforma de profesionales</p></div>
   <div class="splash-role">MODO PROFESIONAL</div>
 </div>
 
-<!-- AUTH -->
 <div class="screen" id="screen-auth">
   <div class="auth-top">
     <h1>Acceso profesional</h1>
@@ -182,27 +166,14 @@
   </div>
   <div class="auth-body">
     <div id="tab-login">
-      <div class="form-group">
-        <label>Correo electrónico</label>
-        <input type="email" id="login-email" placeholder="tucorreo@email.com">
-      </div>
-      <div class="form-group">
-        <label>Contraseña</label>
-        <input type="password" id="login-password" placeholder="••••••••">
-      </div>
+      <div class="form-group"><label>Correo electrónico</label><input type="email" id="login-email" placeholder="tucorreo@email.com"></div>
+      <div class="form-group"><label>Contraseña</label><input type="password" id="login-password" placeholder="••••••••"></div>
       <button class="btn-main" onclick="doLogin()">Ingresar</button>
       <div class="auth-error" id="login-error"></div>
     </div>
-
     <div id="tab-registro" style="display:none">
-      <div class="form-group">
-        <label>Nombre completo *</label>
-        <input type="text" id="reg-nombre" placeholder="Ej: María García">
-      </div>
-      <div class="form-group">
-        <label>Correo electrónico *</label>
-        <input type="email" id="reg-email" placeholder="tucorreo@email.com">
-      </div>
+      <div class="form-group"><label>Nombre completo *</label><input type="text" id="reg-nombre" placeholder="Ej: María García"></div>
+      <div class="form-group"><label>Correo electrónico *</label><input type="email" id="reg-email" placeholder="tucorreo@email.com"></div>
       <div class="form-group">
         <label>Teléfono celular *</label>
         <input type="tel" id="reg-telefono" placeholder="Ej: 3001234567">
@@ -227,14 +198,11 @@
       </div>
       <button class="btn-main" onclick="doRegistro()">Crear cuenta</button>
       <div class="auth-error" id="reg-error"></div>
-      <div style="font-size:12px;color:var(--muted);margin-top:12px;text-align:center">
-        Su cuenta será verificada por Reina Elizabeth IPS antes de activarse
-      </div>
+      <div style="font-size:12px;color:var(--muted);margin-top:12px;text-align:center">Su cuenta será verificada por Reina Elizabeth IPS antes de activarse</div>
     </div>
   </div>
 </div>
 
-<!-- APP -->
 <div class="screen" id="screen-app">
   <div class="topbar">
     <div class="topbar-left">
@@ -250,21 +218,15 @@
   </div>
 
   <div class="page active" id="page-inicio">
-    <div class="stats-row">
-      <div class="stat-card">
-        <div class="stat-value" id="stat-hoy">0</div>
-        <div class="stat-label">Hoy</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-value" id="stat-total">0</div>
-        <div class="stat-label">Total</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-value" id="stat-cal">—</div>
-        <div class="stat-label">Rating</div>
-      </div>
+    <div class="aviso-pendiente" id="aviso-pendiente">
+      <div class="aviso-pendiente-titulo">⏳ Cuenta pendiente de verificación</div>
+      <div class="aviso-pendiente-texto">Su cuenta está siendo revisada por Reina Elizabeth IPS. Una vez aprobada podrá ver y aceptar solicitudes de servicio.</div>
     </div>
-
+    <div class="stats-row">
+      <div class="stat-card"><div class="stat-value" id="stat-hoy">0</div><div class="stat-label">Hoy</div></div>
+      <div class="stat-card"><div class="stat-value" id="stat-total">0</div><div class="stat-label">Total</div></div>
+      <div class="stat-card"><div class="stat-value" id="stat-rating">—</div><div class="stat-label">Rating</div></div>
+    </div>
     <div id="servicio-activo-container" style="display:none">
       <div class="section-header">
         <div class="section-title">Servicio activo</div>
@@ -292,7 +254,6 @@
       </div>
       <div class="divider"></div>
     </div>
-
     <div class="section-header">
       <div class="section-title">Solicitudes pendientes</div>
       <span class="badge badge-amber" id="badge-pendientes">0</span>
@@ -303,12 +264,8 @@
   </div>
 
   <div class="page" id="page-historial">
-    <div class="section-header" style="margin-bottom:16px">
-      <div class="section-title">Mi historial</div>
-    </div>
-    <div id="historial-list">
-      <div class="loading-ring" style="margin:40px auto;display:block;border-color:var(--border);border-top-color:var(--teal)"></div>
-    </div>
+    <div class="section-header" style="margin-bottom:16px"><div class="section-title">Mi historial</div></div>
+    <div id="historial-list"><div class="loading-ring" style="margin:40px auto;display:block;border-color:var(--border);border-top-color:var(--teal)"></div></div>
   </div>
 
   <div class="page" id="page-perfil">
@@ -320,7 +277,7 @@
     <div class="info-card">
       <div class="info-row"><span class="info-label">Email</span><span class="info-value" id="perfil-email">—</span></div>
       <div class="info-row"><span class="info-label">Teléfono</span><span class="info-value" id="perfil-tel">—</span></div>
-      <div class="info-row"><span class="info-label">Verificación</span><span id="perfil-verificacion" class="badge badge-amber">Pendiente</span></div>
+      <div class="info-row"><span class="info-label">Verificación</span><span id="perfil-verificacion" class="badge badge-amber">⏳ Pendiente</span></div>
       <div class="info-row"><span class="info-label">Servicios totales</span><span class="info-value" id="perfil-servicios">0</span></div>
       <div class="info-row"><span class="info-label">Calificación</span><span class="info-value" id="perfil-cal">—</span></div>
     </div>
@@ -354,11 +311,7 @@ let refreshInterval = null;
 
 setTimeout(function() {
   document.getElementById('screen-splash').classList.remove('active');
-  if (token && user) {
-    initApp();
-  } else {
-    document.getElementById('screen-auth').classList.add('active');
-  }
+  if (token && user) { initApp(); } else { document.getElementById('screen-auth').classList.add('active'); }
 }, 2000);
 
 function switchTab(tab) {
@@ -378,92 +331,61 @@ async function doLogin() {
   if (!password) { showError(errEl, 'Por favor ingrese su contraseña'); return; }
   showLoading('Ingresando...');
   try {
-    const res = await fetch(API + '/api/auth/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password })
-    });
+    const res = await fetch(API + '/api/auth/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, password }) });
     const data = await res.json();
     hideLoading();
     if (!res.ok) throw new Error('Correo o contraseña incorrectos');
     if (data.usuario.rol === 'paciente') throw new Error('Esta app es para profesionales. Use la app de pacientes.');
-    token = data.accessToken;
-    user = data.usuario;
+    token = data.accessToken; user = data.usuario;
     localStorage.setItem('re_e_token', token);
     localStorage.setItem('re_e_user', JSON.stringify(user));
     initApp();
-  } catch(e) {
-    hideLoading();
-    showError(errEl, e.message);
-  }
+  } catch(e) { hideLoading(); showError(errEl, e.message); }
 }
 
 async function doRegistro() {
   const nombre = document.getElementById('reg-nombre').value.trim();
   const email = document.getElementById('reg-email').value.trim();
   const telefonoRaw = document.getElementById('reg-telefono').value.trim();
+  const especialidad = document.getElementById('reg-especialidad').value;
   const password = document.getElementById('reg-password').value;
   const errEl = document.getElementById('reg-error');
   errEl.style.display = 'none';
-
-  // Validaciones con mensajes claros
   if (!nombre) { showError(errEl, '⚠️ Por favor ingrese su nombre completo'); return; }
   if (nombre.length < 3) { showError(errEl, '⚠️ El nombre debe tener al menos 3 caracteres'); return; }
   if (!email) { showError(errEl, '⚠️ Por favor ingrese su correo electrónico'); return; }
-  if (!email.includes('@') || !email.includes('.')) { showError(errEl, '⚠️ El correo electrónico no es válido. Ejemplo: nombre@gmail.com'); return; }
+  if (!email.includes('@') || !email.includes('.')) { showError(errEl, '⚠️ El correo no es válido. Ejemplo: nombre@gmail.com'); return; }
   if (!telefonoRaw) { showError(errEl, '⚠️ Por favor ingrese su número de teléfono celular'); return; }
-
-  // Limpiar teléfono — solo dígitos
   const telefonoDigitos = telefonoRaw.replace(/\D/g, '');
-  if (telefonoDigitos.length < 7 || telefonoDigitos.length > 15) {
-    showError(errEl, '⚠️ Teléfono inválido. Ingrese solo los números. Ejemplo: 3001234567');
-    return;
-  }
-
+  if (telefonoDigitos.length < 7 || telefonoDigitos.length > 15) { showError(errEl, '⚠️ Teléfono inválido. Ingrese solo los números. Ejemplo: 3001234567'); return; }
   if (!password) { showError(errEl, '⚠️ Por favor ingrese una contraseña'); return; }
   if (password.length < 8) { showError(errEl, '⚠️ La contraseña debe tener mínimo 8 caracteres'); return; }
-
-  // Formatear teléfono con +57 si no lo tiene
   const telefono = telefonoRaw.startsWith('+') ? telefonoRaw : '+57' + telefonoDigitos;
-
   showLoading('Creando cuenta...');
   try {
     const res = await fetch(API + '/api/auth/register', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        nombreCompleto: nombre,
-        email: email,
-        telefono: telefono,
-        password: password,
-        rol: 'profesional'
-      })
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ nombreCompleto: nombre, email, telefono, password, rol: 'profesional', especialidad: especialidad || undefined })
     });
     const data = await res.json();
     hideLoading();
     if (!res.ok) {
-      // Traducir errores del servidor a mensajes claros
-      let msg = data.message || 'Error al crear la cuenta';
-      if (msg.includes('email') || msg.includes('correo')) msg = '⚠️ Este correo ya está registrado. Use otro correo o inicie sesión.';
-      else if (msg.includes('telefono') || msg.includes('phone')) msg = '⚠️ Este teléfono ya está registrado.';
+      let msg = data.error || data.message || 'Error al crear la cuenta';
+      if (msg.toLowerCase().includes('email') || msg.toLowerCase().includes('correo')) msg = '⚠️ Este correo ya está registrado. Use otro o inicie sesión.';
+      else if (msg.toLowerCase().includes('telefono') || msg.toLowerCase().includes('phone')) msg = '⚠️ Este teléfono ya está registrado.';
       throw new Error(msg);
     }
-    token = data.accessToken;
-    user = data.usuario;
+    token = data.accessToken; user = data.usuario;
     localStorage.setItem('re_e_token', token);
     localStorage.setItem('re_e_user', JSON.stringify(user));
     initApp();
-  } catch(e) {
-    hideLoading();
-    showError(errEl, e.message);
-  }
+  } catch(e) { hideLoading(); showError(errEl, e.message); }
 }
 
 function doLogout() {
   clearInterval(refreshInterval);
   token = ''; user = null;
-  localStorage.removeItem('re_e_token');
-  localStorage.removeItem('re_e_user');
+  localStorage.removeItem('re_e_token'); localStorage.removeItem('re_e_user');
   document.getElementById('screen-app').classList.remove('active');
   document.getElementById('screen-auth').classList.add('active');
 }
@@ -480,10 +402,20 @@ function initApp() {
 function showPage(name, btn) {
   document.querySelectorAll('.page').forEach(function(p){ p.classList.remove('active'); });
   document.getElementById('page-' + name).classList.add('active');
-  if (btn) {
-    document.querySelectorAll('.nav-btn').forEach(function(b){ b.classList.remove('active'); });
-    btn.classList.add('active');
-  }
+  if (btn) { document.querySelectorAll('.nav-btn').forEach(function(b){ b.classList.remove('active'); }); btn.classList.add('active'); }
+}
+
+// Obtiene el perfil del profesional desde el servidor (estado real)
+async function obtenerMiPerfil() {
+  try {
+    const res = await fetch(API + '/api/profesionales?limit=50', {
+      headers: { 'Authorization': 'Bearer ' + token }
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    const items = data.items || [];
+    return items.find(function(p) { return p.usuario && p.usuario.email === user.email; }) || null;
+  } catch(e) { return null; }
 }
 
 async function loadInicio() {
@@ -493,48 +425,41 @@ async function loadInicio() {
 
 async function loadStats() {
   try {
-    const res = await fetch(API + '/api/servicios', {
-      headers: { 'Authorization': 'Bearer ' + token }
-    });
+    const res = await fetch(API + '/api/servicios', { headers: { 'Authorization': 'Bearer ' + token } });
     if (!res.ok) return;
     const data = await res.json();
     const items = data.items || [];
     const hoy = new Date().toDateString();
-    const hoyCount = items.filter(function(s){ return new Date(s.createdAt).toDateString() === hoy; }).length;
-    document.getElementById('stat-hoy').textContent = hoyCount;
+    document.getElementById('stat-hoy').textContent = items.filter(function(s){ return new Date(s.createdAt).toDateString() === hoy; }).length;
     document.getElementById('stat-total').textContent = data.total || items.length;
   } catch(e) {}
 }
 
 async function loadSolicitudes() {
   const el = document.getElementById('solicitudes-list');
+  const aviso = document.getElementById('aviso-pendiente');
   try {
-    const resPend = await fetch(API + '/api/servicios/pendientes', {
-      headers: { 'Authorization': 'Bearer ' + token }
-    });
-    if (resPend.ok) {
+    const resPend = await fetch(API + '/api/servicios/pendientes', { headers: { 'Authorization': 'Bearer ' + token } });
+    if (resPend.status === 403) {
+      // No verificado
+      aviso.style.display = 'block';
+      document.getElementById('badge-pendientes').textContent = '0';
+      el.innerHTML = '<div class="empty"><div class="empty-icon">⏳</div><div class="empty-text">Esperando verificación de su cuenta</div></div>';
+    } else if (resPend.ok) {
+      aviso.style.display = 'none';
       const dataPend = await resPend.json();
       const items = dataPend.items || [];
       document.getElementById('badge-pendientes').textContent = items.length;
-      if (!items.length) {
-        el.innerHTML = '<div class="empty"><div class="empty-icon">📭</div><div class="empty-text">Sin solicitudes pendientes</div></div>';
-      } else {
-        el.innerHTML = items.map(function(s){ return solicitudCard(s); }).join('');
-      }
+      el.innerHTML = items.length ? items.map(function(s){ return solicitudCard(s); }).join('') :
+        '<div class="empty"><div class="empty-icon">📭</div><div class="empty-text">Sin solicitudes pendientes</div></div>';
     }
-
-    const resMios = await fetch(API + '/api/servicios', {
-      headers: { 'Authorization': 'Bearer ' + token }
-    });
+    // Cargar servicio activo
+    const resMios = await fetch(API + '/api/servicios', { headers: { 'Authorization': 'Bearer ' + token } });
     if (resMios.ok) {
       const dataMios = await resMios.json();
       const activos = (dataMios.items || []).filter(function(s){ return ['asignado','en_camino','en_curso'].includes(s.estado); });
-      if (activos.length > 0) {
-        mostrarServicioActivo(activos[0]);
-      } else {
-        document.getElementById('servicio-activo-container').style.display = 'none';
-        servicioActivoId = null;
-      }
+      if (activos.length > 0) { mostrarServicioActivo(activos[0]); }
+      else { document.getElementById('servicio-activo-container').style.display = 'none'; servicioActivoId = null; }
     }
   } catch(e) {
     el.innerHTML = '<div class="empty"><div class="empty-icon">📭</div><div class="empty-text">Sin solicitudes por ahora</div></div>';
@@ -545,21 +470,15 @@ function solicitudCard(s) {
   const iconos = { curacion:'🩹', medicacion:'💊', inyeccion:'💉', control:'🩺', cuidado_basico:'🛁', urgencia:'🚨' };
   const urgente = s.tipo === 'urgencia';
   const pacNombre = (s.paciente && s.paciente.usuario) ? s.paciente.usuario.nombreCompleto : 'Paciente';
-  const fecha = formatDate(s.createdAt || s.fechaSolicitud);
-  return '<div class="solicitud-card ' + (urgente ? 'urgente' : 'normal') + '">' +
-    '<div class="sol-header"><div class="sol-tipo">' +
-    '<div class="sol-icon ' + (urgente ? 'urgente' : '') + '">' + (iconos[s.tipo] || '🏥') + '</div>' +
+  return '<div class="solicitud-card ' + (urgente?'urgente':'normal') + '">' +
+    '<div class="sol-header"><div class="sol-tipo"><div class="sol-icon ' + (urgente?'urgente':'') + '">' + (iconos[s.tipo]||'🏥') + '</div>' +
     '<div><div class="sol-name">' + tipoLabel(s.tipo) + '</div><div class="sol-sub">' + pacNombre + '</div></div></div>' +
-    '<span class="badge ' + (urgente ? 'badge-red' : 'badge-teal') + '">' + (urgente ? 'URGENTE' : 'RUTINA') + '</span></div>' +
-    '<div class="sol-info">' +
-    '<div class="sol-info-row">📍 <span>' + (s.direccion || 'Sin dirección') + '</span></div>' +
-    '<div class="sol-info-row">🕐 <span>' + fecha + '</span></div>' +
-    (s.descripcion ? '<div class="sol-info-row">📝 <span>' + s.descripcion + '</span></div>' : '') +
-    '</div>' +
-    '<div class="sol-actions">' +
-    '<button class="btn-accept" onclick="aceptarServicio(\'' + s.id + '\')">✅ Aceptar</button>' +
-    '<button class="btn-reject" onclick="rechazarServicio(\'' + s.id + '\')">✕</button>' +
-    '</div></div>';
+    '<span class="badge ' + (urgente?'badge-red':'badge-teal') + '">' + (urgente?'URGENTE':'RUTINA') + '</span></div>' +
+    '<div class="sol-info"><div class="sol-info-row">📍 <span>' + (s.direccion||'Sin dirección') + '</span></div>' +
+    '<div class="sol-info-row">🕐 <span>' + formatDate(s.createdAt||s.fechaSolicitud) + '</span></div>' +
+    (s.descripcion?'<div class="sol-info-row">📝 <span>'+s.descripcion+'</span></div>':'') + '</div>' +
+    '<div class="sol-actions"><button class="btn-accept" onclick="aceptarServicio(\''+s.id+'\')">✅ Aceptar</button>' +
+    '<button class="btn-reject" onclick="rechazarServicio(\''+s.id+'\')">✕</button></div></div>';
 }
 
 function mostrarServicioActivo(s) {
@@ -569,102 +488,59 @@ function mostrarServicioActivo(s) {
   document.getElementById('activo-dir').textContent = s.direccion || 'Sin dirección';
   const btns = document.getElementById('estado-btns');
   let html = '';
-  if (s.estado === 'asignado') {
-    html = '<button class="btn-estado btn-en-camino" onclick="cambiarEstado(\'' + s.id + '\',\'en_camino\')">🚗 Voy en camino</button>';
-  } else if (s.estado === 'en_camino') {
-    html = '<button class="btn-estado btn-en-curso" onclick="cambiarEstado(\'' + s.id + '\',\'en_curso\')">▶️ Iniciar servicio</button>';
-  } else if (s.estado === 'en_curso') {
-    document.getElementById('evolucion-form').style.display = 'block';
-    html = '<button class="btn-estado btn-completar" onclick="completarServicio(\'' + s.id + '\')">✅ Completar servicio</button>';
-  }
+  if (s.estado === 'asignado') html = '<button class="btn-estado btn-en-camino" onclick="cambiarEstado(\''+s.id+'\',\'en_camino\')">🚗 Voy en camino</button>';
+  else if (s.estado === 'en_camino') html = '<button class="btn-estado btn-en-curso" onclick="cambiarEstado(\''+s.id+'\',\'en_curso\')">▶️ Iniciar servicio</button>';
+  else if (s.estado === 'en_curso') { document.getElementById('evolucion-form').style.display = 'block'; html = '<button class="btn-estado btn-completar" onclick="completarServicio(\''+s.id+'\')">✅ Completar servicio</button>'; }
   btns.innerHTML = html;
 }
 
 async function aceptarServicio(id) {
   showLoading('Aceptando servicio...');
   try {
-    const res = await fetch(API + '/api/servicios/' + id + '/estado', {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
-      body: JSON.stringify({ estado: 'asignado' })
-    });
-    hideLoading();
-    if (!res.ok) throw new Error();
-    await loadInicio();
-  } catch(e) {
-    hideLoading();
-    alert('Error al aceptar el servicio. Intente de nuevo.');
-  }
+    const res = await fetch(API+'/api/servicios/'+id+'/estado', { method:'PUT', headers:{'Content-Type':'application/json','Authorization':'Bearer '+token}, body:JSON.stringify({estado:'asignado'}) });
+    hideLoading(); if (!res.ok) throw new Error(); await loadInicio();
+  } catch(e) { hideLoading(); alert('Error al aceptar el servicio. Intente de nuevo.'); }
 }
 
 async function rechazarServicio(id) {
   if (!confirm('¿Rechazar esta solicitud?')) return;
-  try {
-    await fetch(API + '/api/servicios/' + id + '/estado', {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
-      body: JSON.stringify({ estado: 'cancelado' })
-    });
-    await loadInicio();
-  } catch(e) {}
+  try { await fetch(API+'/api/servicios/'+id+'/estado', { method:'PUT', headers:{'Content-Type':'application/json','Authorization':'Bearer '+token}, body:JSON.stringify({estado:'cancelado'}) }); await loadInicio(); } catch(e) {}
 }
 
 async function cambiarEstado(id, estado) {
   showLoading('Actualizando...');
   try {
-    const res = await fetch(API + '/api/servicios/' + id + '/estado', {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
-      body: JSON.stringify({ estado: estado })
-    });
-    hideLoading();
-    if (!res.ok) throw new Error();
-    await loadInicio();
-  } catch(e) {
-    hideLoading();
-    alert('Error al actualizar el estado. Intente de nuevo.');
-  }
+    const res = await fetch(API+'/api/servicios/'+id+'/estado', { method:'PUT', headers:{'Content-Type':'application/json','Authorization':'Bearer '+token}, body:JSON.stringify({estado}) });
+    hideLoading(); if (!res.ok) throw new Error(); await loadInicio();
+  } catch(e) { hideLoading(); alert('Error al actualizar el estado. Intente de nuevo.'); }
 }
 
-async function completarServicio(id) {
-  if (!confirm('¿Marcar el servicio como completado?')) return;
-  await cambiarEstado(id, 'completado');
-}
+async function completarServicio(id) { if (!confirm('¿Marcar el servicio como completado?')) return; await cambiarEstado(id, 'completado'); }
 
 async function guardarEvolucion() {
   if (!servicioActivoId) return;
   const body = {
-    tensionSistolica: parseInt(document.getElementById('v-sistolica').value) || undefined,
-    tensionDiastolica: parseInt(document.getElementById('v-diastolica').value) || undefined,
-    frecuenciaCardiaca: parseInt(document.getElementById('v-fc').value) || undefined,
-    temperatura: parseFloat(document.getElementById('v-temp').value) || undefined,
-    saturacionOxigeno: parseInt(document.getElementById('v-spo2').value) || undefined,
-    glucemia: parseInt(document.getElementById('v-glucemia').value) || undefined,
-    observaciones: document.getElementById('v-observaciones').value || undefined,
-    procedimientos: document.getElementById('v-procedimientos').value || undefined,
+    tensionSistolica: parseInt(document.getElementById('v-sistolica').value)||undefined,
+    tensionDiastolica: parseInt(document.getElementById('v-diastolica').value)||undefined,
+    frecuenciaCardiaca: parseInt(document.getElementById('v-fc').value)||undefined,
+    temperatura: parseFloat(document.getElementById('v-temp').value)||undefined,
+    saturacionOxigeno: parseInt(document.getElementById('v-spo2').value)||undefined,
+    glucemia: parseInt(document.getElementById('v-glucemia').value)||undefined,
+    observaciones: document.getElementById('v-observaciones').value||undefined,
+    procedimientos: document.getElementById('v-procedimientos').value||undefined,
   };
   showLoading('Guardando evolución...');
   try {
-    const res = await fetch(API + '/api/servicios/' + servicioActivoId + '/evolucion', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
-      body: JSON.stringify(body)
-    });
-    hideLoading();
-    if (!res.ok) throw new Error();
+    const res = await fetch(API+'/api/servicios/'+servicioActivoId+'/evolucion', { method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer '+token}, body:JSON.stringify(body) });
+    hideLoading(); if (!res.ok) throw new Error();
     alert('✅ Evolución guardada correctamente');
-    ['v-sistolica','v-diastolica','v-fc','v-temp','v-spo2','v-glucemia','v-observaciones','v-procedimientos']
-      .forEach(function(id){ document.getElementById(id).value = ''; });
-  } catch(e) {
-    hideLoading();
-    alert('Error al guardar la evolución. Intente de nuevo.');
-  }
+    ['v-sistolica','v-diastolica','v-fc','v-temp','v-spo2','v-glucemia','v-observaciones','v-procedimientos'].forEach(function(id){ document.getElementById(id).value=''; });
+  } catch(e) { hideLoading(); alert('Error al guardar la evolución. Intente de nuevo.'); }
 }
 
 async function toggleDisponible() {
   disponible = !disponible;
-  const btn = document.getElementById('status-btn');
-  btn.className = 'status-pill ' + (disponible ? 'disponible' : 'ocupado');
+  document.getElementById('status-btn').className = 'status-pill ' + (disponible?'disponible':'ocupado');
   document.getElementById('status-label').textContent = disponible ? 'Disponible' : 'No disponible';
 }
 
@@ -672,61 +548,49 @@ async function loadHistorial() {
   const el = document.getElementById('historial-list');
   el.innerHTML = '<div style="text-align:center;padding:40px"><div class="loading-ring" style="margin:0 auto;display:block"></div></div>';
   try {
-    const res = await fetch(API + '/api/servicios', {
-      headers: { 'Authorization': 'Bearer ' + token }
-    });
+    const res = await fetch(API+'/api/servicios', { headers:{'Authorization':'Bearer '+token} });
     if (!res.ok) throw new Error();
     const data = await res.json();
-    const items = (data.items || []).filter(function(s){ return ['completado','cancelado'].includes(s.estado); });
-    if (!items.length) {
-      el.innerHTML = '<div class="empty"><div class="empty-icon">📋</div><div class="empty-text">Sin historial aún</div></div>';
-      return;
-    }
+    const items = (data.items||[]).filter(function(s){ return ['completado','cancelado'].includes(s.estado); });
+    if (!items.length) { el.innerHTML = '<div class="empty"><div class="empty-icon">📋</div><div class="empty-text">Sin historial aún</div></div>'; return; }
     const iconos = { curacion:'🩹', medicacion:'💊', inyeccion:'💉', control:'🩺', cuidado_basico:'🛁', urgencia:'🚨' };
     el.innerHTML = items.map(function(s){
-      return '<div class="historial-item">' +
-        '<div class="hist-icon" style="background:' + (s.estado==='completado'?'var(--teal-dim)':'var(--red-dim)') + '">' + (iconos[s.tipo]||'🏥') + '</div>' +
-        '<div class="hist-info"><div class="hist-tipo">' + tipoLabel(s.tipo) + '</div><div class="hist-fecha">' + formatDate(s.createdAt) + '</div></div>' +
-        '<span class="badge ' + (s.estado==='completado'?'badge-teal':'badge-red') + '">' + (s.estado==='completado'?'Completado':'Cancelado') + '</span>' +
-        '</div>';
+      return '<div class="historial-item"><div class="hist-icon" style="background:'+(s.estado==='completado'?'var(--teal-dim)':'var(--red-dim)')+'">'+( iconos[s.tipo]||'🏥')+'</div>' +
+        '<div class="hist-info"><div class="hist-tipo">'+tipoLabel(s.tipo)+'</div><div class="hist-fecha">'+formatDate(s.createdAt)+'</div></div>' +
+        '<span class="badge '+(s.estado==='completado'?'badge-teal':'badge-red')+'">'+(s.estado==='completado'?'Completado':'Cancelado')+'</span></div>';
     }).join('');
-  } catch(e) {
-    el.innerHTML = '<div class="empty"><div class="empty-icon">📋</div><div class="empty-text">Sin historial aún</div></div>';
-  }
+  } catch(e) { el.innerHTML = '<div class="empty"><div class="empty-icon">📋</div><div class="empty-text">Sin historial aún</div></div>'; }
 }
 
-function loadPerfil() {
+async function loadPerfil() {
   if (!user) return;
+  // Mostrar datos básicos del localStorage inmediatamente
   const nombre = user.nombreCompleto || 'Profesional';
   document.getElementById('perfil-nombre').textContent = nombre;
   document.getElementById('perfil-email').textContent = user.email || '—';
   document.getElementById('perfil-tel').textContent = user.telefono || '—';
   document.getElementById('perfil-avatar').textContent = nombre.split(' ').map(function(w){return w[0];}).join('').slice(0,2).toUpperCase();
+
+  // Consultar estado real desde el servidor
+  try {
+    const miPerfil = await obtenerMiPerfil();
+    if (miPerfil) {
+      const v = miPerfil.estadoVerificacion;
+      const el = document.getElementById('perfil-verificacion');
+      if (v === 'aprobado') { el.textContent = '✅ Aprobado'; el.className = 'badge badge-teal'; }
+      else if (v === 'rechazado') { el.textContent = '❌ Rechazado'; el.className = 'badge badge-red'; }
+      else { el.textContent = '⏳ Pendiente'; el.className = 'badge badge-amber'; }
+      document.getElementById('perfil-servicios').textContent = miPerfil.totalServicios || 0;
+      document.getElementById('perfil-cal').textContent = miPerfil.calificacionPromedio ? '⭐ ' + Number(miPerfil.calificacionPromedio).toFixed(1) : '—';
+    }
+  } catch(e) {}
 }
 
-function showLoading(text) {
-  document.getElementById('loading-text').textContent = text || 'Cargando...';
-  document.getElementById('loading-overlay').classList.add('active');
-}
-
-function hideLoading() {
-  document.getElementById('loading-overlay').classList.remove('active');
-}
-
-function showError(el, msg) {
-  el.textContent = msg;
-  el.style.display = 'block';
-}
-
-function tipoLabel(tipo) {
-  const map = { curacion:'Curación', medicacion:'Medicación', inyeccion:'Inyección', control:'Control', cuidado_basico:'Cuidado básico', urgencia:'Urgencia' };
-  return map[tipo] || tipo;
-}
-
-function formatDate(d) {
-  if (!d) return '—';
-  return new Date(d).toLocaleDateString('es-CO', { day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit' });
-}
+function showLoading(text) { document.getElementById('loading-text').textContent = text||'Cargando...'; document.getElementById('loading-overlay').classList.add('active'); }
+function hideLoading() { document.getElementById('loading-overlay').classList.remove('active'); }
+function showError(el, msg) { el.textContent = msg; el.style.display = 'block'; }
+function tipoLabel(tipo) { const map = { curacion:'Curación', medicacion:'Medicación', inyeccion:'Inyección', control:'Control', cuidado_basico:'Cuidado básico', urgencia:'Urgencia' }; return map[tipo]||tipo; }
+function formatDate(d) { if (!d) return '—'; return new Date(d).toLocaleDateString('es-CO', {day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}); }
 </script>
 </body>
 </html>
