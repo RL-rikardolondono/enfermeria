@@ -5,7 +5,21 @@ import { autenticar, requerirRol } from '../middleware/auth'
 
 export async function profesionalesRoutes(app: FastifyInstance) {
 
-  // GET /api/profesionales — listar profesionales disponibles
+  // GET /api/profesionales/mi-perfil — perfil del profesional logueado con estado real
+  app.get('/mi-perfil', { preHandler: autenticar }, async (request, reply) => {
+    const profesional = await prisma.profesional.findUnique({
+      where: { usuarioId: request.usuario.id },
+      include: {
+        usuario: {
+          select: { nombreCompleto: true, email: true, telefono: true, fotoUrl: true },
+        },
+      },
+    })
+    if (!profesional) return reply.status(404).send({ error: 'Perfil no encontrado' })
+    return profesional
+  })
+
+  // GET /api/profesionales — listar profesionales activos
   app.get('/', { preHandler: autenticar }, async (request) => {
     const { page = 1, limit = 20 } = z.object({
       page: z.coerce.number().default(1),
