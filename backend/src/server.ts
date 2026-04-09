@@ -12,6 +12,7 @@ import { profesionalesRoutes } from './routes/profesionales'
 import { serviciosRoutes } from './routes/servicios'
 import { adminRoutes } from './routes/admin'
 import { pagosRoutes } from './routes/pagos'
+import { pushRoutes } from './routes/push'
 import { trackingWS } from './websocket/tracking'
 import { notificacionesWS } from './websocket/notificaciones'
 import { prisma } from './utils/prisma'
@@ -63,6 +64,7 @@ async function bootstrap() {
   await app.register(serviciosRoutes,     { prefix: '/api/servicios' })
   await app.register(adminRoutes,         { prefix: '/api/admin' })
   await app.register(pagosRoutes,         { prefix: '/api/pagos' })
+  await app.register(pushRoutes, { prefix: '/api/push' })
 
   // WebSocket
   await app.register(trackingWS,         { prefix: '/ws/tracking' })
