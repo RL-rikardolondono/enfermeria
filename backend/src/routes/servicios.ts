@@ -2,261 +2,132 @@ import { FastifyInstance } from 'fastify'
 import { z } from 'zod'
 import { prisma } from '../utils/prisma'
 import { autenticar, requerirRol } from '../middleware/auth'
-import { calcularTarifa } from '../services/tarifas'
- 
-export async function serviciosRoutes(app: FastifyInstance) {
- 
-  // POST /api/servicios — crear solicitud
-  app.post('/', { preHandler: autenticar }, async (request, reply) => {
+
+// VAPID keys - estas deben estar en variables de entorno
+const VAPID_PUBLIC_KEY = process.env.VAPID_PUBLIC_KEY || ''
+const VAPID_PRIVATE_KEY = process.env.VAPID_PRIVATE_KEY || ''
+
+// Función para enviar notificación push a una suscripción
+async function enviarNotificacionPush(suscripcion: any, payload: object): Promise<boolean> {
+  try {
+    const webpush = await import('web-push')
+    webpush.default.setVapidDetails(
+      'mailto:admin@reinaelizabeth.com',
+      VAPID_PUBLIC_KEY,
+      VAPID_PRIVATE_KEY
+    )
+    await webpush.default.sendNotification(suscripcion, JSON.stringify(payload))
+    return true
+  } catch (error: any) {
+    // Si el endpoint ya no es válido (410 Gone), eliminar la suscripción
+    if (error.statusCode === 410 || error.statusCode === 404) {
+      return false
+    }
+    return false
+  }
+}
+
+export async function pushRoutes(app: FastifyInstance) {
+
+  // GET /api/push/vapid-public-key — devuelve la clave pública para el cliente
+  app.get('/vapid-public-key', async () => {
+    return { publicKey: VAPID_PUBLIC_KEY }
+  })
+
+  // POST /api/push/suscribir — guardar suscripción del profesional
+  app.post('/suscribir', { preHandler: autenticar }, async (request, reply) => {
     const body = z.object({
-      tipo: z.string().min(1),
-      descripcion: z.string().min(1).max(500),
-      direccion: z.string().min(1),
-      lat: z.number().optional(),
-      lng: z.number().optional(),
-    }).parse(request.body)
- 
-    const paciente = await prisma.paciente.findUnique({
-      where: { usuarioId: request.usuario.id },
-    })
-    if (!paciente) return reply.status(404).send({ error: 'Perfil de paciente no encontrado' })
- 
-    const monto = await calcularTarifa(body.tipo)
- 
-    const servicio = await prisma.servicio.create({
-      data: {
-        pacienteId: paciente.id,
-        tipo: body.tipo as any,
-        descripcion: body.descripcion,
-        direccion: body.direccion,
-        lat: body.lat,
-        lng: body.lng,
-        monto,
-        estado: 'pendiente',
-      },
-    })
- 
-    return reply.status(201).send({
-      id: servicio.id,
-      estado: servicio.estado,
-      monto: servicio.monto,
-      mensaje: 'Solicitud creada. Buscando profesional disponible...',
-    })
-  })
- 
-  // GET /api/servicios — listar servicios del usuario
-  app.get('/', { preHandler: autenticar }, async (request) => {
-    const { page = 1, limit = 10 } = z.object({
-      page: z.coerce.number().default(1),
-      limit: z.coerce.number().max(50).default(10),
-    }).parse(request.query)
- 
-    const usuario = request.usuario
-    let where: any = {}
- 
-    if (usuario.rol === 'paciente') {
-      const paciente = await prisma.paciente.findUnique({ where: { usuarioId: usuario.id } })
-      if (paciente) where = { pacienteId: paciente.id }
-    } else if (usuario.rol === 'profesional') {
-      const profesional = await prisma.profesional.findUnique({ where: { usuarioId: usuario.id } })
-      if (profesional) where = { profesionalId: profesional.id }
-    } else if (usuario.rol === 'admin') {
-      where = {}
-    }
- 
-    const [total, items] = await prisma.$transaction([
-      prisma.servicio.count({ where }),
-      prisma.servicio.findMany({
-        where,
-        orderBy: { createdAt: 'desc' },
-        skip: (page - 1) * limit,
-        take: limit,
-        include: {
-          paciente: {
-            include: { usuario: { select: { nombreCompleto: true, telefono: true } } },
-          },
-          profesional: {
-            include: { usuario: { select: { nombreCompleto: true, telefono: true } } },
-          },
-          pago: true,
-        },
+      endpoint: z.string().url(),
+      keys: z.object({
+        p256dh: z.string(),
+        auth: z.string(),
       }),
-    ])
- 
-    return { total, page, limit, items }
-  })
- 
-  // GET /api/servicios/pendientes — solo profesionales APROBADOS pueden ver solicitudes
-  app.get('/pendientes', { preHandler: requerirRol('profesional', 'admin') }, async (request, reply) => {
-    // Verificar que el profesional esté aprobado
-    if (request.usuario.rol === 'profesional') {
-      const profesional = await prisma.profesional.findUnique({
-        where: { usuarioId: request.usuario.id },
-      })
-      if (!profesional || profesional.estadoVerificacion !== 'aprobado') {
-        return reply.status(403).send({
-          error: 'Su cuenta aún no ha sido verificada por Reina Elizabeth IPS. Espere la aprobación para recibir solicitudes.',
-        })
-      }
-    }
- 
-    const { page = 1, limit = 20 } = z.object({
-      page: z.coerce.number().default(1),
-      limit: z.coerce.number().max(50).default(20),
-    }).parse(request.query)
- 
-    const [total, items] = await prisma.$transaction([
-      prisma.servicio.count({ where: { estado: 'pendiente' } }),
-      prisma.servicio.findMany({
-        where: { estado: 'pendiente' },
-        orderBy: { createdAt: 'asc' },
-        skip: (page - 1) * limit,
-        take: limit,
-        include: {
-          paciente: {
-            include: { usuario: { select: { nombreCompleto: true, telefono: true } } },
-          },
-        },
-      }),
-    ])
- 
-    return { total, page, limit, items }
-  })
- 
-  // GET /api/servicios/:id
-  app.get('/:id', { preHandler: autenticar }, async (request, reply) => {
-    const { id } = z.object({ id: z.string().uuid() }).parse(request.params)
-    const servicio = await prisma.servicio.findUnique({
-      where: { id },
-      include: {
-        paciente: {
-          include: { usuario: { select: { nombreCompleto: true, telefono: true } } },
-        },
-        profesional: {
-          include: { usuario: { select: { nombreCompleto: true, telefono: true } } },
-        },
-        evoluciones: true,
-        pago: true,
-      },
-    })
-    if (!servicio) return reply.status(404).send({ error: 'Servicio no encontrado' })
-    return servicio
-  })
- 
-  // PUT /api/servicios/:id/estado
-  app.put('/:id/estado', { preHandler: autenticar }, async (request, reply) => {
-    const { id } = z.object({ id: z.string().uuid() }).parse(request.params)
-    const { estado } = z.object({
-      estado: z.enum(['asignado', 'en_camino', 'en_curso', 'completado', 'cancelado']),
     }).parse(request.body)
- 
-    // Verificar que el profesional esté aprobado antes de aceptar
-    if (estado === 'asignado' && request.usuario.rol === 'profesional') {
-      const profesional = await prisma.profesional.findUnique({
-        where: { usuarioId: request.usuario.id },
-      })
-      if (!profesional || profesional.estadoVerificacion !== 'aprobado') {
-        return reply.status(403).send({
-          error: 'Su cuenta no está verificada. No puede aceptar servicios.',
-        })
-      }
-    }
- 
-    let profesionalId: string | undefined
-    if (estado === 'asignado' && request.usuario.rol === 'profesional') {
-      const profesional = await prisma.profesional.findUnique({
-        where: { usuarioId: request.usuario.id },
-      })
-      profesionalId = profesional?.id
-    }
- 
-    const servicio = await prisma.servicio.update({
-      where: { id },
+
+    // Guardar suscripción en la tabla de notificaciones como JSON
+    await prisma.notificacion.create({
       data: {
-        estado,
-        ...(profesionalId && { profesionalId }),
-        fechaInicio: estado === 'en_curso' ? new Date() : undefined,
-        fechaFin: estado === 'completado' ? new Date() : undefined,
+        usuarioId: request.usuario.id,
+        tipo: 'push_subscription',
+        titulo: 'Suscripción push',
+        cuerpo: JSON.stringify({
+          endpoint: body.endpoint,
+          keys: body.keys,
+        }),
+        leida: true,
       },
     })
-    return servicio
+
+    return { ok: true, mensaje: 'Suscripción guardada' }
   })
- 
-  // POST /api/servicios/:id/evolucion
-  app.post('/:id/evolucion', { preHandler: requerirRol('profesional', 'admin') }, async (request, reply) => {
-    const { id } = z.object({ id: z.string().uuid() }).parse(request.params)
-    const body = z.object({
-      tensionSistolica: z.number().optional(),
-      tensionDiastolica: z.number().optional(),
-      frecuenciaCardiaca: z.number().optional(),
-      temperatura: z.number().optional(),
-      saturacionOxigeno: z.number().optional(),
-      glucemia: z.number().optional(),
-      observaciones: z.string().optional(),
-      procedimientos: z.string().optional(),
-    }).parse(request.body)
- 
-    const profesional = await prisma.profesional.findUnique({
-      where: { usuarioId: request.usuario.id },
-    })
- 
-    const evolucion = await prisma.evolucion.create({
-      data: {
-        servicioId: id,
-        profesionalId: profesional?.id,
-        ...body,
+
+  // DELETE /api/push/desuscribir — eliminar suscripción
+  app.delete('/desuscribir', { preHandler: autenticar }, async (request) => {
+    await prisma.notificacion.deleteMany({
+      where: {
+        usuarioId: request.usuario.id,
+        tipo: 'push_subscription',
       },
     })
-    return reply.status(201).send(evolucion)
+    return { ok: true }
   })
- 
-  // GET /api/servicios/admin/todos
-  app.get('/admin/todos', { preHandler: requerirRol('admin') }, async (request) => {
-    const { page = 1, limit = 20, estado } = z.object({
-      page: z.coerce.number().default(1),
-      limit: z.coerce.number().max(100).default(20),
-      estado: z.string().optional(),
-    }).parse(request.query)
- 
-    const where: any = estado ? { estado } : {}
- 
-    const [total, items] = await prisma.$transaction([
-      prisma.servicio.count({ where }),
-      prisma.servicio.findMany({
-        where,
-        orderBy: { createdAt: 'desc' },
-        skip: (page - 1) * limit,
-        take: limit,
-        include: {
-          paciente: {
-            include: { usuario: { select: { nombreCompleto: true } } },
-          },
-          profesional: {
-            include: { usuario: { select: { nombreCompleto: true } } },
-          },
-        },
-      }),
-    ])
- 
-    return { total, page, limit, items }
-  })
- 
-  // POST /api/servicios/:id/calificar
-  app.post('/:id/calificar', { preHandler: autenticar }, async (request, reply) => {
-    const { id } = z.object({ id: z.string().uuid() }).parse(request.params)
-    const { puntuacion, comentario } = z.object({
-      puntuacion: z.number().min(1).max(5),
-      comentario: z.string().optional(),
+
+  // POST /api/push/notificar-profesionales — enviar push a todos los profesionales aprobados
+  // Se llama internamente cuando se crea un servicio
+  app.post('/notificar-profesionales', { preHandler: requerirRol('admin') }, async (request, reply) => {
+    const { titulo, cuerpo, url } = z.object({
+      titulo: z.string().default('Nueva solicitud'),
+      cuerpo: z.string().default('Hay una nueva solicitud de servicio disponible'),
+      url: z.string().optional(),
     }).parse(request.body)
- 
-    const servicio = await prisma.servicio.findUnique({ where: { id } })
-    if (!servicio) return reply.status(404).send({ error: 'Servicio no encontrado' })
- 
-    const actualizado = await prisma.servicio.update({
-      where: { id },
-      data: { calificacion: puntuacion, comentarioCalificacion: comentario },
-    })
- 
-    return actualizado
+
+    await notificarProfesionalesDisponibles({ titulo, cuerpo, url })
+    return { ok: true }
   })
+}
+
+// Función exportable para llamar desde servicios.ts al crear un servicio
+export async function notificarProfesionalesDisponibles(payload: {
+  titulo: string
+  cuerpo: string
+  url?: string
+}) {
+  try {
+    // Buscar profesionales aprobados y disponibles con suscripción push
+    const profesionalesAprobados = await prisma.profesional.findMany({
+      where: { estadoVerificacion: 'aprobado', activo: true },
+      select: { usuarioId: true },
+    })
+
+    const usuarioIds = profesionalesAprobados.map(p => p.usuarioId)
+
+    // Buscar suscripciones push de esos profesionales
+    const suscripciones = await prisma.notificacion.findMany({
+      where: {
+        usuarioId: { in: usuarioIds },
+        tipo: 'push_subscription',
+      },
+    })
+
+    // Enviar notificación a cada suscripción
+    for (const sub of suscripciones) {
+      try {
+        const suscripcionData = JSON.parse(sub.cuerpo || '{}')
+        if (suscripcionData.endpoint) {
+          const exito = await enviarNotificacionPush(suscripcionData, {
+            title: payload.titulo,
+            body: payload.cuerpo,
+            icon: '/enfermeria/icon-192.png',
+            url: payload.url || 'https://rl-rikardolondono.github.io/enfermeria/app-enfermero.html',
+          })
+          // Si la suscripción es inválida, eliminarla
+          if (!exito) {
+            await prisma.notificacion.delete({ where: { id: sub.id } }).catch(() => {})
+          }
+        }
+      } catch (e) {}
+    }
+  } catch (e) {
+    console.error('Error enviando notificaciones push:', e)
+  }
 }
