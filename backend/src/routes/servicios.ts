@@ -39,11 +39,14 @@ export async function serviciosRoutes(app: FastifyInstance) {
     })
 
     // Notificar a profesionales aprobados via push (sin bloquear respuesta)
-    notificarProfesionalesDisponibles({
-      titulo: '🏥 Nueva solicitud de servicio',
-      cuerpo: (paciente.usuario?.nombreCompleto || 'Un paciente') + ' solicita ' + body.tipo + ' en ' + body.direccion,
-      url: 'https://rl-rikardolondono.github.io/enfermeria/app-enfermero.html',
-    }).catch(() => {})
+    // Notificar en segundo plano sin bloquear
+    setImmediate(() => {
+      notificarProfesionalesDisponibles({
+        titulo: '🏥 Nueva solicitud de servicio',
+        cuerpo: (paciente.usuario?.nombreCompleto || 'Un paciente') + ' solicita ' + body.tipo + ' en ' + body.direccion,
+        url: 'https://rl-rikardolondono.github.io/enfermeria/app-enfermero.html',
+      }).catch(() => {})
+    })
 
     return reply.status(201).send({
       id: servicio.id,
