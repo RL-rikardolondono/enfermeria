@@ -13,6 +13,8 @@ import { serviciosRoutes } from './routes/servicios'
 import { adminRoutes } from './routes/admin'
 import { pagosRoutes } from './routes/pagos'
 import { pushRoutes } from './routes/push'
+import { tarifasRoutes } from './routes/tarifas'
+import { asegurarTarifas } from './services/tarifas'
 import { trackingWS } from './websocket/tracking'
 import { notificacionesWS } from './websocket/notificaciones'
 import { prisma } from './utils/prisma'
@@ -68,6 +70,7 @@ async function bootstrap() {
   await app.register(adminRoutes,         { prefix: '/api/admin' })
   await app.register(pagosRoutes,         { prefix: '/api/pagos' })
   await app.register(pushRoutes, { prefix: '/api/push' })
+  await app.register(tarifasRoutes,       { prefix: '/api/tarifas' })
 
   // WebSocket
   await app.register(trackingWS,         { prefix: '/ws/tracking' })
@@ -91,6 +94,9 @@ async function bootstrap() {
   }
   process.on('SIGTERM', shutdown)
   process.on('SIGINT', shutdown)
+
+  // Tarifas iniciales de la IPS (solo crea las que falten)
+  await asegurarTarifas().catch((err) => app.log.error(err, 'No se pudieron crear las tarifas iniciales'))
 
   const port = parseInt(process.env.PORT || '3000')
   await app.listen({ port, host: '0.0.0.0' })
