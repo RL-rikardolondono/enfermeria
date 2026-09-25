@@ -16,7 +16,7 @@ import { pushRoutes } from './routes/push'
 import { trackingWS } from './websocket/tracking'
 import { notificacionesWS } from './websocket/notificaciones'
 import { prisma } from './utils/prisma'
-import { redis } from './utils/redis'
+import { redis, redisReal } from './utils/redis'
 
 const app = Fastify({
   logger: {
@@ -31,13 +31,16 @@ async function bootstrap() {
   // Seguridad
   await app.register(helmet, { contentSecurityPolicy: false })
   await app.register(cors, {
-    origin: process.env.CORS_ORIGINS?.split(',') || ['http://localhost:3001'],
+    origin: process.env.CORS_ORIGINS?.split(',').map((o) => o.trim()) || [
+      'https://rl-rikardolondono.github.io',
+      'http://localhost:3001',
+    ],
     credentials: true,
   })
   await app.register(rateLimit, {
     max: 100,
     timeWindow: '1 minute',
-    redis,
+    ...(redisReal ? { redis: redisReal } : {}),
   })
 
   // Auth
