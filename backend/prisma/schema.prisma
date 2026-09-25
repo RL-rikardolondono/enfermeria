@@ -256,3 +256,13 @@ model TrackingHistorial {
   profesional   Profesional @relation(fields: [profesionalId], references: [id])
   @@map("tracking_historial")
 }
+
+model Tarifa {
+  tipo        TipoServicio @id
+  nombre      String       @db.VarChar(100)
+  descripcion String?      @db.VarChar(200)
+  precio      Int
+  activo      Boolean      @default(true)
+  updatedAt   DateTime     @updatedAt @map("updated_at")
+  @@map("tarifas")
+}
