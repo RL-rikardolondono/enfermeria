@@ -5,7 +5,8 @@
   "main": "dist/server.js",
   "scripts": {
     "dev": "ts-node-dev --respawn --transpile-only src/server.ts",
-    "build": "npm install --legacy-peer-deps && prisma generate && tsc",
+    "build": "npm install --include=dev --legacy-peer-deps && prisma generate && tsc",
+    "start:render": "prisma db push --skip-generate && node dist/server.js",
     "start": "node dist/server.js",
     "db:migrate": "prisma migrate dev",
     "db:generate": "prisma generate",
