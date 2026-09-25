@@ -115,13 +115,13 @@ body{font-family:'Nunito',sans-serif;background:var(--cream);color:var(--ink);mi
   <div class="page active" id="page-home">
     <div class="hero-card"><h2>Necesita atencion en casa?</h2><p>Profesionales verificados listos para atenderle</p><button class="btn-hero" onclick="showPage('solicitar');resetSolicitud()">&#x2795; Solicitar servicio</button></div>
     <div class="section-title">Tipos de servicio</div>
-    <div class="service-grid">
+    <div class="service-grid" id="inicio-grid">
       <div class="service-card" onclick="selectTipoInicio('curacion')"><div class="service-card-icon">&#x1FA79;</div><div class="service-card-name">Curacion</div><div class="service-card-desc">Heridas y ulceras</div></div>
       <div class="service-card" onclick="selectTipoInicio('medicacion')"><div class="service-card-icon">&#x1F48A;</div><div class="service-card-name">Medicacion</div><div class="service-card-desc">Administracion</div></div>
       <div class="service-card" onclick="selectTipoInicio('inyeccion')"><div class="service-card-icon">&#x1F489;</div><div class="service-card-name">Inyeccion</div><div class="service-card-desc">IM, IV, SC</div></div>
       <div class="service-card" onclick="selectTipoInicio('control')"><div class="service-card-icon">&#x1FA7A;</div><div class="service-card-name">Control</div><div class="service-card-desc">Signos vitales</div></div>
       <div class="service-card" onclick="selectTipoInicio('cuidado_basico')"><div class="service-card-icon">&#x1F6C1;</div><div class="service-card-name">Cuidado basico</div><div class="service-card-desc">Higiene y confort</div></div>
-      <div class="service-card" onclick="selectTipoInicio('urgencia')"><div class="service-card-icon">&#x1F6A8;</div><div class="service-card-name">Urgencia</div><div class="service-card-desc">Atencion inmediata</div></div>
+      <div class="service-card" onclick="selectTipoInicio('urgencia')"><div class="service-card-icon">&#x1F6A8;</div><div class="service-card-name">Atencion prioritaria</div><div class="service-card-desc">Llegada prioritaria</div></div>
     </div>
     <div class="section-title">Mis servicios recientes</div>
     <div id="servicios-recientes"><div class="empty"><div class="empty-icon">&#x1F4CB;</div><div class="empty-text">No tiene servicios aun</div></div></div>
@@ -136,7 +136,7 @@ body{font-family:'Nunito',sans-serif;background:var(--cream);color:var(--ink);mi
         <div class="service-card" onclick="seleccionarTipo('inyeccion',this)"><div class="service-card-icon">&#x1F489;</div><div class="service-card-name">Inyeccion</div><div class="service-card-desc">IM, IV, SC</div></div>
         <div class="service-card" onclick="seleccionarTipo('control',this)"><div class="service-card-icon">&#x1FA7A;</div><div class="service-card-name">Control</div><div class="service-card-desc">Signos vitales</div></div>
         <div class="service-card" onclick="seleccionarTipo('cuidado_basico',this)"><div class="service-card-icon">&#x1F6C1;</div><div class="service-card-name">Cuidado basico</div><div class="service-card-desc">Higiene y confort</div></div>
-        <div class="service-card" onclick="seleccionarTipo('urgencia',this)"><div class="service-card-icon">&#x1F6A8;</div><div class="service-card-name">Urgencia</div><div class="service-card-desc">Atencion inmediata</div></div>
+        <div class="service-card" onclick="seleccionarTipo('urgencia',this)"><div class="service-card-icon">&#x1F6A8;</div><div class="service-card-name">Atencion prioritaria</div><div class="service-card-desc">Llegada prioritaria</div></div>
       </div>
       <button class="btn-main" onclick="irPaso(2)" id="btn-paso1" disabled style="opacity:0.5">Continuar &#x2192;</button>
     </div>
@@ -154,6 +154,7 @@ body{font-family:'Nunito',sans-serif;background:var(--cream);color:var(--ink);mi
         <div class="info-row"><span class="info-label">Direccion</span><span class="info-value" id="confirm-direccion">-</span></div>
         <div class="info-row"><span class="info-label">Ciudad</span><span class="info-value" id="confirm-ciudad">-</span></div>
         <div class="info-row"><span class="info-label">Descripcion</span><span class="info-value" id="confirm-desc">-</span></div>
+        <div class="info-row"><span class="info-label">Valor (tarifa IPS)</span><span class="info-value" id="confirm-valor" style="color:var(--teal);font-weight:800">-</span></div>
       </div>
       <div style="background:var(--amber-pale);border-radius:var(--radius-sm);padding:14px;margin-bottom:16px"><div style="font-size:13px;font-weight:700;color:var(--amber)">Tiempo estimado de llegada</div><div style="font-size:12px;color:var(--ink-light);margin-top:4px;font-weight:600">El profesional llegara en 30-60 minutos segun disponibilidad</div></div>
       <div style="display:flex;gap:10px"><button class="btn-main" style="background:var(--border);color:var(--ink);flex:0 0 auto;width:50px" onclick="irPaso(2)">&#x2190;</button><button class="btn-main" onclick="enviarSolicitud()" style="flex:1" id="btn-enviar">&#x2705; Confirmar solicitud</button></div>
@@ -180,6 +181,24 @@ var API = 'https://enfermeria-api-2ksu.onrender.com';
 var token = localStorage.getItem('re_p_token') || '';
 var user = JSON.parse(localStorage.getItem('re_p_user') || 'null');
 var tipoSeleccionado = '';
+var tarifasIPS = {};
+// Tarifas fijas de la IPS: se muestran en las tarjetas de servicio
+function cargarTarifas() {
+  fetch(API + '/api/tarifas').then(function(r){ return r.json(); }).then(function(d){
+    var tipoMap = ['curacion','medicacion','inyeccion','control','cuidado_basico','urgencia'];
+    (d.items||[]).forEach(function(t){ tarifasIPS[t.tipo] = t; });
+    ['#tipo-grid','#inicio-grid'].forEach(function(sel){
+      var cards = document.querySelectorAll(sel + ' .service-card');
+      tipoMap.forEach(function(tipo, idx){
+        var t = tarifasIPS[tipo], card = cards[idx];
+        if (!t || !card) return;
+        var desc = card.querySelector('.service-card-desc');
+        if (desc) desc.innerHTML = '<b style="color:var(--teal)">$' + t.precio.toLocaleString('es-CO') + '</b>';
+        card.style.display = t.activo ? '' : 'none';
+      });
+    });
+  }).catch(function(){});
+}
 var lastEstados = {};
 var notifInterval = null;
 var estrellaSeleccionada = 0;
@@ -260,6 +279,7 @@ function doLogout() {
 }
 
 function initApp() {
+  cargarTarifas();
   document.getElementById('screen-auth').classList.remove('active');
   document.getElementById('screen-app').classList.add('active');
   var nombre = (user && user.nombreCompleto) ? user.nombreCompleto : 'Paciente';
@@ -481,6 +501,8 @@ function irPaso(n) {
     document.getElementById('confirm-direccion').textContent = dir;
     document.getElementById('confirm-ciudad').textContent = document.getElementById('sol-ciudad').value||'Santa Marta';
     document.getElementById('confirm-desc').textContent = desc;
+    var t = tarifasIPS[tipoSeleccionado];
+    document.getElementById('confirm-valor').textContent = t ? '$' + t.precio.toLocaleString('es-CO') + ' COP' : 'Se confirma al enviar';
   }
   for (var i=1;i<=3;i++) { document.getElementById('paso-'+i).style.display=i===n?'block':'none'; document.getElementById('step'+i).classList.toggle('active',i<=n); }
 }
@@ -535,7 +557,7 @@ function estadoBadge(estado) {
 }
 
 function tipoLabel(tipo) {
-  var map={curacion:'Curacion',medicacion:'Medicacion',inyeccion:'Inyeccion',control:'Control',cuidado_basico:'Cuidado basico',urgencia:'Urgencia'};
+  var map={curacion:'Curacion',medicacion:'Medicacion',inyeccion:'Inyeccion',control:'Control',cuidado_basico:'Cuidado basico',urgencia:'Atencion prioritaria'};
   return map[tipo]||tipo;
 }
 
