@@ -99,7 +99,7 @@ export async function notificarProfesionalesDisponibles(payload: {
       select: { usuarioId: true },
     })
 
-    const usuarioIds = profesionalesAprobados.map(p => p.usuarioId)
+    const usuarioIds = profesionalesAprobados.map((p: { usuarioId: string }) => p.usuarioId)
 
     // Buscar suscripciones push de esos profesionales
     const suscripciones = await prisma.notificacion.findMany({
