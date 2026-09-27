@@ -97,6 +97,9 @@ async function bootstrap() {
 
   // Tarifas iniciales de la IPS (solo crea las que falten)
   await asegurarTarifas().catch((err) => app.log.error(err, 'No se pudieron crear las tarifas iniciales'))
+  // Cuentas creadas antes de permitir varios pacientes: su único paciente es el titular
+  await prisma.paciente.updateMany({ where: { nombreCompleto: null, esTitular: false }, data: { esTitular: true, parentesco: 'Titular' } })
+    .catch((err: unknown) => app.log.error(err, 'No se pudo marcar a los titulares'))
 
   const port = parseInt(process.env.PORT || '3000')
   await app.listen({ port, host: '0.0.0.0' })
