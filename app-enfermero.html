@@ -480,7 +480,7 @@ async function loadSolicitudes() {
 function solicitudCard(s) {
   const iconos={curacion:'🩹',medicacion:'💊',inyeccion:'💉',control:'🩺',cuidado_basico:'🛁',urgencia:'🚨'};
   const urgente = s.tipo==='urgencia';
-  const pacNombre = (s.paciente&&s.paciente.usuario)?s.paciente.usuario.nombreCompleto:'Paciente';
+  const pacNombre = (s.paciente&&s.paciente.nombreCompleto)?s.paciente.nombreCompleto:((s.paciente&&s.paciente.usuario)?s.paciente.usuario.nombreCompleto:'Paciente');
   return '<div class="solicitud-card '+(urgente?'urgente':'normal')+'">' +
     '<div class="sol-header"><div class="sol-tipo"><div class="sol-icon '+(urgente?'urgente':'')+'">'+(iconos[s.tipo]||'🏥')+'</div>' +
     '<div><div class="sol-name">'+tipoLabel(s.tipo)+'</div><div class="sol-sub">'+pacNombre+'</div></div></div>' +

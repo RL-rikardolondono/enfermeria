@@ -24,8 +24,8 @@ body{font-family:'Nunito',sans-serif;background:var(--cream);color:var(--ink);mi
 .auth-body{padding:28px;flex:1}
 .form-group{margin-bottom:16px}
 .form-group label{display:block;font-size:13px;font-weight:700;color:var(--ink-light);margin-bottom:6px}
-.form-group input,.form-group textarea{width:100%;padding:14px 16px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-family:'Nunito',sans-serif;font-size:15px;background:var(--cream);color:var(--ink);outline:none;transition:border-color 0.2s}
-.form-group input:focus,.form-group textarea:focus{border-color:var(--teal);background:white}
+.form-group input,.form-group textarea,.form-group select{width:100%;padding:14px 16px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-family:'Nunito',sans-serif;font-size:15px;background:var(--cream);color:var(--ink);outline:none;transition:border-color 0.2s}
+.form-group input:focus,.form-group textarea:focus,.form-group select:focus{border-color:var(--teal);background:white}
 .form-group textarea{resize:none;height:80px}
 .field-hint{font-size:11px;color:var(--muted);margin-top:4px;font-weight:600}
 .btn-main{width:100%;padding:16px;background:var(--teal);color:white;border:none;border-radius:var(--radius);font-family:'Nunito',sans-serif;font-size:16px;font-weight:800;cursor:pointer;transition:all 0.15s;margin-top:8px}
@@ -141,7 +141,18 @@ body{font-family:'Nunito',sans-serif;background:var(--cream);color:var(--ink);mi
       <button class="btn-main" onclick="irPaso(2)" id="btn-paso1" disabled style="opacity:0.5">Continuar &#x2192;</button>
     </div>
     <div id="paso-2" style="display:none">
-      <div class="step-title">Donde le atendemos?</div><div class="step-subtitle">Ingrese la direccion de atencion</div>
+      <div class="step-title">Para quien y donde?</div><div class="step-subtitle">Elija el paciente e ingrese la direccion de atencion</div>
+      <div class="form-group"><label for="sol-paciente">Paciente</label><select id="sol-paciente" onchange="cambioPaciente()"><option value="">Cargando...</option></select></div>
+      <div id="nuevo-paciente" class="info-card" style="display:none;margin-bottom:16px">
+        <div style="font-size:14px;font-weight:800;margin-bottom:12px">Agregar paciente a su cuenta</div>
+        <div class="form-group"><label for="np-nombre">Nombre completo</label><input type="text" id="np-nombre" placeholder="Ej: Rosa Gomez"></div>
+        <div class="form-group"><label for="np-parentesco">Parentesco</label><select id="np-parentesco"><option>Madre</option><option>Padre</option><option>Hijo(a)</option><option>Esposo(a)</option><option>Abuelo(a)</option><option>Hermano(a)</option><option>Otro familiar</option><option>Paciente a cargo</option></select></div>
+        <div class="form-group"><label for="np-nacimiento">Fecha de nacimiento</label><input type="date" id="np-nacimiento"></div>
+        <div class="form-group"><label for="np-documento">Documento (CC, TI o RC)</label><input type="text" id="np-documento" placeholder="Numero de documento"></div>
+        <div class="form-group"><label for="np-alergias">Alergias y antecedentes importantes</label><textarea id="np-alergias" placeholder="Ej: alergia a penicilina, diabetes tipo 2"></textarea></div>
+        <div class="auth-error" id="np-error"></div>
+        <div style="display:flex;gap:10px"><button class="btn-main" style="background:var(--border);color:var(--ink);flex:0 0 auto;width:auto;padding:0 18px" onclick="cancelarNuevoPaciente()">Cancelar</button><button class="btn-main" style="flex:1" id="np-guardar" onclick="guardarNuevoPaciente()">Guardar paciente</button></div>
+      </div>
       <div class="form-group"><label>Direccion completa</label><input type="text" id="sol-direccion" placeholder="Calle 123 #45-67"></div>
       <div class="form-group"><label>Ciudad</label><input type="text" id="sol-ciudad" value="Santa Marta" placeholder="Santa Marta"></div>
       <div class="form-group"><label>Descripcion del servicio <span style="color:var(--red)">*</span></label><textarea id="sol-descripcion" placeholder="Minimo 5 caracteres. Ej: Curacion de herida en pierna..."></textarea><div class="field-hint">Minimo 5 caracteres</div></div>
@@ -150,6 +161,7 @@ body{font-family:'Nunito',sans-serif;background:var(--cream);color:var(--ink);mi
     <div id="paso-3" style="display:none">
       <div class="step-title">Confirme su solicitud</div><div class="step-subtitle">Revise los detalles antes de enviar</div>
       <div class="info-card">
+        <div class="info-row"><span class="info-label">Paciente</span><span class="info-value" id="confirm-paciente">-</span></div>
         <div class="info-row"><span class="info-label">Tipo de servicio</span><span class="info-value" id="confirm-tipo">-</span></div>
         <div class="info-row"><span class="info-label">Direccion</span><span class="info-value" id="confirm-direccion">-</span></div>
         <div class="info-row"><span class="info-label">Ciudad</span><span class="info-value" id="confirm-ciudad">-</span></div>
@@ -355,7 +367,7 @@ function servicioItem(s) {
       extra += '<button class="btn-pago" data-sid="'+s.id+'" style="background:#E8932A;margin-top:6px" onclick="mostrarCalificacion(this.dataset.sid)">&#x2B50; Calificar servicio</button>';
     }
   }
-  return '<div class="service-item"><div class="service-item-row"><div class="service-item-icon">'+(iconos[s.tipo]||'&#x1F3E5;')+'</div><div class="service-item-info"><div class="service-item-name">'+tipoLabel(s.tipo)+'</div><div class="service-item-date">'+formatDate(s.createdAt||s.fechaSolicitud)+'</div></div>'+badge+'</div>'+extra+'</div>';
+  return '<div class="service-item"><div class="service-item-row"><div class="service-item-icon">'+(iconos[s.tipo]||'&#x1F3E5;')+'</div><div class="service-item-info"><div class="service-item-name">'+tipoLabel(s.tipo)+'</div><div class="service-item-date">'+(s.paciente&&s.paciente.nombreCompleto?escapeHtml(s.paciente.nombreCompleto)+' · ':'')+formatDate(s.createdAt||s.fechaSolicitud)+'</div></div>'+badge+'</div>'+extra+'</div>';
 }
 
 function mostrarCalificacion(servicioId) {
@@ -490,13 +502,63 @@ function selectTipoInicio(tipo) {
   }, 50);
 }
 
+var misPacientes = [];
+// Pacientes de la cuenta: el titular y los familiares que gestiona
+async function cargarMisPacientes(seleccionarId) {
+  var sel = document.getElementById('sol-paciente');
+  try {
+    var res = await fetch(API + '/api/pacientes/mios', {headers:{'Authorization':'Bearer '+token}});
+    var d = await res.json();
+    misPacientes = d.items || [];
+  } catch(e) { misPacientes = []; }
+  sel.innerHTML = misPacientes.map(function(p){
+    var rel = p.esTitular ? 'Yo' : (p.parentesco || 'Familiar');
+    return '<option value="'+p.id+'">'+escapeHtml(p.nombreCompleto || 'Paciente')+' ('+escapeHtml(rel)+')</option>';
+  }).join('') + '<option value="__nuevo">+ Agregar otro paciente</option>';
+  if (seleccionarId) sel.value = seleccionarId;
+  else if (misPacientes.length) sel.value = misPacientes[0].id;
+  cambioPaciente();
+}
+function escapeHtml(t) { return String(t).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+function cambioPaciente() {
+  var nuevo = document.getElementById('sol-paciente').value === '__nuevo';
+  document.getElementById('nuevo-paciente').style.display = nuevo ? 'block' : 'none';
+}
+function cancelarNuevoPaciente() {
+  var sel = document.getElementById('sol-paciente');
+  sel.value = misPacientes.length ? misPacientes[0].id : '';
+  cambioPaciente();
+}
+async function guardarNuevoPaciente() {
+  var errEl = document.getElementById('np-error'); errEl.style.display = 'none';
+  var nombre = document.getElementById('np-nombre').value.trim();
+  if (nombre.length < 3) { showError(errEl, 'Escriba el nombre completo del paciente'); return; }
+  var btn = document.getElementById('np-guardar'); btn.disabled = true; btn.textContent = 'Guardando...';
+  try {
+    var body = { nombreCompleto: nombre, parentesco: document.getElementById('np-parentesco').value };
+    var nac = document.getElementById('np-nacimiento').value; if (nac) body.fechaNacimiento = nac;
+    var doc = document.getElementById('np-documento').value.trim(); if (doc) body.documentoNumero = doc;
+    var ant = document.getElementById('np-alergias').value.trim(); if (ant) body.antecedentes = ant;
+    var res = await fetch(API + '/api/pacientes', {method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},body:JSON.stringify(body)});
+    var data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'No se pudo guardar el paciente');
+    ['np-nombre','np-nacimiento','np-documento','np-alergias'].forEach(function(id){ document.getElementById(id).value=''; });
+    await cargarMisPacientes(data.id);
+  } catch(e) { showError(errEl, e.message); }
+  btn.disabled = false; btn.textContent = 'Guardar paciente';
+}
+
 function irPaso(n) {
   if (n===2 && !tipoSeleccionado) return;
+  if (n===2 && !misPacientes.length) cargarMisPacientes();
   if (n===3) {
     var dir = document.getElementById('sol-direccion').value.trim();
     var desc = document.getElementById('sol-descripcion').value.trim();
+    if (!document.getElementById('sol-paciente').value) { alert('Elija para quien es el servicio'); return; }
     if (!dir) { alert('Por favor ingrese la direccion'); return; }
     if (desc.length < 5) { alert('La descripcion debe tener minimo 5 caracteres'); return; }
+    var selP = document.getElementById('sol-paciente');
+    document.getElementById('confirm-paciente').textContent = selP.options[selP.selectedIndex].text;
     document.getElementById('confirm-tipo').textContent = tipoLabel(tipoSeleccionado);
     document.getElementById('confirm-direccion').textContent = dir;
     document.getElementById('confirm-ciudad').textContent = document.getElementById('sol-ciudad').value||'Santa Marta';
@@ -524,7 +586,7 @@ async function enviarSolicitud() {
     var ciudad = document.getElementById('sol-ciudad').value.trim()||'Santa Marta';
     var descripcion = document.getElementById('sol-descripcion').value.trim();
     // CORRECCIÓN: usar tipoSeleccionado en lugar de 'rutina'
-    var res = await fetch(API+'/api/servicios', {method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},body:JSON.stringify({tipo:tipoSeleccionado,descripcion:descripcion,direccion:direccion+', '+ciudad,lat:11.2408,lng:-74.1990})});
+    var res = await fetch(API+'/api/servicios', {method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},body:JSON.stringify({tipo:tipoSeleccionado,pacienteId:document.getElementById('sol-paciente').value||undefined,descripcion:descripcion,direccion:direccion+', '+ciudad,lat:11.2408,lng:-74.1990})});
     var data = await res.json();
     if (!res.ok) throw new Error(data.error||data.message||'Error al enviar solicitud');
     for (var i=1;i<=3;i++) document.getElementById('paso-'+i).style.display='none';
