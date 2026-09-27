@@ -55,6 +55,9 @@ export async function authRoutes(app: FastifyInstance) {
       await prisma.paciente.create({
         data: {
           usuarioId: usuario.id,
+          nombreCompleto: body.nombreCompleto,
+          parentesco: 'Titular',
+          esTitular: true,
           documentoTipo: 'CC',
           documentoNumero: `TEMP-${usuario.id.slice(0, 8)}`,
           fechaNacimiento: new Date('2000-01-01'),

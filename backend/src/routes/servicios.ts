@@ -15,13 +15,18 @@ export async function serviciosRoutes(app: FastifyInstance) {
       direccion: z.string().min(1),
       lat: z.number().optional(),
       lng: z.number().optional(),
+      pacienteId: z.string().uuid().optional(),
     }).parse(request.body)
 
-    const paciente = await prisma.paciente.findUnique({
-      where: { usuarioId: request.usuario.id },
+    // Paciente elegido (debe pertenecer a la cuenta) o, si no se indica, el titular
+    const paciente = await prisma.paciente.findFirst({
+      where: body.pacienteId
+        ? { id: body.pacienteId, usuarioId: request.usuario.id, activo: true }
+        : { usuarioId: request.usuario.id, activo: true },
+      orderBy: [{ esTitular: 'desc' }, { createdAt: 'asc' }],
       include: { usuario: { select: { nombreCompleto: true } } },
     })
-    if (!paciente) return reply.status(404).send({ error: 'Perfil de paciente no encontrado' })
+    if (!paciente) return reply.status(404).send({ error: 'Paciente no encontrado en su cuenta' })
 
     const monto = await calcularTarifa(body.tipo)
 
@@ -43,7 +48,7 @@ export async function serviciosRoutes(app: FastifyInstance) {
     setImmediate(() => {
       notificarProfesionalesDisponibles({
         titulo: '🏥 Nueva solicitud de servicio',
-        cuerpo: (paciente.usuario?.nombreCompleto || 'Un paciente') + ' solicita ' + body.tipo + ' en ' + body.direccion,
+        cuerpo: (paciente.nombreCompleto || paciente.usuario?.nombreCompleto || 'Un paciente') + ' solicita ' + body.tipo + ' en ' + body.direccion,
         url: 'https://rl-rikardolondono.github.io/enfermeria/app-enfermero.html',
       }).catch(() => {})
     })
@@ -67,8 +72,7 @@ export async function serviciosRoutes(app: FastifyInstance) {
     let where: any = {}
 
     if (usuario.rol === 'paciente') {
-      const paciente = await prisma.paciente.findUnique({ where: { usuarioId: usuario.id } })
-      if (paciente) where = { pacienteId: paciente.id }
+      where = { paciente: { usuarioId: usuario.id } }
     } else if (usuario.rol === 'profesional') {
       const profesional = await prisma.profesional.findUnique({ where: { usuarioId: usuario.id } })
       if (profesional) where = { profesionalId: profesional.id }
