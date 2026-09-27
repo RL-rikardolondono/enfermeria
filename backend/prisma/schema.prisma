@@ -63,7 +63,7 @@ model Usuario {
   createdAt      DateTime      @default(now()) @map("created_at")
   updatedAt      DateTime      @updatedAt @map("updated_at")
   sesiones       Sesion[]
-  paciente       Paciente?
+  pacientes      Paciente[]
   profesional    Profesional?
   notificaciones Notificacion[]
   @@map("usuarios")
@@ -86,7 +86,10 @@ model Sesion {
 
 model Paciente {
   id                         String    @id @default(uuid())
-  usuarioId                  String    @unique @map("usuario_id")
+  usuarioId                  String    @map("usuario_id") // titular de la cuenta que gestiona a este paciente
+  nombreCompleto             String?   @map("nombre_completo") @db.VarChar(200)
+  parentesco                 String?   @db.VarChar(50)
+  esTitular                  Boolean   @default(false) @map("es_titular")
   fechaNacimiento            DateTime? @map("fecha_nacimiento") @db.Date
   genero                     String?   @db.VarChar(20)
   tipoSangre                 String?   @map("tipo_sangre") @db.VarChar(5)
