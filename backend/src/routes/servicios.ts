@@ -4,6 +4,7 @@ import { prisma } from '../utils/prisma'
 import { autenticar, requerirRol } from '../middleware/auth'
 import { calcularTarifa } from '../services/tarifas'
 import { notificarProfesionalesDisponibles } from './push'
+import { liberarPago, marcarReembolso, PAGO_OBLIGATORIO } from '../services/liquidacion'
 
 export async function serviciosRoutes(app: FastifyInstance) {
 
@@ -120,10 +121,14 @@ export async function serviciosRoutes(app: FastifyInstance) {
       limit: z.coerce.number().max(50).default(20),
     }).parse(request.query)
 
+    const wherePendientes: any = PAGO_OBLIGATORIO
+      ? { estado: 'pendiente', pago: { is: { estado: 'aprobado' } } }
+      : { estado: 'pendiente' }
+
     const [total, items] = await prisma.$transaction([
-      prisma.servicio.count({ where: { estado: 'pendiente' } }),
+      prisma.servicio.count({ where: wherePendientes }),
       prisma.servicio.findMany({
-        where: { estado: 'pendiente' },
+        where: wherePendientes,
         orderBy: { createdAt: 'asc' },
         skip: (page - 1) * limit,
         take: limit,
@@ -164,34 +169,82 @@ export async function serviciosRoutes(app: FastifyInstance) {
     const { estado } = z.object({
       estado: z.enum(['asignado', 'en_camino', 'en_curso', 'completado', 'cancelado']),
     }).parse(request.body)
+    const { rol, id: usuarioId } = request.usuario
 
-    if (estado === 'asignado' && request.usuario.rol === 'profesional') {
-      const profesional = await prisma.profesional.findUnique({
-        where: { usuarioId: request.usuario.id },
-      })
+    const servicio = await prisma.servicio.findUnique({
+      where: { id },
+      include: { pago: true, paciente: { select: { usuarioId: true } }, _count: { select: { evoluciones: true } } },
+    })
+    if (!servicio) return reply.status(404).send({ error: 'Servicio no encontrado' })
+    if (['completado', 'cancelado'].includes(servicio.estado)) {
+      return reply.status(400).send({ error: 'El servicio ya está cerrado' })
+    }
+
+    const profesional = rol === 'profesional'
+      ? await prisma.profesional.findUnique({ where: { usuarioId } })
+      : null
+    const esSuProfesional = !!profesional && servicio.profesionalId === profesional.id
+
+    // ── Profesional ──────────────────────────────────────────────
+    if (rol === 'profesional') {
       if (!profesional || profesional.estadoVerificacion !== 'aprobado') {
         return reply.status(403).send({ error: 'Su cuenta no está verificada.' })
       }
+
+      if (estado === 'asignado') {
+        if (PAGO_OBLIGATORIO && servicio.pago?.estado !== 'aprobado') {
+          return reply.status(409).send({ error: 'El paciente aún no ha pagado este servicio' })
+        }
+        // Solo uno puede tomarlo: se asigna si sigue pendiente
+        const r = await prisma.servicio.updateMany({
+          where: { id, estado: 'pendiente' },
+          data: { estado: 'asignado', profesionalId: profesional.id },
+        })
+        if (r.count === 0) return reply.status(409).send({ error: 'Otro profesional ya tomó este servicio' })
+        return prisma.servicio.findUnique({ where: { id } })
+      }
+
+      if (estado === 'cancelado') {
+        // Rechazar una solicitud pendiente no la cancela para el paciente
+        if (servicio.estado === 'pendiente') return { ok: true, mensaje: 'Solicitud descartada' }
+        if (!esSuProfesional) return reply.status(403).send({ error: 'Este servicio no está asignado a usted' })
+        // Si el profesional asignado desiste, el servicio vuelve a quedar disponible
+        return prisma.servicio.update({ where: { id }, data: { estado: 'pendiente', profesionalId: null } })
+      }
+
+      if (!esSuProfesional) return reply.status(403).send({ error: 'Este servicio no está asignado a usted' })
+      if (estado === 'completado' && servicio._count.evoluciones === 0) {
+        return reply.status(400).send({ error: 'Registre la nota clínica antes de finalizar el servicio' })
+      }
     }
 
-    let profesionalId: string | undefined
-    if (estado === 'asignado' && request.usuario.rol === 'profesional') {
-      const profesional = await prisma.profesional.findUnique({
-        where: { usuarioId: request.usuario.id },
-      })
-      profesionalId = profesional?.id
+    // ── Paciente: solo puede cancelar sus propios servicios antes de la visita ──
+    if (rol === 'paciente') {
+      if (servicio.paciente?.usuarioId !== usuarioId) return reply.status(404).send({ error: 'Servicio no encontrado' })
+      if (estado !== 'cancelado') return reply.status(403).send({ error: 'Acción no permitida' })
+      if (['en_curso'].includes(servicio.estado)) {
+        return reply.status(400).send({ error: 'La visita ya comenzó; comuníquese con la IPS' })
+      }
     }
 
-    const servicio = await prisma.servicio.update({
+    if (rol === 'admin' && estado === 'completado' && servicio._count.evoluciones === 0) {
+      return reply.status(400).send({ error: 'El servicio no tiene nota clínica registrada' })
+    }
+
+    const actualizado = await prisma.servicio.update({
       where: { id },
       data: {
         estado,
-        ...(profesionalId && { profesionalId }),
         fechaInicio: estado === 'en_curso' ? new Date() : undefined,
         fechaFin: estado === 'completado' ? new Date() : undefined,
       },
     })
-    return servicio
+
+    // Pago retenido: se libera al completar con nota clínica; se marca para reembolso si se cancela
+    if (estado === 'completado') await liberarPago(id)
+    if (estado === 'cancelado') await marcarReembolso(id)
+
+    return actualizado
   })
 
   // POST /api/servicios/:id/evolucion
@@ -211,6 +264,12 @@ export async function serviciosRoutes(app: FastifyInstance) {
     const profesional = await prisma.profesional.findUnique({
       where: { usuarioId: request.usuario.id },
     })
+    if (request.usuario.rol === 'profesional') {
+      const servicio = await prisma.servicio.findUnique({ where: { id }, select: { profesionalId: true } })
+      if (!servicio || !profesional || servicio.profesionalId !== profesional.id) {
+        return reply.status(403).send({ error: 'Este servicio no está asignado a usted' })
+      }
+    }
 
     const evolucion = await prisma.evolucion.create({
       data: {
