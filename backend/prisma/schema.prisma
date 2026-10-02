@@ -230,6 +230,12 @@ model Pago {
   monto             Decimal    @db.Decimal(12, 2)
   estado            EstadoPago @default(pendiente)
   referenciaExterna String?    @map("referencia_externa") @db.VarChar(200)
+  // Pago retenido: retenido → liberado (con nota clínica) → transferido; o reembolso si se cancela
+  estadoLiquidacion String     @default("retenido") @map("estado_liquidacion") @db.VarChar(20)
+  comision          Int?
+  valorProfesional  Int?       @map("valor_profesional")
+  liberadoEn        DateTime?  @map("liberado_en")
+  transferidoEn     DateTime?  @map("transferido_en")
   createdAt         DateTime   @default(now()) @map("created_at")
   servicio          Servicio   @relation(fields: [servicioId], references: [id])
   @@map("pagos")
