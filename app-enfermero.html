@@ -512,10 +512,11 @@ async function aceptarServicio(id) {
   showLoading('Aceptando servicio...');
   try {
     const res = await fetch(API+'/api/servicios/'+id+'/estado',{method:'PUT',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},body:JSON.stringify({estado:'asignado'})});
+    const data = await res.json().catch(function(){ return {}; });
     hideLoading();
-    if (!res.ok) throw new Error();
+    if (!res.ok) throw new Error(data.error || 'Error al aceptar el servicio. Intente de nuevo.');
     await loadInicio();
-  } catch(e) { hideLoading(); alert('Error al aceptar el servicio. Intente de nuevo.'); }
+  } catch(e) { hideLoading(); alert(e.message); await loadInicio(); }
 }
 
 async function rechazarServicio(id) {
@@ -530,14 +531,15 @@ async function cambiarEstado(id,estado) {
   showLoading('Actualizando...');
   try {
     const res = await fetch(API+'/api/servicios/'+id+'/estado',{method:'PUT',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},body:JSON.stringify({estado})});
+    const data = await res.json().catch(function(){ return {}; });
     hideLoading();
-    if (!res.ok) throw new Error();
+    if (!res.ok) throw new Error(data.error || 'Error al actualizar el estado. Intente de nuevo.');
     await loadInicio();
-  } catch(e) { hideLoading(); alert('Error al actualizar el estado. Intente de nuevo.'); }
+  } catch(e) { hideLoading(); alert(e.message); }
 }
 
 async function completarServicio(id) {
-  if (!confirm('¿Marcar el servicio como completado?')) return;
+  if (!confirm('¿Marcar el servicio como completado? Debe haber registrado la nota clínica; al completarlo se libera su pago.')) return;
   await cambiarEstado(id,'completado');
 }
 
