@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Recuperar contraseña · Reina Elizabeth IPS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Public+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{--azul:#1E3A4C;--ambar:#E0A21A;--verde:#1F8A4C;--fondo:#EEF2F1;--blanco:#FFFFFF;--texto:#15232B;--suave:#5B6B73;--borde:#D3DCDA;--rojo:#B4412F}
+  *{box-sizing:border-box}
+  body{margin:0;min-height:100vh;background:var(--fondo);color:var(--texto);font:16px/1.5 'Public Sans',system-ui,sans-serif;display:flex;flex-direction:column}
+  header{background:var(--azul);color:#fff;padding:16px 20px;border-bottom:4px solid var(--ambar)}
+  header h1{margin:0;font:700 22px 'Barlow Condensed',sans-serif;letter-spacing:.02em}
+  main{flex:1;display:flex;justify-content:center;padding:32px 16px}
+  .card{background:var(--blanco);border:1px solid var(--borde);border-radius:14px;padding:28px 24px;width:100%;max-width:420px;align-self:flex-start}
+  h2{font:700 28px 'Barlow Condensed',sans-serif;margin:0 0 6px;color:var(--azul)}
+  p{margin:0 0 18px;color:var(--suave)}
+  label{display:block;font-weight:700;font-size:14px;margin-bottom:6px}
+  input{width:100%;padding:12px 14px;border:1.5px solid var(--borde);border-radius:10px;font:16px 'Public Sans',sans-serif;margin-bottom:16px}
+  input:focus{outline:none;border-color:var(--azul)}
+  button{width:100%;padding:14px;border:0;border-radius:10px;background:var(--azul);color:#fff;font:700 16px 'Public Sans',sans-serif;cursor:pointer}
+  button:disabled{opacity:.6;cursor:wait}
+  button:focus-visible,a:focus-visible{outline:3px solid var(--ambar);outline-offset:2px}
+  .msg{display:none;padding:12px 14px;border-radius:10px;margin-bottom:16px;font-size:14px}
+  .msg.ok{display:block;background:#E3F2E9;color:var(--verde)}
+  .msg.err{display:block;background:#F8E4E0;color:var(--rojo)}
+  .links{margin-top:18px;display:grid;gap:8px;font-size:14px}
+  .links a{color:var(--azul);font-weight:600}
+  .wa{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:18px;padding:12px;border-radius:10px;background:var(--verde);color:#fff;text-decoration:none;font-weight:700}
+</style>
+</head>
+<body>
+<header><h1>Reina Elizabeth IPS</h1></header>
+<main>
+  <div class="card">
+    <!-- Paso 1: pedir el enlace -->
+    <section id="pedir">
+      <h2>¿Olvidó su contraseña?</h2>
+      <p>Escriba el correo con el que se registró. Le enviaremos un enlace para crear una contraseña nueva.</p>
+      <div class="msg" id="msg-pedir"></div>
+      <label for="email">Correo electrónico</label>
+      <input type="email" id="email" autocomplete="email" placeholder="tucorreo@ejemplo.com">
+      <button id="btn-pedir">Enviar enlace</button>
+    </section>
+
+    <!-- Paso 2: crear la contraseña nueva (llega desde el correo) -->
+    <section id="nueva" hidden>
+      <h2>Contraseña nueva</h2>
+      <p>Debe tener al menos 8 caracteres.</p>
+      <div class="msg" id="msg-nueva"></div>
+      <label for="pass1">Contraseña nueva</label>
+      <input type="password" id="pass1" autocomplete="new-password">
+      <label for="pass2">Repita la contraseña</label>
+      <input type="password" id="pass2" autocomplete="new-password">
+      <button id="btn-nueva">Guardar contraseña</button>
+    </section>
+
+    <div class="links">
+      <a href="app-paciente.html">Ir a la app del paciente</a>
+      <a href="app-enfermero.html">Ir a la app del profesional</a>
+      <a href="https://rl-rikardolondono.github.io/panel-admin/panel-admin.html">Ir al panel administrativo</a>
+    </div>
+    <a class="wa" href="https://wa.me/573128886611?text=Hola%2C%20necesito%20ayuda%20para%20ingresar%20a%20la%20app%20de%20Reina%20Elizabeth%20IPS" target="_blank" rel="noopener">WhatsApp de Reina Elizabeth IPS</a>
+  </div>
+</main>
+<script>
+var API = 'https://enfermeria-api-2ksu.onrender.com';
+var token = new URLSearchParams(location.search).get('token');
+var APPS = { paciente: 'app-paciente.html', profesional: 'app-enfermero.html', admin: 'https://rl-rikardolondono.github.io/panel-admin/panel-admin.html' };
+
+function mostrar(id, texto, ok) { var el = document.getElementById(id); el.textContent = texto; el.className = 'msg ' + (ok ? 'ok' : 'err'); }
+
+if (token) { document.getElementById('pedir').hidden = true; document.getElementById('nueva').hidden = false; }
+
+document.getElementById('btn-pedir').onclick = async function () {
+  var email = document.getElementById('email').value.trim();
+  if (!/^\S+@\S+\.\S+$/.test(email)) return mostrar('msg-pedir', 'Escriba un correo válido.', false);
+  this.disabled = true; this.textContent = 'Enviando...';
+  try {
+    var r = await fetch(API + '/api/auth/olvide', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: email }) });
+    var d = await r.json();
+    if (!r.ok) throw new Error(d.error || 'No se pudo enviar. Intente más tarde.');
+    mostrar('msg-pedir', d.mensaje + ' Revise también la carpeta de spam.', true);
+  } catch (e) { mostrar('msg-pedir', e.message, false); }
+  this.disabled = false; this.textContent = 'Enviar enlace';
+};
+
+document.getElementById('btn-nueva').onclick = async function () {
+  var p1 = document.getElementById('pass1').value, p2 = document.getElementById('pass2').value;
+  if (p1.length < 8) return mostrar('msg-nueva', 'La contraseña debe tener al menos 8 caracteres.', false);
+  if (p1 !== p2) return mostrar('msg-nueva', 'Las dos contraseñas no coinciden.', false);
+  this.disabled = true; this.textContent = 'Guardando...';
+  try {
+    var r = await fetch(API + '/api/auth/restablecer', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ token: token, password: p1 }) });
+    var d = await r.json();
+    if (!r.ok) throw new Error(d.error || 'No se pudo guardar.');
+    var destino = APPS[d.rol] || APPS.paciente;
+    document.getElementById('btn-nueva').hidden = true;
+    var msg = document.getElementById('msg-nueva');
+    msg.className = 'msg ok';
+    msg.innerHTML = '';
+    msg.append(d.mensaje + ' ');
+    var a = document.createElement('a'); a.href = destino; a.textContent = 'Ingresar ahora'; a.style.fontWeight = '700';
+    msg.append(a);
+    history.replaceState(null, '', location.pathname);
+  } catch (e) { mostrar('msg-nueva', e.message, false); this.disabled = false; this.textContent = 'Guardar contraseña'; }
+};
+</script>
+</body>
+</html>

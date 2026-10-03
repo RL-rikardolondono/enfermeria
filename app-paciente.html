@@ -90,6 +90,7 @@ body{font-family:'Nunito',sans-serif;background:var(--cream);color:var(--ink);mi
       <div class="form-group"><label>Correo electronico</label><input type="email" id="login-email" placeholder="tucorreo@email.com"></div>
       <div class="form-group"><label>Contrasena</label><input type="password" id="login-password" placeholder="&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;"></div>
       <button class="btn-main" onclick="doLogin()">Ingresar</button>
+      <div style="text-align:center;margin-top:14px"><a href="restablecer.html" style="color:inherit;font-weight:700;font-size:14px">¿Olvidó su contraseña?</a></div>
       <div class="auth-error" id="login-error"></div>
     </div>
     <div id="tab-registro" style="display:none">
@@ -192,6 +193,20 @@ body{font-family:'Nunito',sans-serif;background:var(--cream);color:var(--ink);mi
 var API = 'https://enfermeria-api-2ksu.onrender.com';
 var token = localStorage.getItem('re_p_token') || '';
 var user = JSON.parse(localStorage.getItem('re_p_user') || 'null');
+// Si la sesión venció, volver a la pantalla de ingreso en lugar de mostrar errores
+var __fetchOriginal = window.fetch, __sesionCerrada = false;
+window.fetch = function (url, opts) {
+  return __fetchOriginal(url, opts).then(function (r) {
+    var u = String(url);
+    if (r.status === 401 && u.indexOf(API) === 0 && u.indexOf('/api/auth/') < 0 && !__sesionCerrada) {
+      __sesionCerrada = true;
+      localStorage.removeItem('re_p_token'); localStorage.removeItem('re_p_user');
+      alert('Su sesión venció. Por favor ingrese de nuevo.');
+      location.reload();
+    }
+    return r;
+  });
+};
 var tipoSeleccionado = '';
 var tarifasIPS = {};
 // Tarifas fijas de la IPS: se muestran en las tarjetas de servicio
