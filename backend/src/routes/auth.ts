@@ -3,6 +3,11 @@ import bcrypt from 'bcryptjs'
 import { z } from 'zod'
 import { prisma } from '../utils/prisma'
 import { autenticar } from '../middleware/auth'
+import crypto from 'crypto'
+import { enviarCorreo } from '../utils/correo'
+
+const URL_RESTABLECER = 'https://rl-rikardolondono.github.io/enfermeria/restablecer.html'
+const sha256 = (t: string) => crypto.createHash('sha256').update(t).digest('hex')
  
 const registerSchema = z.object({
   rol: z.enum(['paciente', 'profesional']),
@@ -75,11 +80,19 @@ export async function authRoutes(app: FastifyInstance) {
       })
     }
  
-    // Generar token para login inmediato
+    // Generar token para login inmediato (con su sesión, igual que al ingresar)
     const accessToken = app.jwt.sign(
       { sub: usuario.id, rol: usuario.rol },
       { expiresIn: '24h' }
     )
+    await prisma.sesion.create({
+      data: {
+        usuarioId: usuario.id,
+        tokenHash: await bcrypt.hash(accessToken, 8),
+        ip: request.ip,
+        expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+      },
+    })
  
     return reply.status(201).send({
       accessToken,
@@ -157,6 +170,61 @@ export async function authRoutes(app: FastifyInstance) {
     }
   })
  
+  // POST /api/auth/olvide — envía un enlace para crear una contraseña nueva
+  // Siempre responde lo mismo, exista o no el correo, para no revelar quién está registrado.
+  app.post('/olvide', { config: { rateLimit: { max: 5, timeWindow: '15 minutes' } } }, async (request) => {
+    const { email } = z.object({ email: z.string().email() }).parse(request.body)
+    const respuesta = { mensaje: 'Si el correo está registrado, le enviamos un enlace para crear una contraseña nueva.' }
+
+    const usuario = await prisma.usuario.findUnique({ where: { email: email.toLowerCase() } })
+    if (!usuario || usuario.estado === 'suspendido') return respuesta
+
+    // Invalida enlaces anteriores y crea uno nuevo válido por 1 hora
+    await prisma.recuperacionClave.updateMany({
+      where: { usuarioId: usuario.id, usadoEn: null },
+      data: { usadoEn: new Date() },
+    })
+    const token = crypto.randomBytes(32).toString('hex')
+    await prisma.recuperacionClave.create({
+      data: { usuarioId: usuario.id, tokenHash: sha256(token), expiraEn: new Date(Date.now() + 60 * 60 * 1000) },
+    })
+
+    const enlace = `${URL_RESTABLECER}?token=${token}`
+    const nombre = usuario.nombreCompleto.split(' ')[0]
+    await enviarCorreo(usuario.email, 'Recupere su contraseña · Reina Elizabeth IPS', `
+      <div style="font-family:Arial,sans-serif;max-width:480px;margin:auto;color:#15232B">
+        <h2 style="color:#1B6B5A">Recuperar contraseña</h2>
+        <p>Hola, ${nombre}. Recibimos una solicitud para cambiar la contraseña de su cuenta en Reina Elizabeth IPS.</p>
+        <p><a href="${enlace}" style="display:inline-block;background:#1B6B5A;color:#fff;padding:12px 20px;border-radius:8px;text-decoration:none;font-weight:bold">Crear contraseña nueva</a></p>
+        <p style="font-size:13px;color:#5E6F69">El enlace vence en 1 hora y solo sirve una vez. Si usted no lo pidió, ignore este correo: su contraseña actual sigue funcionando.</p>
+      </div>`)
+    return respuesta
+  })
+
+  // POST /api/auth/restablecer — guarda la contraseña nueva con el enlace del correo
+  app.post('/restablecer', { config: { rateLimit: { max: 10, timeWindow: '15 minutes' } } }, async (request, reply) => {
+    const { token, password } = z.object({
+      token: z.string().min(32).max(200),
+      password: z.string().min(8).max(100),
+    }).parse(request.body)
+
+    const registro = await prisma.recuperacionClave.findUnique({
+      where: { tokenHash: sha256(token) },
+      include: { usuario: { select: { id: true, rol: true } } },
+    })
+    if (!registro || registro.usadoEn || registro.expiraEn < new Date()) {
+      return reply.status(400).send({ error: 'El enlace no es válido o ya venció. Solicite uno nuevo.' })
+    }
+
+    await prisma.$transaction([
+      prisma.usuario.update({ where: { id: registro.usuarioId }, data: { passwordHash: await bcrypt.hash(password, 12) } }),
+      prisma.recuperacionClave.update({ where: { id: registro.id }, data: { usadoEn: new Date() } }),
+      // Cierra todas las sesiones abiertas con la contraseña anterior
+      prisma.sesion.deleteMany({ where: { usuarioId: registro.usuarioId } }),
+    ])
+    return { mensaje: 'Contraseña actualizada. Ya puede ingresar con la nueva.', rol: registro.usuario.rol }
+  })
+
   // POST /api/auth/logout
   app.post('/logout', { preHandler: autenticar }, async (request, reply) => {
     await prisma.sesion.deleteMany({ where: { usuarioId: request.usuario.id } })
