@@ -11,7 +11,7 @@ import { prisma } from '../utils/prisma'
 
 export const COMISION_IPS_PORCENTAJE = Math.min(
   100,
-  Math.max(0, Number(process.env.COMISION_IPS_PORCENTAJE ?? 18) || 0),
+  Math.max(0, Number(process.env.COMISION_IPS_PORCENTAJE ?? 40) || 0),
 )
 
 // El pago es obligatorio para asignar servicios solo cuando Wompi está configurado.
