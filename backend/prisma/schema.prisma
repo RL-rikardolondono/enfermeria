@@ -66,6 +66,7 @@ model Usuario {
   pacientes      Paciente[]
   profesional    Profesional?
   notificaciones Notificacion[]
+  recuperaciones RecuperacionClave[]
   @@map("usuarios")
 }
 
@@ -274,4 +275,16 @@ model Tarifa {
   activo      Boolean      @default(true)
   updatedAt   DateTime     @updatedAt @map("updated_at")
   @@map("tarifas")
+}
+
+model RecuperacionClave {
+  id        String    @id @default(uuid())
+  usuarioId String    @map("usuario_id")
+  tokenHash String    @unique @map("token_hash") @db.VarChar(64)
+  expiraEn  DateTime  @map("expira_en")
+  usadoEn   DateTime? @map("usado_en")
+  createdAt DateTime  @default(now()) @map("created_at")
+  usuario   Usuario   @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  @@index([usuarioId])
+  @@map("recuperaciones_clave")
 }
