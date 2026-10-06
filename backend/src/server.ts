@@ -1,5 +1,6 @@
 import Fastify from 'fastify'
 import cors from '@fastify/cors'
+import { ORIGENES_PERMITIDOS } from './utils/config'
 import helmet from '@fastify/helmet'
 import jwt from '@fastify/jwt'
 import rateLimit from '@fastify/rate-limit'
@@ -33,10 +34,7 @@ async function bootstrap() {
   // Seguridad
   await app.register(helmet, { contentSecurityPolicy: false })
   await app.register(cors, {
-    origin: process.env.CORS_ORIGINS?.split(',').map((o) => o.trim()) || [
-      'https://rl-rikardolondono.github.io',
-      'http://localhost:3001',
-    ],
+    origin: ORIGENES_PERMITIDOS,
     credentials: true,
   })
   await app.register(rateLimit, {
