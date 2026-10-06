@@ -60,6 +60,7 @@ model Usuario {
   passwordHash   String        @map("password_hash") @db.VarChar(255)
   estado         EstadoUsuario @default(activo)
   fotoUrl        String?       @map("foto_url") @db.VarChar(500)
+  aceptoTerminosEn DateTime?   @map("acepto_terminos_en")
   createdAt      DateTime      @default(now()) @map("created_at")
   updatedAt      DateTime      @updatedAt @map("updated_at")
   sesiones       Sesion[]
