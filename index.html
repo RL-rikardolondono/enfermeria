@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#1E3A4C">
+<title>Salud en Casa · Clínica Reina Elizabeth IPS</title>
+<meta name="description" content="Enfermería, medicina y terapias a domicilio en Santa Marta con profesionales verificados de la Clínica Reina Elizabeth IPS. Tarifas fijas y atención por WhatsApp.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Public+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="comun.js" data-rol="publico"></script>
+<style>
+  :root{--azul:#1E3A4C;--azul2:#2C5470;--ambar:#E0A21A;--verde:#1F8A4C;--fondo:#EEF2F1;--blanco:#FFFFFF;--texto:#15232B;--suave:#5B6B73;--borde:#D3DCDA}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--fondo);color:var(--texto);font:16px/1.55 'Public Sans',system-ui,sans-serif}
+  a{color:inherit}
+  .envoltura{max-width:1080px;margin:0 auto;padding:0 16px}
+  header.barra{background:var(--azul);color:#fff;border-bottom:4px solid var(--ambar)}
+  header.barra .envoltura{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:64px}
+  .marca{font:700 26px 'Barlow Condensed',sans-serif;letter-spacing:.02em;text-decoration:none}
+  .marca small{display:block;font:500 12px 'Public Sans',sans-serif;opacity:.8;letter-spacing:0}
+  .barra nav{display:flex;gap:8px;flex-wrap:wrap}
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:12px 18px;border-radius:10px;font-weight:700;text-decoration:none;border:0;cursor:pointer;font-size:15px}
+  .btn-claro{background:#fff;color:var(--azul)}
+  .btn-borde{border:1.5px solid rgba(255,255,255,.6);color:#fff}
+  .btn-azul{background:var(--azul);color:#fff}
+  .btn-verde{background:var(--verde);color:#fff}
+  .heroe{background:linear-gradient(160deg,#152B39,var(--azul) 55%,var(--azul2));color:#fff;padding:56px 0 64px}
+  .heroe h1{font:700 clamp(38px,7vw,62px)/1.02 'Barlow Condensed',sans-serif;margin:0 0 14px;letter-spacing:.01em}
+  .heroe h1 em{font-style:normal;color:var(--ambar)}
+  .heroe p{max-width:620px;font-size:18px;opacity:.9;margin:0 0 26px}
+  .heroe .acciones{display:flex;gap:10px;flex-wrap:wrap}
+  .sellos{display:flex;gap:18px;flex-wrap:wrap;margin-top:28px;font-size:14px;opacity:.9}
+  .sellos span::before{content:'✓ ';color:var(--ambar);font-weight:700}
+  section{padding:48px 0}
+  h2{font:700 36px/1.1 'Barlow Condensed',sans-serif;color:var(--azul);margin:0 0 8px}
+  .bajada{color:var(--suave);margin:0 0 26px;max-width:680px}
+  .rejilla{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:14px}
+  .tarjeta{background:var(--blanco);border:1px solid var(--borde);border-radius:14px;padding:20px}
+  .tarjeta h3{font:700 22px 'Barlow Condensed',sans-serif;margin:6px 0 4px;color:var(--azul)}
+  .tarjeta p{margin:0;color:var(--suave);font-size:14px}
+  .precio{margin-top:12px;font:700 26px 'Barlow Condensed',sans-serif;color:var(--texto)}
+  .precio small{font:500 12px 'Public Sans',sans-serif;color:var(--suave)}
+  .icono{font-size:28px}
+  .pasos{counter-reset:paso;display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px}
+  .paso{background:var(--blanco);border-radius:14px;padding:20px;border-top:4px solid var(--ambar)}
+  .paso::before{counter-increment:paso;content:counter(paso);display:inline-grid;place-items:center;width:34px;height:34px;border-radius:50%;background:var(--azul);color:#fff;font:700 18px 'Barlow Condensed',sans-serif;margin-bottom:8px}
+  .paso h3{margin:0 0 4px;font:700 21px 'Barlow Condensed',sans-serif}
+  .paso p{margin:0;color:var(--suave);font-size:14px}
+  .otros{display:flex;flex-wrap:wrap;gap:8px}
+  .otros span{background:var(--blanco);border:1px solid var(--borde);border-radius:20px;padding:7px 14px;font-size:14px}
+  .franja{background:var(--blanco);border-top:1px solid var(--borde);border-bottom:1px solid var(--borde)}
+  .confianza{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:18px}
+  .confianza div b{display:block;font:700 20px 'Barlow Condensed',sans-serif;color:var(--azul);margin-bottom:2px}
+  .confianza div{font-size:14px;color:var(--suave)}
+  .urgencia{background:#F8E4E0;border-left:5px solid #B4412F;border-radius:10px;padding:14px 16px;font-size:15px;margin-top:22px}
+  footer{background:#15232B;color:rgba(255,255,255,.8);padding:32px 0 90px;font-size:14px}
+  footer .envoltura{display:grid;gap:16px;grid-template-columns:repeat(auto-fit,minmax(240px,1fr))}
+  footer b{color:#fff;font:700 20px 'Barlow Condensed',sans-serif;display:block;margin-bottom:4px}
+  footer a{color:#fff}
+  footer .sec-firma{justify-content:flex-start;margin:8px 0 0;color:rgba(255,255,255,.75)}
+  footer .sec-firma b{color:#fff;display:inline;font-size:13px}
+  .cargando{color:var(--suave)}
+  @media (max-width:560px){.barra nav .btn-borde{display:none}.heroe{padding:40px 0 48px}section{padding:36px 0}}
+</style>
+</head>
+<body>
+<header class="barra">
+  <div class="envoltura">
+    <a class="marca" href="index.html">Salud en Casa<small>Clínica Reina Elizabeth IPS</small></a>
+    <nav>
+      <a class="btn btn-borde" href="app-enfermero.html">Soy profesional</a>
+      <a class="btn btn-claro" href="app-paciente.html">Ingresar</a>
+    </nav>
+  </div>
+</header>
+
+<div class="heroe">
+  <div class="envoltura">
+    <h1>Atención de salud<br><em>en la comodidad de su casa</em></h1>
+    <p>Pida enfermería, medicina general y terapias a domicilio para usted o su familia. Profesionales verificados por la Clínica Reina Elizabeth IPS, con tarifas fijas y sin sorpresas.</p>
+    <div class="acciones">
+      <a class="btn btn-claro" href="app-paciente.html">Pedir un servicio</a>
+      <a class="btn btn-verde" id="wa-heroe" target="_blank" rel="noopener" href="https://wa.me/573128886611">Hablar con la IPS por WhatsApp</a>
+    </div>
+    <div class="sellos"><span>Servicio de una IPS de Santa Marta</span><span>Profesionales verificados</span><span>Precio fijo antes de pedir</span><span>Nota clínica de cada atención</span></div>
+  </div>
+</div>
+
+<section>
+  <div class="envoltura">
+    <h2>Servicios y tarifas</h2>
+    <p class="bajada">El valor es fijo, lo define la IPS e incluye el desplazamiento y los insumos básicos. Lo ve antes de confirmar.</p>
+    <div class="rejilla" id="servicios"><p class="cargando">Cargando servicios…</p></div>
+    <h3 style="font:700 22px 'Barlow Condensed',sans-serif;margin:30px 0 10px;color:var(--azul)">Otros servicios de la Clínica Reina Elizabeth IPS</h3>
+    <div class="otros">
+      <span>Medicina general en la IPS y a domicilio</span><span>Vacunación especializada</span><span>Psicología</span><span>Autismo y neurodivergencia</span><span>Terapia física</span><span>Terapia ocupacional</span><span>Terapia conductual</span><span>Terapia sensorial</span><span>Sala de procedimientos</span><span>Urgencias 24 horas</span>
+    </div>
+    <p class="bajada" style="margin-top:12px">Pregunte por WhatsApp cómo pedirlos mientras los vamos sumando a la app.</p>
+  </div>
+</section>
+
+<section class="franja">
+  <div class="envoltura">
+    <h2>Cómo funciona</h2>
+    <p class="bajada">Usted o un familiar pueden pedir el servicio. Una misma cuenta sirve para varios pacientes de la familia.</p>
+    <div class="pasos">
+      <div class="paso"><h3>Pida el servicio</h3><p>Elija el servicio, el paciente y la dirección. Verá el valor antes de confirmar.</p></div>
+      <div class="paso"><h3>La IPS le asigna un profesional</h3><p>Un profesional verificado por la IPS acepta su solicitud y le avisa cuando va en camino.</p></div>
+      <div class="paso"><h3>Lo atienden en casa</h3><p>El profesional registra la nota clínica con signos vitales y procedimientos.</p></div>
+      <div class="paso"><h3>Califique y consulte</h3><p>Vea el historial de cada paciente y califique la atención. Si tiene dudas, escriba a la IPS.</p></div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="envoltura">
+    <h2>Por qué confiar</h2>
+    <div class="confianza">
+      <div><b>Respaldo de una IPS</b>El servicio lo presta la Clínica Reina Elizabeth IPS de Santa Marta, no profesionales sueltos.</div>
+      <div><b>Profesionales verificados</b>La IPS revisa a cada profesional antes de que pueda atender pacientes.</div>
+      <div><b>Tarifas fijas</b>Sin regateos: el precio lo fija la IPS y es el mismo para todos.</div>
+      <div><b>Su información protegida</b>La historia clínica es confidencial y solo la ven usted, el profesional que lo atiende y la IPS.</div>
+    </div>
+    <div class="urgencia"><b>¿Es una emergencia con riesgo para la vida?</b> Llame de inmediato al <b>123</b>. La Clínica Reina Elizabeth atiende urgencias 24 horas en la Calle 22 No. 18-18, Santa Marta.</div>
+  </div>
+</section>
+
+<footer>
+  <div class="envoltura">
+    <div><b>Salud en Casa</b>Un servicio de la Clínica Reina Elizabeth IPS.<br>Calle 22 No. 18-18, Santa Marta (Magdalena)<br>WhatsApp: <a href="https://wa.me/573128886611" target="_blank" rel="noopener">312 888 6611</a><br>Correo: <a href="mailto:saludencasa@skynetgenesis.com">saludencasa@skynetgenesis.com</a></div>
+    <div><b>Accesos</b><a href="app-paciente.html">App de pacientes y familias</a><br><a href="app-enfermero.html">App de profesionales</a><br><a href="panel.html">Panel de la IPS</a></div>
+    <div><b>Información legal</b><a href="legal.html#terminos">Términos de uso</a><br><a href="legal.html#datos">Tratamiento de datos personales</a><br><a href="legal.html#consentimiento">Consentimiento informado</a><br><a href="legal.html#cancelacion">Cancelaciones y reembolsos</a><br><a href="legal.html#derechos">Derechos y deberes del paciente</a><div data-firma-skynet></div></div>
+  </div>
+</footer>
+
+<script>
+var API = 'https://enfermeria-api-2ksu.onrender.com';
+var ICONOS = {curacion:'🩹',medicacion:'💊',inyeccion:'💉',control:'🩺',cuidado_basico:'🛁',urgencia:'🚨'};
+document.getElementById('wa-heroe').href = enlaceWhatsApp();
+function esc(t){ return String(t==null?'':t).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];}); }
+fetch(API + '/api/tarifas').then(function(r){ return r.json(); }).then(function(d){
+  var items = (d.items || []).filter(function(t){ return t.activo; });
+  if (!items.length) throw new Error();
+  document.getElementById('servicios').innerHTML = items.map(function(t){
+    return '<div class="tarjeta"><div class="icono">' + (ICONOS[t.tipo] || '🏥') + '</div><h3>' + esc(t.nombre) + '</h3><p>' + esc(t.descripcion || '') + '</p>' +
+      '<div class="precio">$' + Number(t.precio).toLocaleString('es-CO') + ' <small>COP</small></div></div>';
+  }).join('');
+}).catch(function(){
+  document.getElementById('servicios').innerHTML = '<p class="cargando">No se pudieron cargar las tarifas en este momento. El servidor puede tardar un minuto en despertar; recargue la página o escríbanos por WhatsApp.</p>';
+});
+</script>
+</body>
+</html>

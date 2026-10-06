@@ -4,13 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="theme-color" content="#1B6B5A">
-<title>Reina Elizabeth IPS</title>
-<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<meta name="theme-color" content="#1E3A4C">
+<title>Salud en Casa · Pacientes</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Public+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
-:root{--teal:#1B6B5A;--teal-light:#2A8A74;--teal-pale:#E8F4F1;--teal-dark:#124A3E;--cream:#FAFAF7;--ink:#1A1714;--ink-light:#4A4540;--muted:#9A918A;--border:#E8E0D8;--amber:#E8932A;--amber-pale:#FEF3E2;--red:#C44040;--red-pale:#FDECEC;--green:#2E7D52;--green-pale:#E8F5EE;--shadow:0 2px 12px rgba(26,23,20,0.10);--radius:16px;--radius-sm:10px;--safe-bottom:env(safe-area-inset-bottom,16px)}
+:root{--teal:#1E3A4C;--teal-light:#2C5470;--teal-pale:#E3ECEF;--teal-dark:#152B39;--cream:#EEF2F1;--ink:#15232B;--ink-light:#3A4A52;--muted:#5B6B73;--border:#D3DCDA;--amber:#B07C0E;--amber-pale:#FBF1DA;--red:#B4412F;--red-pale:#F8E4E0;--green:#1F8A4C;--green-pale:#E3F2E9;--shadow:0 2px 12px rgba(26,23,20,0.10);--radius:16px;--radius-sm:10px;--safe-bottom:env(safe-area-inset-bottom,16px)}
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-body{font-family:'Nunito',sans-serif;background:var(--cream);color:var(--ink);min-height:100vh;max-width:430px;margin:0 auto;overflow-x:hidden}
+body{font-family:'Public Sans',sans-serif;background:var(--cream);color:var(--ink);min-height:100vh;max-width:430px;margin:0 auto;overflow-x:hidden}
 .screen{display:none;min-height:100vh;flex-direction:column}.screen.active{display:flex}
 #screen-splash{background:linear-gradient(160deg,var(--teal-dark) 0%,var(--teal) 60%,var(--teal-light) 100%);align-items:center;justify-content:center;gap:20px}
 .splash-icon{width:100px;height:100px;background:rgba(255,255,255,0.15);border-radius:28px;display:flex;align-items:center;justify-content:center;font-size:50px}
@@ -19,16 +19,16 @@ body{font-family:'Nunito',sans-serif;background:var(--cream);color:var(--ink);mi
 .auth-header{background:linear-gradient(160deg,var(--teal-dark),var(--teal));padding:60px 28px 40px;color:white}
 .auth-header h1{font-size:26px;font-weight:800;margin-bottom:4px}.auth-header p{font-size:14px;opacity:0.8}
 .auth-tabs{display:flex;background:rgba(255,255,255,0.15);border-radius:var(--radius-sm);padding:4px;margin-top:20px}
-.auth-tab{flex:1;padding:8px;border:none;background:transparent;color:rgba(255,255,255,0.7);font-family:'Nunito',sans-serif;font-size:14px;font-weight:700;cursor:pointer;border-radius:8px;transition:all 0.2s}
+.auth-tab{flex:1;padding:8px;border:none;background:transparent;color:rgba(255,255,255,0.7);font-family:'Public Sans',sans-serif;font-size:14px;font-weight:700;cursor:pointer;border-radius:8px;transition:all 0.2s}
 .auth-tab.active{background:white;color:var(--teal)}
 .auth-body{padding:28px;flex:1}
 .form-group{margin-bottom:16px}
 .form-group label{display:block;font-size:13px;font-weight:700;color:var(--ink-light);margin-bottom:6px}
-.form-group input,.form-group textarea,.form-group select{width:100%;padding:14px 16px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-family:'Nunito',sans-serif;font-size:15px;background:var(--cream);color:var(--ink);outline:none;transition:border-color 0.2s}
+.form-group input,.form-group textarea,.form-group select{width:100%;padding:14px 16px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-family:'Public Sans',sans-serif;font-size:15px;background:var(--cream);color:var(--ink);outline:none;transition:border-color 0.2s}
 .form-group input:focus,.form-group textarea:focus,.form-group select:focus{border-color:var(--teal);background:white}
 .form-group textarea{resize:none;height:80px}
 .field-hint{font-size:11px;color:var(--muted);margin-top:4px;font-weight:600}
-.btn-main{width:100%;padding:16px;background:var(--teal);color:white;border:none;border-radius:var(--radius);font-family:'Nunito',sans-serif;font-size:16px;font-weight:800;cursor:pointer;transition:all 0.15s;margin-top:8px}
+.btn-main{width:100%;padding:16px;background:var(--teal);color:white;border:none;border-radius:var(--radius);font-family:'Public Sans',sans-serif;font-size:16px;font-weight:800;cursor:pointer;transition:all 0.15s;margin-top:8px}
 .btn-main:active{transform:scale(0.98);background:var(--teal-dark)}
 .auth-error{background:var(--red-pale);color:var(--red);padding:12px 16px;border-radius:var(--radius-sm);font-size:13px;font-weight:600;margin-top:12px;display:none}
 #screen-app{background:var(--cream);padding-bottom:calc(70px + var(--safe-bottom))}
@@ -37,12 +37,12 @@ body{font-family:'Nunito',sans-serif;background:var(--cream);color:var(--ink);mi
 .topbar-avatar{width:42px;height:42px;background:var(--teal);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:800;color:white}
 .bottom-nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;background:white;border-top:1px solid var(--border);display:flex;padding:8px 0 calc(8px + var(--safe-bottom));z-index:50}
 .nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;border:none;background:none;cursor:pointer;padding:4px 0}
-.nav-btn-icon{font-size:22px}.nav-btn-label{font-size:10px;font-weight:700;color:var(--muted);font-family:'Nunito',sans-serif}
+.nav-btn-icon{font-size:22px}.nav-btn-label{font-size:10px;font-weight:700;color:var(--muted);font-family:'Public Sans',sans-serif}
 .nav-btn.active .nav-btn-label{color:var(--teal)}
 .page{display:none;padding:20px}.page.active{display:block}
 .hero-card{background:linear-gradient(135deg,var(--teal-dark),var(--teal-light));border-radius:20px;padding:24px;color:white;margin-bottom:24px;position:relative;overflow:hidden}
 .hero-card h2{font-size:20px;font-weight:800;margin-bottom:6px}.hero-card p{font-size:13px;opacity:0.85;margin-bottom:16px}
-.btn-hero{display:inline-flex;align-items:center;gap:6px;background:white;color:var(--teal);border:none;padding:10px 18px;border-radius:10px;font-family:'Nunito',sans-serif;font-size:14px;font-weight:800;cursor:pointer}
+.btn-hero{display:inline-flex;align-items:center;gap:6px;background:white;color:var(--teal);border:none;padding:10px 18px;border-radius:10px;font-family:'Public Sans',sans-serif;font-size:14px;font-weight:800;cursor:pointer}
 .section-title{font-size:17px;font-weight:800;color:var(--ink);margin-bottom:14px}
 .service-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:24px}
 .service-card{background:white;border-radius:var(--radius);padding:18px 14px;display:flex;flex-direction:column;align-items:flex-start;gap:8px;box-shadow:var(--shadow);cursor:pointer;transition:transform 0.15s;border:2px solid transparent}
@@ -64,7 +64,7 @@ body{font-family:'Nunito',sans-serif;background:var(--cream);color:var(--ink);mi
 .info-card{background:white;border-radius:var(--radius);padding:20px;box-shadow:var(--shadow);margin-bottom:14px}
 .info-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border)}
 .info-row:last-child{border-bottom:none}.info-label{font-size:13px;color:var(--muted);font-weight:600}.info-value{font-size:14px;font-weight:700}
-.btn-outline-red{width:100%;padding:14px;background:var(--red-pale);color:var(--red);border:none;border-radius:var(--radius);font-family:'Nunito',sans-serif;font-size:15px;font-weight:800;cursor:pointer;margin-top:8px}
+.btn-outline-red{width:100%;padding:14px;background:var(--red-pale);color:var(--red);border:none;border-radius:var(--radius);font-family:'Public Sans',sans-serif;font-size:15px;font-weight:800;cursor:pointer;margin-top:8px}
 .success-screen{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 24px;text-align:center;flex:1}
 .success-icon{width:90px;height:90px;background:var(--green-pale);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:44px;margin-bottom:20px}
 .success-title{font-size:24px;font-weight:800;margin-bottom:8px}.success-text{font-size:14px;color:var(--muted);font-weight:600;line-height:1.6;margin-bottom:28px}
@@ -75,54 +75,68 @@ body{font-family:'Nunito',sans-serif;background:var(--cream);color:var(--ink);mi
 .loading-spinner{width:40px;height:40px;border:3px solid var(--border);border-top-color:var(--teal);border-radius:50%;animation:spin 0.7s linear infinite}
 .loading-text{font-size:14px;font-weight:700;color:var(--muted)}
 .empty{text-align:center;padding:40px 20px;color:var(--muted)}.empty-icon{font-size:44px;margin-bottom:10px}.empty-text{font-size:14px;font-weight:600}
-.btn-pago{width:100%;margin-top:8px;padding:11px;background:var(--teal);color:white;border:none;border-radius:var(--radius-sm);font-family:'Nunito',sans-serif;font-size:13px;font-weight:800;cursor:pointer}
+.btn-pago{width:100%;margin-top:8px;padding:11px;background:var(--teal);color:white;border:none;border-radius:var(--radius-sm);font-family:'Public Sans',sans-serif;font-size:13px;font-weight:800;cursor:pointer}
+.splash-text h1,.auth-header h1,.hero-card h2,.section-title,.step-title,.profile-name,.success-title{font-family:'Barlow Condensed',sans-serif;font-weight:700;letter-spacing:.01em}
+.splash-text h1{font-size:34px}.auth-header h1{font-size:30px}.hero-card h2{font-size:24px}.section-title{font-size:20px}.step-title{font-size:24px}.success-title{font-size:28px}
+.auth-header{border-bottom:4px solid #E0A21A}.hero-card{background:linear-gradient(135deg,#152B39,#2C5470)}
+.btn-main:disabled{cursor:not-allowed}
+.check-legal{display:flex;gap:10px;align-items:flex-start;font-size:13px;color:var(--ink-light);margin:6px 0 4px;line-height:1.45}
+.check-legal input{width:20px;height:20px;flex:none;margin-top:1px;accent-color:#1E3A4C}
+.check-legal a{color:var(--teal);font-weight:700}
+.wa-servicio{display:inline-flex;align-items:center;gap:6px;margin-top:8px;font-size:12px;font-weight:700;color:#1F8A4C;text-decoration:none}
+.btn-wa-grande{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:13px;background:#1F8A4C;color:#fff;border-radius:12px;font-weight:800;font-size:15px;text-decoration:none;margin-top:10px}
+#screen-app{padding-bottom:calc(140px + var(--safe-bottom))}
 </style>
+<script src="comun.js" data-rol="paciente"></script>
 </head>
 <body>
 <div class="loading-overlay" id="loading-overlay"><div class="loading-spinner"></div><div class="loading-text" id="loading-text">Cargando...</div></div>
-<div class="screen active" id="screen-splash"><div class="splash-icon">&#x1F451;</div><div class="splash-text"><h1>Reina Elizabeth</h1><p>Enfermeria domiciliaria IPS</p></div></div>
+<div class="screen active" id="screen-splash"><div class="splash-icon">&#x1F3E1;</div><div class="splash-text"><h1>Salud en Casa</h1><p>Clínica Reina Elizabeth IPS</p></div></div>
 <div class="screen" id="screen-auth">
-  <div class="auth-header"><h1>Bienvenido &#x1F44B;</h1><p>Atencion de enfermeria en la comodidad de su hogar</p>
+  <div class="auth-header"><h1>Salud en Casa</h1><p>Atención de salud en la comodidad de su hogar, con profesionales de la Clínica Reina Elizabeth IPS</p>
     <div class="auth-tabs"><button class="auth-tab active" onclick="switchTab('login')">Ingresar</button><button class="auth-tab" onclick="switchTab('registro')">Registrarse</button></div>
   </div>
   <div class="auth-body">
     <div id="tab-login">
-      <div class="form-group"><label>Correo electronico</label><input type="email" id="login-email" placeholder="tucorreo@email.com"></div>
-      <div class="form-group"><label>Contrasena</label><input type="password" id="login-password" placeholder="&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;"></div>
+      <div class="form-group"><label>Correo electrónico</label><input type="email" id="login-email" placeholder="tucorreo@email.com"></div>
+      <div class="form-group"><label>Contraseña</label><input type="password" id="login-password" placeholder="&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;"></div>
       <button class="btn-main" onclick="doLogin()">Ingresar</button>
       <div style="text-align:center;margin-top:14px"><a href="restablecer.html" style="color:inherit;font-weight:700;font-size:14px">¿Olvidó su contraseña?</a></div>
       <div class="auth-error" id="login-error"></div>
     </div>
     <div id="tab-registro" style="display:none">
       <div class="form-group"><label>Nombre completo</label><input type="text" id="reg-nombre" placeholder="Juan Perez"></div>
-      <div class="form-group"><label>Correo electronico</label><input type="email" id="reg-email" placeholder="tucorreo@email.com"></div>
+      <div class="form-group"><label>Correo electrónico</label><input type="email" id="reg-email" placeholder="tucorreo@email.com"></div>
       <div class="form-group">
-        <label>Telefono</label>
+        <label>Teléfono</label>
         <input type="tel" id="reg-telefono" placeholder="3001234567">
-        <div class="field-hint">Solo numeros, sin espacios</div>
+        <div class="field-hint">Solo números, sin espacios</div>
       </div>
       <div class="form-group">
-        <label>Contrasena</label>
-        <input type="password" id="reg-password" placeholder="Minimo 8 caracteres">
+        <label>Contraseña</label>
+        <input type="password" id="reg-password" placeholder="Mínimo 8 caracteres">
         <div class="field-hint">Debe tener al menos 8 caracteres</div>
       </div>
+      <label class="check-legal"><input type="checkbox" id="reg-acepto"><span>Acepto los <a href="legal.html#terminos" target="_blank">términos de uso</a> y autorizo el <a href="legal.html#datos" target="_blank">tratamiento de mis datos personales y de salud</a> (Ley 1581 de 2012).</span></label>
       <button class="btn-main" onclick="doRegistro()">Crear cuenta</button>
       <div class="auth-error" id="reg-error"></div>
     </div>
+    <div style="text-align:center;margin-top:18px;font-size:13px"><a href="legal.html" style="color:var(--muted)">Términos, datos personales y derechos del paciente</a></div>
+    <div data-firma-skynet></div>
   </div>
 </div>
 <div class="screen" id="screen-app">
-  <div class="topbar"><div><div class="topbar-greeting">Buenos dias,</div><div class="topbar-name" id="app-nombre">Paciente</div></div><div class="topbar-avatar" id="app-avatar">P</div></div>
+  <div class="topbar"><div><div class="topbar-greeting">Buenos días,</div><div class="topbar-name" id="app-nombre">Paciente</div></div><div class="topbar-avatar" id="app-avatar">P</div></div>
   <div class="page active" id="page-home">
-    <div class="hero-card"><h2>Necesita atencion en casa?</h2><p>Profesionales verificados listos para atenderle</p><button class="btn-hero" onclick="showPage('solicitar');resetSolicitud()">&#x2795; Solicitar servicio</button></div>
+    <div class="hero-card"><h2>¿Necesita atención en casa?</h2><p>Profesionales verificados listos para atenderle</p><button class="btn-hero" onclick="showPage('solicitar');resetSolicitud()">&#x2795; Solicitar servicio</button></div>
     <div class="section-title">Tipos de servicio</div>
     <div class="service-grid" id="inicio-grid">
-      <div class="service-card" onclick="selectTipoInicio('curacion')"><div class="service-card-icon">&#x1FA79;</div><div class="service-card-name">Curacion</div><div class="service-card-desc">Heridas y ulceras</div></div>
-      <div class="service-card" onclick="selectTipoInicio('medicacion')"><div class="service-card-icon">&#x1F48A;</div><div class="service-card-name">Medicacion</div><div class="service-card-desc">Administracion</div></div>
-      <div class="service-card" onclick="selectTipoInicio('inyeccion')"><div class="service-card-icon">&#x1F489;</div><div class="service-card-name">Inyeccion</div><div class="service-card-desc">IM, IV, SC</div></div>
+      <div class="service-card" onclick="selectTipoInicio('curacion')"><div class="service-card-icon">&#x1FA79;</div><div class="service-card-name">Curación</div><div class="service-card-desc">Heridas y úlceras</div></div>
+      <div class="service-card" onclick="selectTipoInicio('medicacion')"><div class="service-card-icon">&#x1F48A;</div><div class="service-card-name">Medicación</div><div class="service-card-desc">Administración</div></div>
+      <div class="service-card" onclick="selectTipoInicio('inyeccion')"><div class="service-card-icon">&#x1F489;</div><div class="service-card-name">Inyección</div><div class="service-card-desc">IM, IV, SC</div></div>
       <div class="service-card" onclick="selectTipoInicio('control')"><div class="service-card-icon">&#x1FA7A;</div><div class="service-card-name">Control</div><div class="service-card-desc">Signos vitales</div></div>
-      <div class="service-card" onclick="selectTipoInicio('cuidado_basico')"><div class="service-card-icon">&#x1F6C1;</div><div class="service-card-name">Cuidado basico</div><div class="service-card-desc">Higiene y confort</div></div>
-      <div class="service-card" onclick="selectTipoInicio('urgencia')"><div class="service-card-icon">&#x1F6A8;</div><div class="service-card-name">Atencion prioritaria</div><div class="service-card-desc">Llegada prioritaria</div></div>
+      <div class="service-card" onclick="selectTipoInicio('cuidado_basico')"><div class="service-card-icon">&#x1F6C1;</div><div class="service-card-name">Cuidado básico</div><div class="service-card-desc">Higiene y confort</div></div>
+      <div class="service-card" onclick="selectTipoInicio('urgencia')"><div class="service-card-icon">&#x1F6A8;</div><div class="service-card-name">Atención prioritaria</div><div class="service-card-desc">Llegada prioritaria</div></div>
     </div>
     <div class="section-title">Mis servicios recientes</div>
     <div id="servicios-recientes"><div class="empty"><div class="empty-icon">&#x1F4CB;</div><div class="empty-text">No tiene servicios aun</div></div></div>
@@ -130,19 +144,19 @@ body{font-family:'Nunito',sans-serif;background:var(--cream);color:var(--ink);mi
   <div class="page" id="page-solicitar">
     <div class="step-indicator"><div class="step-dot active" id="step1"></div><div class="step-dot" id="step2"></div><div class="step-dot" id="step3"></div></div>
     <div id="paso-1">
-      <div class="step-title">Que tipo de atencion necesita?</div><div class="step-subtitle">Seleccione el servicio que requiere</div>
+      <div class="step-title">¿Qué tipo de atención necesita?</div><div class="step-subtitle">Seleccione el servicio que requiere</div>
       <div class="service-grid" id="tipo-grid">
-        <div class="service-card" onclick="seleccionarTipo('curacion',this)"><div class="service-card-icon">&#x1FA79;</div><div class="service-card-name">Curacion</div><div class="service-card-desc">Heridas y ulceras</div></div>
-        <div class="service-card" onclick="seleccionarTipo('medicacion',this)"><div class="service-card-icon">&#x1F48A;</div><div class="service-card-name">Medicacion</div><div class="service-card-desc">Administracion</div></div>
-        <div class="service-card" onclick="seleccionarTipo('inyeccion',this)"><div class="service-card-icon">&#x1F489;</div><div class="service-card-name">Inyeccion</div><div class="service-card-desc">IM, IV, SC</div></div>
+        <div class="service-card" onclick="seleccionarTipo('curacion',this)"><div class="service-card-icon">&#x1FA79;</div><div class="service-card-name">Curación</div><div class="service-card-desc">Heridas y úlceras</div></div>
+        <div class="service-card" onclick="seleccionarTipo('medicacion',this)"><div class="service-card-icon">&#x1F48A;</div><div class="service-card-name">Medicación</div><div class="service-card-desc">Administración</div></div>
+        <div class="service-card" onclick="seleccionarTipo('inyeccion',this)"><div class="service-card-icon">&#x1F489;</div><div class="service-card-name">Inyección</div><div class="service-card-desc">IM, IV, SC</div></div>
         <div class="service-card" onclick="seleccionarTipo('control',this)"><div class="service-card-icon">&#x1FA7A;</div><div class="service-card-name">Control</div><div class="service-card-desc">Signos vitales</div></div>
-        <div class="service-card" onclick="seleccionarTipo('cuidado_basico',this)"><div class="service-card-icon">&#x1F6C1;</div><div class="service-card-name">Cuidado basico</div><div class="service-card-desc">Higiene y confort</div></div>
-        <div class="service-card" onclick="seleccionarTipo('urgencia',this)"><div class="service-card-icon">&#x1F6A8;</div><div class="service-card-name">Atencion prioritaria</div><div class="service-card-desc">Llegada prioritaria</div></div>
+        <div class="service-card" onclick="seleccionarTipo('cuidado_basico',this)"><div class="service-card-icon">&#x1F6C1;</div><div class="service-card-name">Cuidado básico</div><div class="service-card-desc">Higiene y confort</div></div>
+        <div class="service-card" onclick="seleccionarTipo('urgencia',this)"><div class="service-card-icon">&#x1F6A8;</div><div class="service-card-name">Atención prioritaria</div><div class="service-card-desc">Llegada prioritaria</div></div>
       </div>
       <button class="btn-main" onclick="irPaso(2)" id="btn-paso1" disabled style="opacity:0.5">Continuar &#x2192;</button>
     </div>
     <div id="paso-2" style="display:none">
-      <div class="step-title">Para quien y donde?</div><div class="step-subtitle">Elija el paciente e ingrese la direccion de atencion</div>
+      <div class="step-title">¿Para quién y dónde?</div><div class="step-subtitle">Elija el paciente e ingrese la direccion de atencion</div>
       <div class="form-group"><label for="sol-paciente">Paciente</label><select id="sol-paciente" onchange="cambioPaciente()"><option value="">Cargando...</option></select></div>
       <div id="nuevo-paciente" class="info-card" style="display:none;margin-bottom:16px">
         <div style="font-size:14px;font-weight:800;margin-bottom:12px">Agregar paciente a su cuenta</div>
@@ -154,9 +168,9 @@ body{font-family:'Nunito',sans-serif;background:var(--cream);color:var(--ink);mi
         <div class="auth-error" id="np-error"></div>
         <div style="display:flex;gap:10px"><button class="btn-main" style="background:var(--border);color:var(--ink);flex:0 0 auto;width:auto;padding:0 18px" onclick="cancelarNuevoPaciente()">Cancelar</button><button class="btn-main" style="flex:1" id="np-guardar" onclick="guardarNuevoPaciente()">Guardar paciente</button></div>
       </div>
-      <div class="form-group"><label>Direccion completa</label><input type="text" id="sol-direccion" placeholder="Calle 123 #45-67"></div>
+      <div class="form-group"><label>Dirección completa</label><input type="text" id="sol-direccion" placeholder="Calle 123 #45-67"></div>
       <div class="form-group"><label>Ciudad</label><input type="text" id="sol-ciudad" value="Santa Marta" placeholder="Santa Marta"></div>
-      <div class="form-group"><label>Descripcion del servicio <span style="color:var(--red)">*</span></label><textarea id="sol-descripcion" placeholder="Minimo 5 caracteres. Ej: Curacion de herida en pierna..."></textarea><div class="field-hint">Minimo 5 caracteres</div></div>
+      <div class="form-group"><label>Descripción del servicio <span style="color:var(--red)">*</span></label><textarea id="sol-descripcion" placeholder="Minimo 5 caracteres. Ej: Curacion de herida en pierna..."></textarea><div class="field-hint">Minimo 5 caracteres</div></div>
       <div style="display:flex;gap:10px"><button class="btn-main" style="background:var(--border);color:var(--ink);flex:0 0 auto;width:50px" onclick="irPaso(1)">&#x2190;</button><button class="btn-main" onclick="irPaso(3)" style="flex:1">Continuar &#x2192;</button></div>
     </div>
     <div id="paso-3" style="display:none">
@@ -173,14 +187,16 @@ body{font-family:'Nunito',sans-serif;background:var(--cream);color:var(--ink);mi
       <div style="display:flex;gap:10px"><button class="btn-main" style="background:var(--border);color:var(--ink);flex:0 0 auto;width:50px" onclick="irPaso(2)">&#x2190;</button><button class="btn-main" onclick="enviarSolicitud()" style="flex:1" id="btn-enviar">&#x2705; Confirmar solicitud</button></div>
       <div class="auth-error" id="sol-error"></div>
     </div>
-    <div id="paso-exito" style="display:none"><div class="success-screen"><div class="success-icon">&#x2705;</div><div class="success-title">Solicitud enviada!</div><div class="success-text">Su solicitud fue recibida. Un profesional de enfermeria sera asignado y se comunicara con usted pronto.</div><button class="btn-main" onclick="irInicio()" style="width:100%">Volver al inicio</button></div></div>
+    <div id="paso-exito" style="display:none"><div class="success-screen"><div class="success-icon">&#x2705;</div><div class="success-title">¡Solicitud enviada!</div><div class="success-text">Su solicitud fue recibida. Un profesional de la IPS sera asignado y se comunicara con usted pronto.</div><button class="btn-main" onclick="irInicio()" style="width:100%">Volver al inicio</button></div></div>
   </div>
   <div class="page" id="page-servicios"><div class="section-title">Mis servicios</div><div id="mis-servicios-list"><div class="empty"><div class="empty-icon">&#x1F4CB;</div><div class="empty-text">Cargando...</div></div></div></div>
   <div class="page" id="page-perfil">
     <div class="profile-header"><div class="profile-avatar" id="perfil-avatar">P</div><div class="profile-name" id="perfil-nombre">Cargando...</div><div class="profile-email" id="perfil-email">-</div></div>
-    <div class="info-card"><div class="info-row"><span class="info-label">Telefono</span><span class="info-value" id="perfil-telefono">-</span></div><div class="info-row"><span class="info-label">Rol</span><span class="info-value">Paciente</span></div><div class="info-row"><span class="info-label">Estado</span><span class="badge badge-green">Activo</span></div></div>
-    <div class="info-card"><div style="font-size:14px;font-weight:700;margin-bottom:12px">Contacto de emergencia</div><div style="font-size:13px;color:var(--muted);font-weight:600">Reina Elizabeth IPS</div><div style="font-size:15px;font-weight:800;color:var(--teal);margin-top:4px">300 000 0000</div></div>
-    <button class="btn-outline-red" onclick="doLogout()">Cerrar sesion</button>
+    <div class="info-card"><div class="info-row"><span class="info-label">Teléfono</span><span class="info-value" id="perfil-telefono">-</span></div><div class="info-row"><span class="info-label">Rol</span><span class="info-value">Paciente</span></div><div class="info-row"><span class="info-label">Estado</span><span class="badge badge-green">Activo</span></div></div>
+    <div class="info-card"><div style="font-size:14px;font-weight:700;margin-bottom:6px">Contacto con la IPS</div><div style="font-size:13px;color:var(--muted);font-weight:600">Clínica Reina Elizabeth IPS · Santa Marta</div><div style="font-size:13px;color:var(--ink-light);margin-top:6px">Ante una emergencia con riesgo para la vida llame primero al <b>123</b>.</div><a class="btn-wa-grande" target="_blank" rel="noopener" href="https://wa.me/573128886611?text=Hola%2C%20soy%20paciente%20de%20Salud%20en%20Casa%20y%20necesito%20ayuda">WhatsApp de la IPS · 312 888 6611</a><a class="btn-wa-grande" style="background:#B4412F" href="tel:3128886611">Llamar a urgencias 24 h</a></div>
+    <div style="text-align:center;margin:6px 0 10px;font-size:13px"><a href="legal.html" style="color:var(--muted)">Términos, datos personales y derechos del paciente</a></div>
+    <button class="btn-outline-red" onclick="doLogout()">Cerrar sesión</button>
+    <div data-firma-skynet></div>
   </div>
   <nav class="bottom-nav">
     <button class="nav-btn active" onclick="showPage('home',this)"><span class="nav-btn-icon">&#x1F3E0;</span><span class="nav-btn-label">Inicio</span></button>
@@ -276,12 +292,13 @@ async function doRegistro() {
   if (!email.includes('@')||!email.includes('.')) { showError(errEl,'El correo no es valido. Ejemplo: nombre@gmail.com'); return; }
   if (!telefonoRaw) { showError(errEl,'Por favor ingrese su telefono celular'); return; }
   if (!password) { showError(errEl,'Por favor ingrese una contrasena'); return; }
-  if (password.length < 8) { showError(errEl,'La contrasena debe tener minimo 8 caracteres'); return; }
+  if (password.length < 8) { showError(errEl,'La contraseña debe tener mínimo 8 caracteres'); return; }
+  if (!document.getElementById('reg-acepto').checked) { showError(errEl,'Para crear la cuenta debe aceptar los términos y autorizar el tratamiento de datos'); return; }
   var telefonoDigitos = telefonoRaw.replace(/\D/g,'');
   var tel = telefonoRaw.startsWith('+') ? telefonoRaw : '+57'+telefonoDigitos;
   showLoading('Creando cuenta...');
   try {
-    var res = await fetch(API+'/api/auth/register', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({nombreCompleto:nombre,email:email,telefono:tel,password:password,rol:'paciente'})});
+    var res = await fetch(API+'/api/auth/register', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({nombreCompleto:nombre,email:email,telefono:tel,password:password,rol:'paciente',aceptaTerminos:true})});
     var data = await res.json();
     hideLoading();
     if (!res.ok) {
@@ -311,7 +328,7 @@ function initApp() {
   document.getElementById('screen-app').classList.add('active');
   var nombre = (user && user.nombreCompleto) ? user.nombreCompleto : 'Paciente';
   var hora = new Date().getHours();
-  var saludo = hora < 12 ? 'Buenos dias' : hora < 18 ? 'Buenas tardes' : 'Buenas noches';
+  var saludo = hora < 12 ? 'Buenos días' : hora < 18 ? 'Buenas tardes' : 'Buenas noches';
   document.querySelector('.topbar-greeting').textContent = saludo+',';
   document.getElementById('app-nombre').textContent = nombre.split(' ')[0];
   document.getElementById('app-avatar').textContent = nombre.split(' ').map(function(w){return w[0];}).join('').slice(0,2).toUpperCase();
@@ -329,7 +346,7 @@ function showPage(name, btn) {
 function mostrarNotif(msg, color) {
   var n = document.getElementById('notif-banner');
   if (!n) { n = document.createElement('div'); n.id='notif-banner'; document.body.appendChild(n); }
-  n.style.cssText = 'position:fixed;top:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;background:'+(color||'#1B6B5A')+';color:white;padding:16px 20px;font-size:14px;font-weight:700;z-index:1000;text-align:center;';
+  n.style.cssText = 'position:fixed;top:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;background:'+(color||'#1E3A4C')+';color:white;padding:16px 20px;font-size:14px;font-weight:700;z-index:1000;text-align:center;';
   n.textContent = msg; n.style.display = 'block';
   clearTimeout(n._t); n._t = setTimeout(function(){ n.style.display='none'; }, 5000);
 }
@@ -342,7 +359,7 @@ async function loadServiciosRecientes() {
     var data = await res.json();
     var items = data.items || data;
     if (!items.length) { el.innerHTML = '<div class="empty"><div class="empty-icon">&#x1F4CB;</div><div class="empty-text">No tiene servicios aun</div></div>'; return; }
-    var msgs = {asignado:['Un enfermero acepto su solicitud!','#2E7D52'],en_camino:['El enfermero esta en camino','#E8932A'],en_curso:['El servicio ha comenzado','#1B6B5A'],completado:['Servicio completado','#2E7D52'],cancelado:['Servicio cancelado','#C44040']};
+    var msgs = {asignado:['Un enfermero acepto su solicitud!','#1F8A4C'],en_camino:['El enfermero esta en camino','#E0A21A'],en_curso:['El servicio ha comenzado','#1E3A4C'],completado:['Servicio completado','#1F8A4C'],cancelado:['Servicio cancelado','#B4412F']};
     items.forEach(function(s) {
       if (lastEstados[s.id] && lastEstados[s.id] !== s.estado && msgs[s.estado]) mostrarNotif(msgs[s.estado][0], msgs[s.estado][1]);
       lastEstados[s.id] = s.estado;
@@ -372,16 +389,17 @@ function servicioItem(s) {
     if (s.calificacion) {
       var stars = '';
       for(var i=0;i<s.calificacion;i++) stars += '&#x2605;';
-      extra += '<div style="font-size:12px;color:#E8932A;margin-top:6px;font-weight:700">'+stars+' Calificado</div>';
+      extra += '<div style="font-size:12px;color:#E0A21A;margin-top:6px;font-weight:700">'+stars+' Calificado</div>';
     } else {
       if (!s.pago || s.pago.estado !== 'aprobado') {
         extra += '<button class="btn-pago" data-sid="'+s.id+'" onclick="iniciarPago(this.dataset.sid,event)">&#x1F4B3; Pagar servicio</button>';
       } else {
-        extra += '<div style="font-size:12px;color:#2E7D52;margin-top:6px;font-weight:700">&#x2705; Pago realizado</div>';
+        extra += '<div style="font-size:12px;color:#1F8A4C;margin-top:6px;font-weight:700">&#x2705; Pago realizado</div>';
       }
-      extra += '<button class="btn-pago" data-sid="'+s.id+'" style="background:#E8932A;margin-top:6px" onclick="mostrarCalificacion(this.dataset.sid)">&#x2B50; Calificar servicio</button>';
+      extra += '<button class="btn-pago" data-sid="'+s.id+'" style="background:#E0A21A;margin-top:6px" onclick="mostrarCalificacion(this.dataset.sid)">&#x2B50; Calificar servicio</button>';
     }
   }
+  if (s.estado !== 'cancelado') extra += '<a class="wa-servicio" target="_blank" rel="noopener" href="'+whatsappServicio(s)+'">&#x1F4AC; Preguntar a la IPS por este servicio</a>';
   return '<div class="service-item"><div class="service-item-row"><div class="service-item-icon">'+(iconos[s.tipo]||'&#x1F3E5;')+'</div><div class="service-item-info"><div class="service-item-name">'+tipoLabel(s.tipo)+'</div><div class="service-item-date">'+(s.paciente&&s.paciente.nombreCompleto?escapeHtml(s.paciente.nombreCompleto)+' · ':'')+formatDate(s.createdAt||s.fechaSolicitud)+'</div></div>'+badge+'</div>'+extra+'</div>';
 }
 
@@ -407,16 +425,16 @@ function mostrarCalificacion(servicioId) {
   var textarea = document.createElement('textarea');
   textarea.id = 'cal-comentario';
   textarea.placeholder = 'Comentario opcional...';
-  textarea.style.cssText = 'width:100%;padding:12px;border:1.5px solid #E8E0D8;border-radius:10px;font-family:Nunito,sans-serif;font-size:13px;resize:none;height:80px;outline:none;margin-bottom:12px;box-sizing:border-box';
+  textarea.style.cssText = 'width:100%;padding:12px;border:1.5px solid #D3DCDA;border-radius:10px;font-family:Public Sans,sans-serif;font-size:13px;resize:none;height:80px;outline:none;margin-bottom:12px;box-sizing:border-box';
   var btnEnviar = document.createElement('button');
-  btnEnviar.style.cssText = 'width:100%;padding:14px;background:#1B6B5A;color:white;border:none;border-radius:14px;font-family:Nunito,sans-serif;font-size:15px;font-weight:800;cursor:pointer;margin-bottom:8px';
+  btnEnviar.style.cssText = 'width:100%;padding:14px;background:#1E3A4C;color:white;border:none;border-radius:14px;font-family:Public Sans,sans-serif;font-size:15px;font-weight:800;cursor:pointer;margin-bottom:8px';
   btnEnviar.textContent = 'Enviar calificacion';
   (function(sid){ btnEnviar.onclick = function(){ enviarCalificacion(sid); }; })(servicioId);
   var btnCancelar = document.createElement('button');
-  btnCancelar.style.cssText = 'width:100%;padding:12px;background:#FDECEC;color:#C44040;border:none;border-radius:14px;font-family:Nunito,sans-serif;font-size:14px;font-weight:700;cursor:pointer';
+  btnCancelar.style.cssText = 'width:100%;padding:12px;background:#F8E4E0;color:#B4412F;border:none;border-radius:14px;font-family:Public Sans,sans-serif;font-size:14px;font-weight:700;cursor:pointer';
   btnCancelar.textContent = 'Cancelar';
   btnCancelar.onclick = function(){ var ol=document.getElementById('cal-overlay'); if(ol) ol.remove(); };
-  panel.innerHTML = '<div style="font-size:18px;font-weight:800;color:#1A1714;margin-bottom:4px;font-family:Nunito,sans-serif">Calificar servicio</div><div style="font-size:13px;color:#9A918A;font-family:Nunito,sans-serif">Como fue su experiencia?</div>';
+  panel.innerHTML = '<div style="font-size:18px;font-weight:800;color:#15232B;margin-bottom:4px;font-family:Public Sans,sans-serif">Calificar servicio</div><div style="font-size:13px;color:#5B6B73;font-family:Public Sans,sans-serif">Como fue su experiencia?</div>';
   panel.appendChild(starsDiv);
   panel.appendChild(textarea);
   panel.appendChild(btnEnviar);
@@ -445,7 +463,7 @@ async function enviarCalificacion(servicioId) {
     var ol = document.getElementById('cal-overlay');
     if (ol) ol.remove();
     estrellaSeleccionada = 0;
-    mostrarNotif('Gracias por su calificacion!', '#2E7D52');
+    mostrarNotif('Gracias por su calificacion!', '#1F8A4C');
     loadMisServicios(); loadServiciosRecientes();
   } catch(e) { hideLoading(); alert('Error: '+e.message); }
 }
@@ -472,16 +490,16 @@ function mostrarWidgetWompi(datos) {
   panel.style.cssText = 'background:white;border-radius:20px;padding:24px;width:100%;max-width:380px;text-align:center';
   var monto = (datos.monto/100).toLocaleString('es-CO');
   var montoBox = document.createElement('div');
-  montoBox.style.cssText = 'background:#E8F4F1;border-radius:12px;padding:16px;margin-bottom:16px';
-  montoBox.innerHTML = '<div style="font-size:13px;color:#4A4540;font-weight:600;font-family:Nunito,sans-serif">Total a pagar</div><div style="font-size:28px;font-weight:800;color:#1B6B5A;font-family:Nunito,sans-serif">$' + monto + ' COP</div>';
+  montoBox.style.cssText = 'background:#E3ECEF;border-radius:12px;padding:16px;margin-bottom:16px';
+  montoBox.innerHTML = '<div style="font-size:13px;color:#4A4540;font-weight:600;font-family:Public Sans,sans-serif">Total a pagar</div><div style="font-size:28px;font-weight:800;color:#1E3A4C;font-family:Public Sans,sans-serif">$' + monto + ' COP</div>';
   var btnContainer = document.createElement('div');
   btnContainer.id = 'wompi-btn-container';
   btnContainer.style.marginBottom = '12px';
   var btnCancelar = document.createElement('button');
-  btnCancelar.style.cssText = 'width:100%;padding:12px;background:#FDECEC;color:#C44040;border:none;border-radius:12px;font-family:Nunito,sans-serif;font-size:14px;font-weight:700;cursor:pointer';
+  btnCancelar.style.cssText = 'width:100%;padding:12px;background:#F8E4E0;color:#B4412F;border:none;border-radius:12px;font-family:Public Sans,sans-serif;font-size:14px;font-weight:700;cursor:pointer';
   btnCancelar.textContent = 'Cancelar';
   btnCancelar.onclick = function(){ var ol=document.getElementById('wompi-overlay'); if(ol) ol.remove(); };
-  panel.innerHTML = '<div style="font-size:24px;margin-bottom:8px">&#x1F4B3;</div><div style="font-family:Nunito,sans-serif;font-size:18px;font-weight:800;color:#1A1714;margin-bottom:4px">Pago seguro</div><div style="font-family:Nunito,sans-serif;font-size:13px;color:#9A918A;margin-bottom:12px">Reina Elizabeth IPS</div>';
+  panel.innerHTML = '<div style="font-size:24px;margin-bottom:8px">&#x1F4B3;</div><div style="font-family:Public Sans,sans-serif;font-size:18px;font-weight:800;color:#15232B;margin-bottom:4px">Pago seguro</div><div style="font-family:Public Sans,sans-serif;font-size:13px;color:#5B6B73;margin-bottom:12px">Reina Elizabeth IPS</div>';
   panel.appendChild(montoBox);
   panel.appendChild(btnContainer);
   panel.appendChild(btnCancelar);

@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Recuperar contraseña · Reina Elizabeth IPS</title>
+<title>Recuperar contraseña · Salud en Casa</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Public+Sans:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
@@ -29,9 +29,10 @@
   .links a{color:var(--azul);font-weight:600}
   .wa{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:18px;padding:12px;border-radius:10px;background:var(--verde);color:#fff;text-decoration:none;font-weight:700}
 </style>
+<script src="comun.js" data-rol="publico"></script>
 </head>
-<body>
-<header><h1>Reina Elizabeth IPS</h1></header>
+<body data-sin-whatsapp>
+<header><h1>Salud en Casa <span style="font-weight:600;opacity:.75;font-size:16px">· Clínica Reina Elizabeth IPS</span></h1></header>
 <main>
   <div class="card">
     <!-- Paso 1: pedir el enlace -->
@@ -59,15 +60,16 @@
     <div class="links">
       <a href="app-paciente.html">Ir a la app del paciente</a>
       <a href="app-enfermero.html">Ir a la app del profesional</a>
-      <a href="https://rl-rikardolondono.github.io/panel-admin/panel-admin.html">Ir al panel administrativo</a>
+      <a href="panel.html">Ir al panel administrativo</a>
     </div>
-    <a class="wa" href="https://wa.me/573128886611?text=Hola%2C%20necesito%20ayuda%20para%20ingresar%20a%20la%20app%20de%20Reina%20Elizabeth%20IPS" target="_blank" rel="noopener">WhatsApp de Reina Elizabeth IPS</a>
+    <a class="wa" href="https://wa.me/573128886611?text=Hola%2C%20necesito%20ayuda%20para%20ingresar%20a%20Salud%20en%20Casa" target="_blank" rel="noopener">WhatsApp de la IPS · 312 888 6611</a>
+    <div data-firma-skynet></div>
   </div>
 </main>
 <script>
 var API = 'https://enfermeria-api-2ksu.onrender.com';
 var token = new URLSearchParams(location.search).get('token');
-var APPS = { paciente: 'app-paciente.html', profesional: 'app-enfermero.html', admin: 'https://rl-rikardolondono.github.io/panel-admin/panel-admin.html' };
+var APPS = { paciente: 'app-paciente.html', profesional: 'app-enfermero.html', admin: 'panel.html' };
 
 function mostrar(id, texto, ok) { var el = document.getElementById(id); el.textContent = texto; el.className = 'msg ' + (ok ? 'ok' : 'err'); }
 

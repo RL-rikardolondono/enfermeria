@@ -4,21 +4,21 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="theme-color" content="#0F2027">
-<title>RE IPS — Profesional</title>
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+<meta name="theme-color" content="#1E3A4C">
+<title>Salud en Casa · Profesionales</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Public+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg:#0F1923;--bg2:#162030;--bg3:#1E2D3E;--card:#1A2A3A;
-    --border:rgba(255,255,255,0.08);--teal:#00D4AA;--teal-dim:rgba(0,212,170,0.15);
-    --teal-glow:rgba(0,212,170,0.3);--amber:#FFB547;--amber-dim:rgba(255,181,71,0.15);
-    --red:#FF5C5C;--red-dim:rgba(255,92,92,0.15);--blue:#4D9FFF;
-    --blue-dim:rgba(77,159,255,0.15);--white:#FFFFFF;--text:#E8EDF2;
-    --muted:#6B8099;--radius:18px;--radius-sm:12px;
+    --bg:#EEF2F1;--bg2:#FFFFFF;--bg3:#F5F8F7;--card:#FFFFFF;
+    --border:#D3DCDA;--teal:#1E3A4C;--teal-dim:rgba(30,58,76,0.08);
+    --teal-glow:rgba(30,58,76,0.18);--amber:#9A6B06;--amber-dim:rgba(224,162,26,0.16);
+    --red:#B4412F;--red-dim:rgba(180,65,47,0.10);--blue:#2F6F95;
+    --blue-dim:rgba(47,111,149,0.10);--white:#15232B;--text:#15232B;
+    --muted:#5B6B73;--radius:18px;--radius-sm:12px;
     --safe-bottom:env(safe-area-inset-bottom,16px);
   }
   *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
-  body{font-family:'Space Grotesk',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;max-width:430px;margin:0 auto;overflow-x:hidden;}
+  body{font-family:'Public Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;max-width:430px;margin:0 auto;overflow-x:hidden;}
   .screen{display:none;min-height:100vh;flex-direction:column;}
   .screen.active{display:flex;}
   #screen-splash{background:var(--bg);align-items:center;justify-content:center;gap:16px;position:relative;overflow:hidden;}
@@ -27,34 +27,34 @@
   .splash-badge{width:90px;height:90px;border:2px solid var(--teal);border-radius:24px;display:flex;align-items:center;justify-content:center;font-size:44px;position:relative;z-index:1;animation:fadeIn 0.5s ease;box-shadow:0 0 40px var(--teal-glow);}
   @keyframes fadeIn{from{opacity:0;transform:scale(0.8);}to{opacity:1;transform:scale(1);}}
   .splash-text{text-align:center;z-index:1;animation:slideUp 0.5s ease 0.2s both;}
-  .splash-text h1{font-family:'Syne',sans-serif;font-size:26px;color:var(--white);}
+  .splash-text h1{font-family:'Barlow Condensed',sans-serif;font-size:26px;color:var(--white);}
   .splash-text p{font-size:13px;color:var(--muted);margin-top:4px;}
   .splash-role{background:var(--teal-dim);border:1px solid var(--teal);color:var(--teal);font-size:11px;font-weight:700;letter-spacing:2px;padding:6px 16px;border-radius:20px;z-index:1;animation:slideUp 0.5s ease 0.3s both;}
   @keyframes slideUp{from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:translateY(0);}}
   #screen-auth{background:var(--bg);}
   .auth-top{padding:60px 24px 32px;position:relative;}
   .auth-top::after{content:'';position:absolute;bottom:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--teal),transparent);}
-  .auth-top h1{font-family:'Syne',sans-serif;font-size:28px;color:var(--white);margin-bottom:6px;}
+  .auth-top h1{font-family:'Barlow Condensed',sans-serif;font-size:28px;color:var(--white);margin-bottom:6px;}
   .auth-top p{font-size:14px;color:var(--muted);}
   .auth-tabs{display:flex;gap:4px;background:var(--bg3);border-radius:var(--radius-sm);padding:4px;margin-top:20px;}
-  .auth-tab{flex:1;padding:9px;border:none;background:transparent;color:var(--muted);font-family:'Space Grotesk',sans-serif;font-size:13px;font-weight:600;cursor:pointer;border-radius:9px;transition:all 0.2s;}
+  .auth-tab{flex:1;padding:9px;border:none;background:transparent;color:var(--muted);font-family:'Public Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;border-radius:9px;transition:all 0.2s;}
   .auth-tab.active{background:var(--teal);color:var(--bg);}
   .auth-body{padding:24px;flex:1;}
   .form-group{margin-bottom:14px;}
   .form-group label{display:block;font-size:12px;font-weight:600;color:var(--muted);margin-bottom:7px;letter-spacing:0.5px;text-transform:uppercase;}
-  .form-group input,.form-group select{width:100%;padding:13px 16px;border:1px solid var(--border);border-radius:var(--radius-sm);font-family:'Space Grotesk',sans-serif;font-size:15px;background:var(--bg3);color:var(--text);outline:none;transition:border-color 0.2s;appearance:none;}
+  .form-group input,.form-group select{width:100%;padding:13px 16px;border:1px solid var(--border);border-radius:var(--radius-sm);font-family:'Public Sans',sans-serif;font-size:15px;background:var(--bg3);color:var(--text);outline:none;transition:border-color 0.2s;appearance:none;}
   .form-group input:focus,.form-group select:focus{border-color:var(--teal);box-shadow:0 0 0 3px var(--teal-dim);}
   .field-hint{font-size:11px;color:var(--muted);margin-top:4px;}
-  .btn-main{width:100%;padding:15px;background:var(--teal);color:var(--bg);border:none;border-radius:var(--radius);font-family:'Space Grotesk',sans-serif;font-size:15px;font-weight:700;cursor:pointer;transition:all 0.15s;margin-top:6px;}
+  .btn-main{width:100%;padding:15px;background:var(--teal);color:var(--bg);border:none;border-radius:var(--radius);font-family:'Public Sans',sans-serif;font-size:15px;font-weight:700;cursor:pointer;transition:all 0.15s;margin-top:6px;}
   .btn-main:active{transform:scale(0.98);opacity:0.9;}
   .auth-error{background:var(--red-dim);border:1px solid var(--red);color:var(--red);padding:11px 14px;border-radius:var(--radius-sm);font-size:13px;font-weight:600;margin-top:10px;display:none;}
   #screen-app{background:var(--bg);padding-bottom:calc(70px + var(--safe-bottom));}
   .topbar{background:var(--bg2);padding:16px 20px 14px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;border-bottom:1px solid var(--border);}
   .topbar-left{display:flex;flex-direction:column;gap:2px;}
   .topbar-greeting{font-size:12px;color:var(--muted);font-weight:500;}
-  .topbar-name{font-family:'Syne',sans-serif;font-size:17px;color:var(--white);}
+  .topbar-name{font-family:'Barlow Condensed',sans-serif;font-size:17px;color:var(--white);}
   .topbar-right{display:flex;align-items:center;gap:10px;}
-  .status-pill{display:flex;align-items:center;gap:6px;padding:6px 12px;border-radius:20px;font-size:12px;font-weight:700;cursor:pointer;transition:all 0.2s;border:none;font-family:'Space Grotesk',sans-serif;}
+  .status-pill{display:flex;align-items:center;gap:6px;padding:6px 12px;border-radius:20px;font-size:12px;font-weight:700;cursor:pointer;transition:all 0.2s;border:none;font-family:'Public Sans',sans-serif;}
   .status-pill.disponible{background:var(--teal-dim);color:var(--teal);border:1px solid var(--teal);}
   .status-pill.ocupado{background:var(--amber-dim);color:var(--amber);border:1px solid var(--amber);}
   .status-dot{width:7px;height:7px;border-radius:50%;}
@@ -64,19 +64,19 @@
   .bottom-nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;background:var(--bg2);border-top:1px solid var(--border);display:flex;padding:8px 0 calc(8px + var(--safe-bottom));z-index:50;}
   .nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;border:none;background:none;cursor:pointer;padding:4px 0;}
   .nav-btn-icon{font-size:20px;}
-  .nav-btn-label{font-size:10px;font-weight:600;color:var(--muted);font-family:'Space Grotesk',sans-serif;letter-spacing:0.3px;}
+  .nav-btn-label{font-size:10px;font-weight:600;color:var(--muted);font-family:'Public Sans',sans-serif;letter-spacing:0.3px;}
   .nav-btn.active .nav-btn-label{color:var(--teal);}
   .page{display:none;padding:20px;}
   .page.active{display:block;}
   .stats-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:20px;}
   .stat-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius-sm);padding:14px 12px;text-align:center;}
-  .stat-value{font-family:'Syne',sans-serif;font-size:22px;color:var(--white);}
+  .stat-value{font-family:'Barlow Condensed',sans-serif;font-size:22px;color:var(--white);}
   .stat-label{font-size:11px;color:var(--muted);font-weight:500;margin-top:2px;}
   .aviso-pendiente{background:var(--amber-dim);border:1px solid var(--amber);border-radius:var(--radius-sm);padding:14px 16px;margin-bottom:16px;display:none;}
   .aviso-pendiente-titulo{font-size:13px;font-weight:700;color:var(--amber);margin-bottom:4px;}
   .aviso-pendiente-texto{font-size:12px;color:var(--text);line-height:1.5;}
   .section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
-  .section-title{font-family:'Syne',sans-serif;font-size:16px;color:var(--white);}
+  .section-title{font-family:'Barlow Condensed',sans-serif;font-size:16px;color:var(--white);}
   .badge{font-size:11px;font-weight:700;padding:4px 10px;border-radius:20px;}
   .badge-teal{background:var(--teal-dim);color:var(--teal);}
   .badge-amber{background:var(--amber-dim);color:var(--amber);}
@@ -96,15 +96,15 @@
   .sol-info-row{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted);margin-bottom:5px;}
   .sol-info-row span{color:var(--text);font-weight:500;}
   .sol-actions{display:flex;gap:8px;}
-  .btn-accept{flex:1;padding:11px;background:var(--teal);color:var(--bg);border:none;border-radius:var(--radius-sm);font-family:'Space Grotesk',sans-serif;font-size:13px;font-weight:700;cursor:pointer;}
-  .btn-reject{padding:11px 14px;background:var(--red-dim);color:var(--red);border:1px solid var(--red);border-radius:var(--radius-sm);font-family:'Space Grotesk',sans-serif;font-size:13px;font-weight:700;cursor:pointer;}
+  .btn-accept{flex:1;padding:11px;background:var(--teal);color:var(--bg);border:none;border-radius:var(--radius-sm);font-family:'Public Sans',sans-serif;font-size:13px;font-weight:700;cursor:pointer;}
+  .btn-reject{padding:11px 14px;background:var(--red-dim);color:var(--red);border:1px solid var(--red);border-radius:var(--radius-sm);font-family:'Public Sans',sans-serif;font-size:13px;font-weight:700;cursor:pointer;}
   .activo-card{background:linear-gradient(135deg,#0D2E25,#0F2027);border:1px solid var(--teal);border-radius:var(--radius);padding:20px;margin-bottom:20px;box-shadow:0 0 30px var(--teal-dim);}
   .activo-label{font-size:11px;font-weight:700;letter-spacing:2px;color:var(--teal);margin-bottom:10px;display:flex;align-items:center;gap:6px;}
   .activo-label::before{content:'';width:6px;height:6px;background:var(--teal);border-radius:50%;animation:blink 1s infinite;}
-  .activo-tipo{font-family:'Syne',sans-serif;font-size:20px;color:var(--white);margin-bottom:6px;}
+  .activo-tipo{font-family:'Barlow Condensed',sans-serif;font-size:20px;color:var(--white);margin-bottom:6px;}
   .activo-dir{font-size:13px;color:var(--muted);margin-bottom:16px;}
   .estado-btns{display:flex;flex-direction:column;gap:8px;}
-  .btn-estado{width:100%;padding:12px;border:none;border-radius:var(--radius-sm);font-family:'Space Grotesk',sans-serif;font-size:13px;font-weight:700;cursor:pointer;}
+  .btn-estado{width:100%;padding:12px;border:none;border-radius:var(--radius-sm);font-family:'Public Sans',sans-serif;font-size:13px;font-weight:700;cursor:pointer;}
   .btn-en-camino{background:var(--blue-dim);color:var(--blue);border:1px solid var(--blue);}
   .btn-en-curso{background:var(--amber-dim);color:var(--amber);border:1px solid var(--amber);}
   .btn-completar{background:var(--teal);color:var(--bg);}
@@ -112,8 +112,8 @@
   .vitales-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;}
   .vital-input{background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 12px;}
   .vital-label{font-size:10px;color:var(--muted);font-weight:600;letter-spacing:0.5px;text-transform:uppercase;margin-bottom:4px;}
-  .vital-field{width:100%;background:transparent;border:none;outline:none;font-family:'Space Grotesk',sans-serif;font-size:16px;font-weight:700;color:var(--teal);}
-  textarea.form-area{width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px;font-family:'Space Grotesk',sans-serif;font-size:13px;color:var(--text);outline:none;resize:none;height:70px;margin-bottom:10px;}
+  .vital-field{width:100%;background:transparent;border:none;outline:none;font-family:'Public Sans',sans-serif;font-size:16px;font-weight:700;color:var(--teal);}
+  textarea.form-area{width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px;font-family:'Public Sans',sans-serif;font-size:13px;color:var(--text);outline:none;resize:none;height:70px;margin-bottom:10px;}
   textarea.form-area:focus{border-color:var(--teal);}
   .historial-item{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:10px;display:flex;align-items:center;gap:14px;}
   .hist-icon{width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;}
@@ -122,15 +122,15 @@
   .hist-fecha{font-size:12px;color:var(--muted);margin-top:2px;}
   .perfil-hero{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:24px;text-align:center;margin-bottom:16px;position:relative;overflow:hidden;}
   .perfil-hero::before{content:'';position:absolute;top:-30px;left:50%;transform:translateX(-50%);width:200px;height:200px;background:radial-gradient(circle,var(--teal-dim),transparent);}
-  .perfil-avatar{width:70px;height:70px;border:2px solid var(--teal);border-radius:20px;display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-size:26px;color:var(--teal);margin:0 auto 12px;background:var(--teal-dim);position:relative;}
-  .perfil-name{font-family:'Syne',sans-serif;font-size:20px;color:var(--white);}
+  .perfil-avatar{width:70px;height:70px;border:2px solid var(--teal);border-radius:20px;display:flex;align-items:center;justify-content:center;font-family:'Barlow Condensed',sans-serif;font-size:26px;color:var(--teal);margin:0 auto 12px;background:var(--teal-dim);position:relative;}
+  .perfil-name{font-family:'Barlow Condensed',sans-serif;font-size:20px;color:var(--white);}
   .perfil-role{font-size:13px;color:var(--teal);font-weight:600;margin-top:4px;}
   .info-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:18px;margin-bottom:12px;}
   .info-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);font-size:13px;}
   .info-row:last-child{border-bottom:none;}
   .info-label{color:var(--muted);font-weight:500;}
   .info-value{color:var(--text);font-weight:600;}
-  .btn-danger{width:100%;padding:14px;background:var(--red-dim);color:var(--red);border:1px solid var(--red);border-radius:var(--radius);font-family:'Space Grotesk',sans-serif;font-size:14px;font-weight:700;cursor:pointer;margin-top:8px;}
+  .btn-danger{width:100%;padding:14px;background:var(--red-dim);color:var(--red);border:1px solid var(--red);border-radius:var(--radius);font-family:'Public Sans',sans-serif;font-size:14px;font-weight:700;cursor:pointer;margin-top:8px;}
   .loading-overlay{position:fixed;inset:0;background:rgba(15,25,35,0.9);z-index:300;display:none;align-items:center;justify-content:center;flex-direction:column;gap:12px;backdrop-filter:blur(4px);}
   .loading-overlay.active{display:flex;}
   .loading-ring{width:44px;height:44px;border:2px solid var(--border);border-top-color:var(--teal);border-radius:50%;animation:spin 0.7s linear infinite;}
@@ -140,7 +140,32 @@
   .empty-icon{font-size:40px;margin-bottom:10px;opacity:0.5;}
   .empty-text{font-size:14px;font-weight:500;}
   .divider{height:1px;background:var(--border);margin:16px 0;}
+  /* Ajustes de la paleta institucional */
+  .splash-text h1,.auth-top h1,.section-title,.topbar-name,.activo-tipo,.perfil-name,.stat-value{font-weight:700;letter-spacing:.01em}
+  .splash-text h1{font-size:34px}.auth-top h1{font-size:32px}.section-title{font-size:20px}.topbar-name{font-size:21px}
+  #screen-splash{background:linear-gradient(160deg,#152B39,#1E3A4C 60%,#2C5470)}#screen-splash .splash-text h1{color:#fff}#screen-splash .splash-text p{color:rgba(255,255,255,.8)}
+  #screen-splash::before{background:radial-gradient(circle,rgba(224,162,26,.18) 0%,transparent 70%)}
+  .splash-badge{border-color:#E0A21A;box-shadow:none;background:rgba(255,255,255,.1)}.splash-role{background:rgba(224,162,26,.18);border-color:#E0A21A;color:#fff}
+  .auth-top{background:#1E3A4C;border-bottom:4px solid #E0A21A}.auth-top h1{color:#fff}.auth-top p{color:rgba(255,255,255,.82)}.auth-top::after{display:none}
+  .auth-tabs{background:rgba(255,255,255,.14)}.auth-tab{color:rgba(255,255,255,.8)}.auth-tab.active{background:#fff;color:#1E3A4C}
+  .btn-main,.btn-accept,.btn-completar{color:#fff!important}
+  .topbar{background:#1E3A4C;border-bottom:3px solid #E0A21A}.topbar-greeting{color:rgba(255,255,255,.75)}.topbar-name{color:#fff}
+  .status-pill.disponible{background:rgba(255,255,255,.12);color:#fff;border-color:rgba(255,255,255,.5)}.status-pill.disponible .status-dot{background:#3DDC84}
+  .nav-btn.active .nav-btn-label{color:#1E3A4C;font-weight:800}
+  .activo-card{background:linear-gradient(135deg,#152B39,#2C5470);border:0;box-shadow:0 6px 20px rgba(21,35,43,.2)}
+  .activo-card .activo-tipo{color:#fff}.activo-card .activo-dir{color:rgba(255,255,255,.8)}.activo-card .activo-label{color:#E0A21A}.activo-card .activo-label::before{background:#E0A21A}
+  .activo-card .btn-en-camino,.activo-card .btn-en-curso{background:#fff;color:#1E3A4C;border:0}.activo-card .btn-completar{background:#1F8A4C}
+  .vital-field{color:#1E3A4C}.vital-input.fuera{border-color:#B4412F;background:rgba(180,65,47,.06)}.vital-input.fuera .vital-field{color:#B4412F}
+  .vital-ayuda{font-size:11px;color:var(--muted);margin:-4px 0 12px}
+  .solicitud-card,.stat-card,.info-card,.historial-item,.evolucion-form,.perfil-hero{box-shadow:0 2px 10px rgba(21,35,43,.06)}
+  .loading-overlay{background:rgba(238,242,241,.92)}
+  .check-legal{display:flex;gap:10px;align-items:flex-start;font-size:13px;color:var(--muted);margin:6px 0 4px;line-height:1.45}
+  .check-legal input{width:20px;height:20px;flex:none;margin-top:1px;accent-color:#1E3A4C}.check-legal a{color:#1E3A4C;font-weight:700}
+  .btn-wa-grande{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:13px;background:#1F8A4C;color:#fff;border-radius:12px;font-weight:700;font-size:15px;text-decoration:none;margin-top:10px}
+  .nota-ok{display:none;background:#E3F2E9;color:#1F8A4C;border-radius:10px;padding:10px 12px;font-size:13px;font-weight:700;margin-top:10px}
+  #screen-app{padding-bottom:calc(140px + var(--safe-bottom))}
 </style>
+<script src="comun.js" data-rol="profesional"></script>
 </head>
 <body>
 
@@ -151,14 +176,14 @@
 
 <div class="screen active" id="screen-splash">
   <div class="splash-badge">🩺</div>
-  <div class="splash-text"><h1>Reina Elizabeth IPS</h1><p>Plataforma de profesionales</p></div>
+  <div class="splash-text"><h1>Salud en Casa</h1><p>Profesionales · Clínica Reina Elizabeth IPS</p></div>
   <div class="splash-role">MODO PROFESIONAL</div>
 </div>
 
 <div class="screen" id="screen-auth">
   <div class="auth-top">
     <h1>Acceso profesional</h1>
-    <p>Ingrese con sus credenciales de enfermero/a</p>
+    <p>Enfermería, medicina y terapias a domicilio con la Clínica Reina Elizabeth IPS</p>
     <div class="auth-tabs">
       <button class="auth-tab active" onclick="switchTab('login')">Ingresar</button>
       <button class="auth-tab" onclick="switchTab('registro')">Registrarse</button>
@@ -181,15 +206,30 @@
         <div class="field-hint">Solo números, sin espacios ni guiones</div>
       </div>
       <div class="form-group">
-        <label>Especialidad</label>
+        <label>Profesión o especialidad *</label>
         <select id="reg-especialidad">
-          <option value="">Seleccione una especialidad...</option>
-          <option>Enfermería general</option>
-          <option>Cuidados intensivos</option>
-          <option>Heridas y ostomías</option>
-          <option>Geriatría</option>
-          <option>Pediatría</option>
-          <option>Rehabilitación</option>
+          <option value="">Seleccione...</option>
+          <optgroup label="Enfermería">
+            <option>Enfermería general</option>
+            <option>Auxiliar de enfermería</option>
+            <option>Enfermería: heridas y ostomías</option>
+          </optgroup>
+          <optgroup label="Medicina">
+            <option>Medicina general</option>
+            <option>Pediatría</option>
+            <option>Neurología / neurodesarrollo</option>
+            <option>Psiquiatría</option>
+            <option>Otra especialidad médica</option>
+          </optgroup>
+          <optgroup label="Terapias y salud mental">
+            <option>Psicología</option>
+            <option>Neuropsicología</option>
+            <option>Fisioterapia</option>
+            <option>Terapia ocupacional</option>
+            <option>Terapia de integración sensorial</option>
+            <option>Terapia conductual</option>
+            <option>Fonoaudiología</option>
+          </optgroup>
         </select>
       </div>
       <div class="form-group">
@@ -197,10 +237,12 @@
         <input type="password" id="reg-password" placeholder="Mínimo 8 caracteres">
         <div class="field-hint">Debe tener al menos 8 caracteres</div>
       </div>
+      <label class="check-legal"><input type="checkbox" id="reg-acepto"><span>Acepto los <a href="legal.html#terminos" target="_blank">términos de uso</a>, la <a href="legal.html#datos" target="_blank">política de datos personales</a> y me comprometo a guardar la confidencialidad de la historia clínica.</span></label>
       <button class="btn-main" onclick="doRegistro()">Crear cuenta</button>
       <div class="auth-error" id="reg-error"></div>
-      <div style="font-size:12px;color:var(--muted);margin-top:12px;text-align:center">Su cuenta será verificada por Reina Elizabeth IPS antes de activarse</div>
+      <div style="font-size:12px;color:var(--muted);margin-top:12px;text-align:center">Su cuenta será verificada por la Clínica Reina Elizabeth IPS antes de activarse</div>
     </div>
+    <div data-firma-skynet></div>
   </div>
 </div>
 
@@ -221,7 +263,7 @@
   <div class="page active" id="page-inicio">
     <div class="aviso-pendiente" id="aviso-pendiente">
       <div class="aviso-pendiente-titulo">⏳ Cuenta pendiente de verificación</div>
-      <div class="aviso-pendiente-texto">Su cuenta está siendo revisada por Reina Elizabeth IPS. Una vez aprobada podrá ver y aceptar solicitudes de servicio.</div>
+      <div class="aviso-pendiente-texto">Su cuenta está siendo revisada por la Clínica Reina Elizabeth IPS. Una vez aprobada podrá ver y aceptar solicitudes de servicio.</div>
     </div>
     <div class="stats-row">
       <div class="stat-card"><div class="stat-value" id="stat-hoy">0</div><div class="stat-label">Hoy</div></div>
@@ -240,7 +282,7 @@
         <div class="estado-btns" id="estado-btns"></div>
       </div>
       <div class="evolucion-form" id="evolucion-form" style="display:none">
-        <div class="section-title" style="margin-bottom:14px;font-size:14px">📋 Registrar evolución</div>
+        <div class="section-title" style="margin-bottom:14px;font-size:14px">📋 Nota clínica de la atención</div>
         <div class="vitales-grid">
           <div class="vital-input"><div class="vital-label">T/A Sistólica</div><input class="vital-field" type="number" id="v-sistolica" placeholder="120"></div>
           <div class="vital-input"><div class="vital-label">T/A Diastólica</div><input class="vital-field" type="number" id="v-diastolica" placeholder="80"></div>
@@ -249,9 +291,11 @@
           <div class="vital-input"><div class="vital-label">SpO2 (%)</div><input class="vital-field" type="number" id="v-spo2" placeholder="98"></div>
           <div class="vital-input"><div class="vital-label">Glucemia</div><input class="vital-field" type="number" id="v-glucemia" placeholder="100"></div>
         </div>
+        <div class="vital-ayuda">Los valores fuera de lo esperado se marcan en rojo y se le pedirá confirmarlos antes de guardar.</div>
         <textarea class="form-area" id="v-observaciones" placeholder="Observaciones del servicio..."></textarea>
         <textarea class="form-area" id="v-procedimientos" placeholder="Procedimientos realizados..."></textarea>
-        <button class="btn-main" onclick="guardarEvolucion()">Guardar evolución</button>
+        <button class="btn-main" onclick="guardarEvolucion()">Guardar nota clínica</button>
+        <div class="nota-ok" id="nota-ok">✓ Nota clínica guardada. Ya puede completar el servicio.</div>
       </div>
       <div class="divider"></div>
     </div>
@@ -273,7 +317,7 @@
     <div class="perfil-hero">
       <div class="perfil-avatar" id="perfil-avatar">E</div>
       <div class="perfil-name" id="perfil-nombre">Cargando...</div>
-      <div class="perfil-role">Profesional de Enfermería</div>
+      <div class="perfil-role" id="perfil-rol">Profesional de la salud</div>
     </div>
     <div class="info-card">
       <div class="info-row"><span class="info-label">Email</span><span class="info-value" id="perfil-email">—</span></div>
@@ -285,9 +329,12 @@
     </div>
     <div class="info-card">
       <div style="font-size:12px;color:var(--muted);font-weight:600;letter-spacing:1px;text-transform:uppercase;margin-bottom:12px">Soporte</div>
-      <div class="info-row"><span class="info-label">Reina Elizabeth IPS</span><span class="info-value" style="color:var(--teal)">📱 300 000 0000</span></div>
+      <div style="font-size:13px;color:var(--muted)">Clínica Reina Elizabeth IPS · Santa Marta</div>
+      <a class="btn-wa-grande" target="_blank" rel="noopener" href="https://wa.me/573128886611?text=Hola%2C%20soy%20profesional%20de%20Salud%20en%20Casa%20y%20necesito%20ayuda">WhatsApp de la IPS · 312 888 6611</a>
     </div>
+    <div style="text-align:center;margin:6px 0 10px;font-size:13px"><a href="legal.html" style="color:var(--muted)">Términos y política de datos</a></div>
     <button class="btn-danger" onclick="doLogout()">Cerrar sesión</button>
+    <div data-firma-skynet></div>
   </div>
 
   <nav class="bottom-nav">
@@ -377,11 +424,13 @@ async function doRegistro() {
   if (telefonoDigitos.length<7||telefonoDigitos.length>15) { showError(errEl,'⚠️ Teléfono inválido. Ingrese solo los números. Ejemplo: 3001234567'); return; }
   if (!password) { showError(errEl,'⚠️ Por favor ingrese una contraseña'); return; }
   if (password.length<8) { showError(errEl,'⚠️ La contraseña debe tener mínimo 8 caracteres'); return; }
+  if (!especialidad) { showError(errEl,'⚠️ Seleccione su profesión o especialidad'); return; }
+  if (!document.getElementById('reg-acepto').checked) { showError(errEl,'⚠️ Debe aceptar los términos y la política de datos'); return; }
   const telefono = telefonoRaw.startsWith('+')?telefonoRaw:'+57'+telefonoDigitos;
   showLoading('Creando cuenta...');
   try {
     const res = await fetch(API+'/api/auth/register',{method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({nombreCompleto:nombre,email,telefono,password,rol:'profesional',especialidad:especialidad||undefined})});
+      body:JSON.stringify({nombreCompleto:nombre,email,telefono,password,rol:'profesional',especialidad:especialidad||undefined,aceptaTerminos:true})});
     const data = await res.json();
     hideLoading();
     if (!res.ok) {
@@ -411,7 +460,8 @@ function initApp() {
   const nombre = (user&&user.nombreCompleto)?user.nombreCompleto:'Profesional';
   document.getElementById('app-nombre').textContent = nombre.split(' ')[0];
   loadInicio();
-  refreshInterval = setInterval(loadSolicitudes,30000);
+  clearInterval(refreshInterval);
+  refreshInterval = setInterval(function(){ if (document.getElementById('page-inicio').classList.contains('active') && !document.hidden) loadSolicitudes(); },15000);
   setTimeout(iniciarNotificacionesPush, 3000);
 }
 
@@ -508,6 +558,7 @@ function solicitudCard(s) {
 }
 
 function mostrarServicioActivo(s) {
+  if (servicioActivoId !== s.id) { var ok = document.getElementById('nota-ok'); if (ok) ok.style.display = 'none'; }
   servicioActivoId = s.id;
   document.getElementById('servicio-activo-container').style.display='block';
   document.getElementById('activo-tipo').textContent = tipoLabel(s.tipo);
@@ -535,7 +586,7 @@ async function aceptarServicio(id) {
 }
 
 async function rechazarServicio(id) {
-  if (!confirm('¿Rechazar esta solicitud?')) return;
+  if (!(await confirmar('La solicitud seguirá disponible para otros profesionales.', {titulo:'¿Rechazar esta solicitud?', si:'Sí, rechazar', peligro:true}))) return;
   try {
     await fetch(API+'/api/servicios/'+id+'/estado',{method:'PUT',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},body:JSON.stringify({estado:'cancelado'})});
     await loadInicio();
@@ -554,8 +605,9 @@ async function cambiarEstado(id,estado) {
 }
 
 async function completarServicio(id) {
-  if (!confirm('¿Marcar el servicio como completado? Debe haber registrado la nota clínica; al completarlo se libera su pago.')) return;
+  if (!(await confirmar('Debe haber guardado la nota clínica. Al completarlo, la IPS libera su pago.', {titulo:'¿Completar el servicio?', si:'Sí, completar'}))) return;
   await cambiarEstado(id,'completado');
+  aviso('Servicio completado. ¡Gracias!');
 }
 
 async function guardarEvolucion() {
@@ -570,14 +622,27 @@ async function guardarEvolucion() {
     observaciones:document.getElementById('v-observaciones').value||undefined,
     procedimientos:document.getElementById('v-procedimientos').value||undefined,
   };
-  showLoading('Guardando evolución...');
+  // Rangos esperados: si algo está por fuera, se pide confirmación (evita errores de digitación)
+  const rangos = {'v-sistolica':[70,220,'Tensión sistólica'],'v-diastolica':[40,130,'Tensión diastólica'],'v-fc':[40,180,'Frecuencia cardiaca'],'v-temp':[34,41,'Temperatura'],'v-spo2':[80,100,'Saturación de oxígeno'],'v-glucemia':[40,400,'Glucemia']};
+  const fuera = [];
+  Object.keys(rangos).forEach(function(id){
+    const el = document.getElementById(id), v = parseFloat(el.value), r = rangos[id];
+    el.parentElement.classList.remove('fuera');
+    if (el.value !== '' && (isNaN(v) || v < r[0] || v > r[1])) { fuera.push(r[2]+': '+el.value); el.parentElement.classList.add('fuera'); }
+  });
+  if (body.tensionSistolica && body.tensionDiastolica && body.tensionDiastolica >= body.tensionSistolica) fuera.push('La diastólica es mayor o igual que la sistólica');
+  if (!body.observaciones && !body.procedimientos) { aviso('Escriba las observaciones o los procedimientos realizados.', 'aviso'); return; }
+  if (fuera.length && !(await confirmar('Estos valores están fuera de lo esperado:\n• '+fuera.join('\n• ')+'\n\n¿Los confirma?', {titulo:'Revise los signos vitales', si:'Sí, son correctos', no:'Corregir'}))) return;
+  showLoading('Guardando nota clínica...');
   try {
     const res = await fetch(API+'/api/servicios/'+servicioActivoId+'/evolucion',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},body:JSON.stringify(body)});
     hideLoading();
     if (!res.ok) throw new Error();
-    alert('✅ Evolución guardada correctamente');
+    aviso('Nota clínica guardada correctamente');
+    document.getElementById('nota-ok').style.display = 'block';
+    document.querySelectorAll('.vital-input.fuera').forEach(function(x){ x.classList.remove('fuera'); });
     ['v-sistolica','v-diastolica','v-fc','v-temp','v-spo2','v-glucemia','v-observaciones','v-procedimientos'].forEach(function(id){document.getElementById(id).value='';});
-  } catch(e) { hideLoading(); alert('Error al guardar la evolución. Intente de nuevo.'); }
+  } catch(e) { hideLoading(); aviso('No se pudo guardar la nota clínica. Revise su conexión e intente de nuevo.', 'error'); }
 }
 
 async function toggleDisponible() {
@@ -622,6 +687,7 @@ async function loadPerfil() {
       else if (v==='rechazado') { el.textContent='❌ Rechazado'; el.className='badge badge-red'; }
       else { el.textContent='⏳ Pendiente'; el.className='badge badge-amber'; }
       document.getElementById('perfil-especialidad').textContent = miPerfil.especialidad||'—';
+      if (miPerfil.especialidad) document.getElementById('perfil-rol').textContent = miPerfil.especialidad;
       document.getElementById('perfil-servicios').textContent = miPerfil.totalServicios||0;
       document.getElementById('perfil-cal').textContent = miPerfil.calificacionPromedio?'⭐ '+Number(miPerfil.calificacionPromedio).toFixed(1):'—';
     }
