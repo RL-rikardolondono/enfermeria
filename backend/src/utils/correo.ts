@@ -1,11 +1,11 @@
 // Envío de correos con Resend (https://resend.com). Plan gratuito: 3.000 correos al mes.
 // Variables en Render:
 //   RESEND_API_KEY  → llave de la cuenta de Resend
-//   EMAIL_FROM      → remitente, p. ej. "Reina Elizabeth IPS <no-responder@reinaelizabeth.com>"
-//                     (mientras no se verifique el dominio, usar "onboarding@resend.dev")
+//   EMAIL_FROM      → remitente: "Salud en Casa <saludencasa@skynetgenesis.com>"
+//                     (dominio skynetgenesis.com verificado en Resend; mientras no lo esté, se usa onboarding@resend.dev)
 
 const RESEND_API_KEY = process.env.RESEND_API_KEY || ''
-const EMAIL_FROM = process.env.EMAIL_FROM || 'Reina Elizabeth IPS <onboarding@resend.dev>'
+const EMAIL_FROM = process.env.EMAIL_FROM || 'Salud en Casa <onboarding@resend.dev>'
 
 export const CORREO_ACTIVO = !!RESEND_API_KEY
 
