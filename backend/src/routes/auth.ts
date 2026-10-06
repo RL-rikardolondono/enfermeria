@@ -5,8 +5,9 @@ import { prisma } from '../utils/prisma'
 import { autenticar } from '../middleware/auth'
 import crypto from 'crypto'
 import { enviarCorreo } from '../utils/correo'
+import { APP_URL } from '../utils/config'
 
-const URL_RESTABLECER = 'https://rl-rikardolondono.github.io/enfermeria/restablecer.html'
+const URL_RESTABLECER = `${APP_URL}/restablecer.html`
 const sha256 = (t: string) => crypto.createHash('sha256').update(t).digest('hex')
  
 const registerSchema = z.object({
@@ -15,7 +16,8 @@ const registerSchema = z.object({
   telefono: z.string().min(7).max(20),
   email: z.string().email(),
   password: z.string().min(8),
-  especialidad: z.string().optional(),
+  especialidad: z.string().max(100).optional(),
+  aceptaTerminos: z.boolean().optional(),
 })
  
 const loginSchema = z.object({
@@ -52,6 +54,7 @@ export async function authRoutes(app: FastifyInstance) {
         email: body.email.toLowerCase(),
         passwordHash,
         estado: 'activo',
+        aceptoTerminosEn: body.aceptaTerminos ? new Date() : null,
       },
     })
  
@@ -191,12 +194,17 @@ export async function authRoutes(app: FastifyInstance) {
 
     const enlace = `${URL_RESTABLECER}?token=${token}`
     const nombre = usuario.nombreCompleto.split(' ')[0]
-    await enviarCorreo(usuario.email, 'Recupere su contraseña · Reina Elizabeth IPS', `
+    await enviarCorreo(usuario.email, 'Recupere su contraseña · Salud en Casa', `
       <div style="font-family:Arial,sans-serif;max-width:480px;margin:auto;color:#15232B">
-        <h2 style="color:#1B6B5A">Recuperar contraseña</h2>
-        <p>Hola, ${nombre}. Recibimos una solicitud para cambiar la contraseña de su cuenta en Reina Elizabeth IPS.</p>
-        <p><a href="${enlace}" style="display:inline-block;background:#1B6B5A;color:#fff;padding:12px 20px;border-radius:8px;text-decoration:none;font-weight:bold">Crear contraseña nueva</a></p>
-        <p style="font-size:13px;color:#5E6F69">El enlace vence en 1 hora y solo sirve una vez. Si usted no lo pidió, ignore este correo: su contraseña actual sigue funcionando.</p>
+        <div style="background:#1E3A4C;color:#fff;padding:14px 18px;border-bottom:4px solid #E0A21A;font-size:20px;font-weight:bold">Salud en Casa <span style="font-weight:normal;font-size:13px;opacity:.8">· Clínica Reina Elizabeth IPS</span></div>
+        <div style="padding:18px">
+          <h2 style="color:#1E3A4C;margin-top:0">Recuperar contraseña</h2>
+          <p>Hola, ${nombre}. Recibimos una solicitud para cambiar la contraseña de su cuenta en Salud en Casa.</p>
+          <p><a href="${enlace}" style="display:inline-block;background:#1E3A4C;color:#fff;padding:12px 20px;border-radius:8px;text-decoration:none;font-weight:bold">Crear contraseña nueva</a></p>
+          <p style="font-size:13px;color:#5B6B73">El enlace vence en 1 hora y solo sirve una vez. Si usted no lo pidió, ignore este correo: su contraseña actual sigue funcionando.</p>
+          <p style="font-size:13px;color:#5B6B73">¿Necesita ayuda? Escríbanos al WhatsApp <a href="https://wa.me/573128886611" style="color:#1F8A4C">312 888 6611</a>.</p>
+        </div>
+        <p style="font-size:11px;color:#8A979D;text-align:center;border-top:1px solid #D3DCDA;padding-top:10px">Tecnología SkyNet Genesis · contacto@skynetgenesis.com · WhatsApp 304 437 5758</p>
       </div>`)
     return respuesta
   })

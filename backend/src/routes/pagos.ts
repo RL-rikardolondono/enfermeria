@@ -4,6 +4,7 @@ import { prisma } from '../utils/prisma'
 import { autenticar, requerirRol } from '../middleware/auth'
 import { calcularReparto } from '../services/liquidacion'
 import crypto from 'crypto'
+import { APP_URL } from '../utils/config'
 
 const WOMPI_PUBLIC_KEY = process.env.WOMPI_PUBLIC_KEY || ''
 const WOMPI_INTEGRITY_SECRET = process.env.WOMPI_INTEGRITY_SECRET || ''
@@ -58,7 +59,7 @@ export async function pagosRoutes(app: FastifyInstance) {
       moneda: 'COP',
       firma,
       email: servicio.paciente?.usuario?.email || '',
-      redirectUrl: 'https://rl-rikardolondono.github.io/enfermeria/app-paciente.html',
+      redirectUrl: `${APP_URL}/app-paciente.html`,
     }
   })
 

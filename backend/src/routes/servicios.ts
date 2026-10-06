@@ -5,6 +5,7 @@ import { autenticar, requerirRol } from '../middleware/auth'
 import { calcularTarifa } from '../services/tarifas'
 import { notificarProfesionalesDisponibles } from './push'
 import { liberarPago, marcarReembolso, PAGO_OBLIGATORIO } from '../services/liquidacion'
+import { APP_URL } from '../utils/config'
 
 export async function serviciosRoutes(app: FastifyInstance) {
 
@@ -50,7 +51,7 @@ export async function serviciosRoutes(app: FastifyInstance) {
       notificarProfesionalesDisponibles({
         titulo: '🏥 Nueva solicitud de servicio',
         cuerpo: (paciente.nombreCompleto || paciente.usuario?.nombreCompleto || 'Un paciente') + ' solicita ' + body.tipo + ' en ' + body.direccion,
-        url: 'https://rl-rikardolondono.github.io/enfermeria/app-enfermero.html',
+        url: `${APP_URL}/app-enfermero.html`,
       }).catch(() => {})
     })
 

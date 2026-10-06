@@ -2,6 +2,7 @@ import { FastifyInstance } from 'fastify'
 import { z } from 'zod'
 import { prisma } from '../utils/prisma'
 import { autenticar, requerirRol } from '../middleware/auth'
+import { APP_URL } from '../utils/config'
 
 // VAPID keys - estas deben estar en variables de entorno
 const VAPID_PUBLIC_KEY = process.env.VAPID_PUBLIC_KEY || ''
@@ -118,7 +119,7 @@ export async function notificarProfesionalesDisponibles(payload: {
             title: payload.titulo,
             body: payload.cuerpo,
             icon: '/enfermeria/icon-192.png',
-            url: payload.url || 'https://rl-rikardolondono.github.io/enfermeria/app-enfermero.html',
+            url: payload.url || `${APP_URL}/app-enfermero.html`,
           })
           // Si la suscripción es inválida, eliminarla
           if (!exito) {
