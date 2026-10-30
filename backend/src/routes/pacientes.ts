@@ -7,7 +7,8 @@ import { autenticar } from '../middleware/auth'
 const datosPaciente = {
   documentoTipo: z.string().max(50).optional(),
   documentoNumero: z.string().max(50).optional(),
-  fechaNacimiento: z.string().optional(),
+  fechaNacimiento: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Fecha inválida (AAAA-MM-DD)')
+    .refine((v) => !isNaN(Date.parse(v)) && new Date(v) <= new Date(), 'Fecha inválida').optional(),
   genero: z.string().max(20).optional(),
   tipoSangre: z.string().max(5).optional(),
   eps: z.string().max(100).optional(),
@@ -15,16 +16,16 @@ const datosPaciente = {
   direccionBase: z.string().max(500).optional(),
   ciudad: z.string().max(100).optional(),
   barrio: z.string().max(100).optional(),
-  latBase: z.number().optional(),
-  lngBase: z.number().optional(),
+  latBase: z.number().min(-90).max(90).optional(),
+  lngBase: z.number().min(-180).max(180).optional(),
   contactoEmergenciaNombre: z.string().max(200).optional(),
   contactoEmergenciaTelefono: z.string().max(20).optional(),
   contactoEmergenciaRelacion: z.string().max(50).optional(),
-  alergias: z.string().optional(),
-  antecedentes: z.string().optional(),
-  medicamentosActuales: z.string().optional(),
-  condicionesCronicas: z.string().optional(),
-  observaciones: z.string().optional(),
+  alergias: z.string().max(3000).optional(),
+  antecedentes: z.string().max(3000).optional(),
+  medicamentosActuales: z.string().max(3000).optional(),
+  condicionesCronicas: z.string().max(3000).optional(),
+  observaciones: z.string().max(3000).optional(),
 }
 
 // ¿Puede este usuario ver al paciente? Titular de la cuenta, administrador,
@@ -33,13 +34,42 @@ async function puedeVer(usuario: { id: string; rol: string }, pacienteId: string
   if (usuario.rol === 'admin' || usuario.id === usuarioIdTitular) return true
   if (usuario.rol !== 'profesional') return false
   const asignado = await prisma.servicio.findFirst({
-    where: { pacienteId, profesional: { usuarioId: usuario.id } },
+    where: {
+      pacienteId,
+      profesional: { usuarioId: usuario.id, estadoVerificacion: 'aprobado' },
+      OR: [
+        { estado: { in: ['asignado', 'en_camino', 'en_curso'] } },
+        { fechaFin: { gt: new Date(Date.now() - 30 * 24 * 3600 * 1000) } },
+      ],
+    },
     select: { id: true },
   })
   return !!asignado
 }
 
 export async function pacientesRoutes(app: FastifyInstance) {
+
+  // GET /api/pacientes/bloqueos — profesionales que esta cuenta no quiere que la vuelvan a atender
+  app.get('/bloqueos', { preHandler: autenticar }, async (request) => {
+    const items = await prisma.bloqueo.findMany({
+      where: { usuarioId: request.usuario.id },
+      orderBy: { createdAt: 'desc' },
+      select: { profesionalId: true, createdAt: true, profesional: { select: { especialidad: true, usuario: { select: { nombreCompleto: true } } } } },
+    })
+    return {
+      items: items.map((b: (typeof items)[number]) => ({
+        profesionalId: b.profesionalId, desde: b.createdAt,
+        nombre: b.profesional.usuario.nombreCompleto, especialidad: b.profesional.especialidad,
+      })),
+    }
+  })
+
+  // DELETE /api/pacientes/bloqueos/:profesionalId — volver a permitir a ese profesional
+  app.delete('/bloqueos/:profesionalId', { preHandler: autenticar }, async (request) => {
+    const { profesionalId } = z.object({ profesionalId: z.string().uuid() }).parse(request.params)
+    await prisma.bloqueo.deleteMany({ where: { usuarioId: request.usuario.id, profesionalId } })
+    return { ok: true }
+  })
 
   // GET /api/pacientes/mios — pacientes que gestiona la cuenta (titular + familiares)
   app.get('/mios', { preHandler: autenticar }, async (request) => {
@@ -67,17 +97,21 @@ export async function pacientesRoutes(app: FastifyInstance) {
       ...datosPaciente,
     }).parse(request.body)
 
-    const total = await prisma.paciente.count({ where: { usuarioId: request.usuario.id, activo: true } })
-    if (total >= 10) return reply.status(400).send({ error: 'Máximo 10 pacientes por cuenta' })
-
-    const paciente = await prisma.paciente.create({
-      data: {
-        ...body,
-        usuarioId: request.usuario.id,
-        esTitular: false,
-        fechaNacimiento: body.fechaNacimiento ? new Date(body.fechaNacimiento) : undefined,
-      },
+    const usuarioId = request.usuario.id
+    // Conteo y creación juntos para que dos envíos simultáneos no pasen del límite
+    const paciente = await prisma.$transaction(async (tx: any) => {
+      const total = await tx.paciente.count({ where: { usuarioId, activo: true } })
+      if (total >= 10) return null
+      return tx.paciente.create({
+        data: {
+          ...body,
+          usuarioId,
+          esTitular: false,
+          fechaNacimiento: body.fechaNacimiento ? new Date(body.fechaNacimiento) : undefined,
+        },
+      })
     })
+    if (!paciente) return reply.status(400).send({ error: 'Máximo 10 pacientes por cuenta' })
     return reply.status(201).send(paciente)
   })
 
@@ -93,7 +127,8 @@ export async function pacientesRoutes(app: FastifyInstance) {
     if (!paciente || !(await puedeVer(request.usuario, id, paciente.usuarioId))) {
       return reply.status(404).send({ error: 'Paciente no encontrado' })
     }
-    return { ...paciente, nombreCompleto: paciente.nombreCompleto || paciente.usuario.nombreCompleto }
+    const verCorreo = request.usuario.rol === 'admin' || paciente.usuarioId === request.usuario.id
+    return { ...paciente, nombreCompleto: paciente.nombreCompleto || paciente.usuario.nombreCompleto, usuario: { ...paciente.usuario, email: verCorreo ? paciente.usuario.email : undefined } }
   })
 
   // PUT /api/pacientes/:id — solo el titular de la cuenta o un administrador
@@ -135,15 +170,19 @@ export async function pacientesRoutes(app: FastifyInstance) {
   // GET /api/pacientes/:id/evoluciones — :id es el id del servicio
   app.get('/:id/evoluciones', { preHandler: autenticar }, async (request, reply) => {
     const { id } = z.object({ id: z.string().uuid() }).parse(request.params)
-    const { page = 1, limit = 10 } = z.object({
-      page: z.coerce.number().default(1),
-      limit: z.coerce.number().max(50).default(10),
+    const { page, limit } = z.object({
+      page: z.coerce.number().int().min(1).default(1),
+      limit: z.coerce.number().int().min(1).max(50).default(10),
     }).parse(request.query)
 
     const servicio = await prisma.servicio.findUnique({
       where: { id },
-      select: { pacienteId: true, paciente: { select: { usuarioId: true } } },
+      select: { pacienteId: true, profesionalId: true, paciente: { select: { usuarioId: true } }, recibido: true },
     })
+    if (servicio && request.usuario.rol === 'profesional') {
+      const yo = await prisma.profesional.findUnique({ where: { usuarioId: request.usuario.id }, select: { id: true } })
+      if (!yo || servicio.profesionalId !== yo.id) return reply.status(404).send({ error: 'Servicio no encontrado' })
+    }
     if (!servicio || !servicio.pacienteId || !servicio.paciente ||
         !(await puedeVer(request.usuario, servicio.pacienteId, servicio.paciente.usuarioId))) {
       return reply.status(404).send({ error: 'Servicio no encontrado' })
@@ -157,12 +196,15 @@ export async function pacientesRoutes(app: FastifyInstance) {
         skip: (page - 1) * limit,
         take: limit,
         include: {
-          profesional: { include: { usuario: { select: { nombreCompleto: true } } } },
+          profesional: { select: { especialidad: true, usuario: { select: { nombreCompleto: true } } } },
           servicio: { select: { tipo: true, descripcion: true } },
         },
       }),
     ])
 
-    return { total, page, limit, items }
+    const recibido = servicio.recibido
+      ? { firma: servicio.recibido.firma, nombre: servicio.recibido.nombre, motivo: servicio.recibido.motivo, fecha: servicio.recibido.createdAt }
+      : null
+    return { total, page, limit, items, recibido }
   })
 }
