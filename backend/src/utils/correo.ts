@@ -51,7 +51,8 @@ async function enviarConResend(para: string, asunto: string, html: string): Prom
 export async function enviarCorreo(para: string, asunto: string, html: string): Promise<boolean> {
   try {
     if (BREVO_API_KEY) {
-      if (await enviarConBrevo(para, asunto, html)) return true
+      const okBrevo = await enviarConBrevo(para, asunto, html).catch((e) => { console.error('Error de red con Brevo', e); return false })
+      if (okBrevo) return true
       // Si Brevo falla (p. ej. remitente aún sin autenticar), intenta con Resend
       if (RESEND_API_KEY) return await enviarConResend(para, asunto, html)
       return false

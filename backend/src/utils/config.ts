@@ -7,6 +7,6 @@ export const ORIGENES_PERMITIDOS = Array.from(new Set([
   APP_URL,
   'https://saludencasa.skynetgenesis.com',
   'https://rl-rikardolondono.github.io',
-  'http://localhost:3001',
+  ...(process.env.NODE_ENV === 'production' ? [] : ['http://localhost:3001']),
   ...(process.env.CORS_ORIGINS || '').split(',').map((o) => o.trim()).filter(Boolean),
 ]))
