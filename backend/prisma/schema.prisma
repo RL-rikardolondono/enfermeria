@@ -61,6 +61,8 @@ model Usuario {
   estado         EstadoUsuario @default(activo)
   fotoUrl        String?       @map("foto_url") @db.VarChar(500)
   aceptoTerminosEn DateTime?   @map("acepto_terminos_en")
+  claveCreada    Boolean       @default(true) @map("clave_creada")
+  ultimoIngreso  DateTime?     @map("ultimo_ingreso")
   createdAt      DateTime      @default(now()) @map("created_at")
   updatedAt      DateTime      @updatedAt @map("updated_at")
   sesiones       Sesion[]
@@ -80,9 +82,11 @@ model Sesion {
   ip          String?   @db.VarChar(50)
   activa      Boolean   @default(true)
   expiresAt   DateTime? @map("expires_at")
+  ultimoUso   DateTime  @default(now()) @map("ultimo_uso") // se cierra tras 15-20 min sin uso
   createdAt   DateTime  @default(now()) @map("created_at")
   updatedAt   DateTime  @updatedAt @map("updated_at")
   usuario     Usuario   @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  @@index([usuarioId])
   @@map("sesiones")
 }
 
@@ -130,8 +134,9 @@ model Paciente {
   activo                     Boolean   @default(true)
   createdAt                  DateTime  @default(now()) @map("created_at")
   updatedAt                  DateTime  @updatedAt @map("updated_at")
-  usuario                    Usuario   @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  usuario                    Usuario   @relation(fields: [usuarioId], references: [id], onDelete: Restrict)
   servicios                  Servicio[]
+  @@index([usuarioId])
   @@map("pacientes")
 }
 
@@ -142,6 +147,8 @@ model Profesional {
   registroProfesional  String?            @map("registro_profesional") @db.VarChar(100)
   estadoVerificacion   EstadoVerificacion @default(pendiente) @map("estado_verificacion")
   disponible           Boolean            @default(false)
+  disponibleDesde      DateTime?          @map("disponible_desde") // inicio del turno (máximo 12 horas)
+  ignoradas            Int                @default(0) // solicitudes seguidas que dejó pasar sin responder
   lat                  Decimal?           @db.Decimal(10, 8)
   lng                  Decimal?           @db.Decimal(11, 8)
   latBase              Decimal?           @map("lat_base") @db.Decimal(10, 8)
@@ -161,11 +168,14 @@ model Profesional {
   activo               Boolean            @default(true)
   createdAt            DateTime           @default(now()) @map("created_at")
   updatedAt            DateTime           @updatedAt @map("updated_at")
-  usuario              Usuario            @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  usuario              Usuario            @relation(fields: [usuarioId], references: [id], onDelete: Restrict)
   documentos           DocumentoProfesional[]
   servicios            Servicio[]
   evoluciones          Evolucion[]
   tracking             TrackingHistorial[]
+  ofertas              Oferta[]
+  quejas               Queja[]
+  bloqueos             Bloqueo[]
   @@map("profesionales")
 }
 
@@ -187,6 +197,7 @@ model Servicio {
   estado                 EstadoServicio @default(pendiente)
   descripcion            String?
   direccion              String?        @db.VarChar(500)
+  barrio                 String?        @db.VarChar(100)
   lat                    Decimal?       @db.Decimal(10, 8)
   lng                    Decimal?       @db.Decimal(11, 8)
   notas                  String?
@@ -198,13 +209,26 @@ model Servicio {
   monto                  Decimal?       @db.Decimal(12, 2)
   calificacion           Int?
   comentarioCalificacion String?        @map("comentario_calificacion")
+  calificadoEn           DateTime?      @map("calificado_en")
+  resenaOculta           Boolean        @default(false) @map("resena_oculta") // la IPS puede ocultar un comentario inapropiado
+  buscandoHasta          DateTime?      @map("buscando_hasta") // fin de la búsqueda de profesional (10 min) o del plazo de pago
   createdAt              DateTime       @default(now()) @map("created_at")
   updatedAt              DateTime       @updatedAt @map("updated_at")
-  paciente               Paciente?      @relation(fields: [pacienteId], references: [id])
-  profesional            Profesional?   @relation(fields: [profesionalId], references: [id])
+  paciente               Paciente?      @relation(fields: [pacienteId], references: [id], onDelete: Restrict)
+  profesional            Profesional?   @relation(fields: [profesionalId], references: [id], onDelete: Restrict)
   evoluciones            Evolucion[]
   pago                   Pago?
   tracking               TrackingHistorial[]
+  ofertas                Oferta[]
+  quejas                 Queja[]
+  recibido               Recibido?
+  @@index([estado, createdAt])
+  @@index([estado, buscandoHasta])
+  @@index([profesionalId, calificacion])
+  @@index([estado, fechaSolicitud])
+  @@index([createdAt])
+  @@index([pacienteId])
+  @@index([profesionalId])
   @@map("servicios")
 }
 
@@ -220,9 +244,12 @@ model Evolucion {
   glucemia           Int?
   observaciones      String?
   procedimientos     String?
+  impresionDiagnostica String?    @map("impresion_diagnostica")
+  recomendaciones    String?
   createdAt          DateTime     @default(now()) @map("created_at")
-  servicio           Servicio     @relation(fields: [servicioId], references: [id], onDelete: Cascade)
-  profesional        Profesional? @relation(fields: [profesionalId], references: [id])
+  servicio           Servicio     @relation(fields: [servicioId], references: [id], onDelete: Restrict)
+  profesional        Profesional? @relation(fields: [profesionalId], references: [id], onDelete: Restrict)
+  @@index([servicioId])
   @@map("evoluciones")
 }
 
@@ -240,6 +267,8 @@ model Pago {
   transferidoEn     DateTime?  @map("transferido_en")
   createdAt         DateTime   @default(now()) @map("created_at")
   servicio          Servicio   @relation(fields: [servicioId], references: [id])
+  @@index([estadoLiquidacion, createdAt])
+  @@index([estado, createdAt])
   @@map("pagos")
 }
 
@@ -253,6 +282,7 @@ model Notificacion {
   datos     Json?
   createdAt DateTime @default(now()) @map("created_at")
   usuario   Usuario  @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  @@index([usuarioId, tipo])
   @@map("notificaciones")
 }
 
@@ -288,4 +318,83 @@ model RecuperacionClave {
   usuario   Usuario   @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
   @@index([usuarioId])
   @@map("recuperaciones_clave")
+}
+
+// Un profesional se ofrece para una solicitud y el paciente escoge entre los que se ofrecieron
+// estado: activa, elegida, no_elegida, retirada, vencida, desistio (lo eligieron y luego no fue)
+model Oferta {
+  id            String      @id @default(uuid())
+  servicioId    String      @map("servicio_id")
+  profesionalId String      @map("profesional_id")
+  estado        String      @default("activa") @db.VarChar(20) // activa, elegida, no_elegida, retirada, vencida
+  createdAt     DateTime    @default(now()) @map("created_at")
+  updatedAt     DateTime    @updatedAt @map("updated_at")
+  servicio      Servicio    @relation(fields: [servicioId], references: [id], onDelete: Cascade)
+  profesional   Profesional @relation(fields: [profesionalId], references: [id], onDelete: Cascade)
+  @@unique([servicioId, profesionalId])
+  @@index([profesionalId, estado])
+  @@map("ofertas")
+}
+
+// Queja de un paciente sobre un servicio; la IPS la revisa desde el panel
+model Queja {
+  id            String       @id @default(uuid())
+  servicioId    String       @map("servicio_id")
+  usuarioId     String       @map("usuario_id") // cuenta del paciente que se queja
+  profesionalId String?      @map("profesional_id")
+  texto         String
+  estado        String       @default("abierta") @db.VarChar(20) // abierta, revisada
+  respuesta     String?
+  revisadaEn    DateTime?    @map("revisada_en")
+  createdAt     DateTime     @default(now()) @map("created_at")
+  servicio      Servicio     @relation(fields: [servicioId], references: [id], onDelete: Restrict)
+  profesional   Profesional? @relation(fields: [profesionalId], references: [id], onDelete: Restrict)
+  @@index([estado, createdAt])
+  @@index([profesionalId])
+  @@index([servicioId])
+  @@map("quejas")
+}
+
+// Un paciente no quiere que un profesional lo vuelva a atender
+model Bloqueo {
+  id            String      @id @default(uuid())
+  usuarioId     String      @map("usuario_id") // cuenta del paciente
+  profesionalId String      @map("profesional_id")
+  createdAt     DateTime    @default(now()) @map("created_at")
+  profesional   Profesional @relation(fields: [profesionalId], references: [id], onDelete: Cascade)
+  @@unique([usuarioId, profesionalId])
+  @@index([profesionalId])
+  @@map("bloqueos")
+}
+
+// Recibido del servicio: firma manuscrita del paciente o acudiente al terminar (tabla aparte para que las listas
+// de servicios no carguen la imagen)
+model Recibido {
+  servicioId String   @id @map("servicio_id")
+  firma      String?  // imagen PNG pequeña (data URL)
+  nombre     String?  @db.VarChar(200)
+  motivo     String?  @db.VarChar(300) // por qué no firmó, si no pudo
+  createdAt  DateTime @default(now()) @map("created_at")
+  servicio   Servicio @relation(fields: [servicioId], references: [id], onDelete: Cascade)
+  @@map("recibidos")
+}
+
+// Ajustes guardados por el propio servidor (por ejemplo, las claves de los avisos al celular)
+model Ajuste {
+  clave     String   @id @db.VarChar(80)
+  valor     String
+  createdAt DateTime @default(now()) @map("created_at")
+  @@map("ajustes")
+}
+
+// Registro de lo que hace la IPS con las cuentas (bloqueos, enlaces de contraseña); no se borra
+model Bitacora {
+  id        String   @id @default(uuid())
+  actorId   String   @map("actor_id")
+  usuarioId String?  @map("usuario_id")
+  accion    String   @db.VarChar(40)
+  detalle   String?  @db.VarChar(500)
+  createdAt DateTime @default(now()) @map("created_at")
+  @@index([usuarioId, createdAt])
+  @@map("bitacora")
 }
