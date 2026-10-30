@@ -24,7 +24,11 @@ export async function asegurarTarifas(): Promise<void> {
 
 export async function calcularTarifa(tipo: string): Promise<number> {
   const tarifa = await prisma.tarifa.findUnique({ where: { tipo: tipo as any } })
-  if (tarifa && tarifa.activo) return tarifa.precio
+  if (tarifa) {
+    // Si la IPS desactivó el servicio, no se puede pedir
+    if (!tarifa.activo) throw Object.assign(new Error('Este servicio no está disponible por ahora'), { statusCode: 400 })
+    return tarifa.precio
+  }
   const inicial = TARIFAS_INICIALES.find((t) => t.tipo === tipo)
   if (inicial) return inicial.precio
   throw Object.assign(new Error('Tipo de servicio no disponible'), { statusCode: 400 })
