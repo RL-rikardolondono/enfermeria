@@ -3,35 +3,37 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="theme-color" content="#1E3A4C">
+<meta name="theme-color" content="#0B4F8A">
 <title>Salud en Casa · Clínica Reina Elizabeth IPS</title>
 <meta name="description" content="Enfermería, medicina y terapias a domicilio en Santa Marta con profesionales verificados de la Clínica Reina Elizabeth IPS. Tarifas fijas y atención por WhatsApp.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Public+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-<script src="comun.js" data-rol="publico"></script>
+<script src="comun.js?v=20261022c" data-rol="publico"></script>
 <style>
-  :root{--azul:#1E3A4C;--azul2:#2C5470;--ambar:#E0A21A;--verde:#1F8A4C;--fondo:#EEF2F1;--blanco:#FFFFFF;--texto:#15232B;--suave:#5B6B73;--borde:#D3DCDA}
+  :root{--azul:#0B4F8A;--azul2:#1867B0;--ambar:#14A38B;--verde:#1F8A4C;--fondo:#F4F8FB;--blanco:#FFFFFF;--texto:#1C2B39;--suave:#5D6B78;--borde:#DCE5EE}
   *{box-sizing:border-box}
   body{margin:0;background:var(--fondo);color:var(--texto);font:16px/1.55 'Public Sans',system-ui,sans-serif}
   a{color:inherit}
   .envoltura{max-width:1080px;margin:0 auto;padding:0 16px}
-  header.barra{background:var(--azul);color:#fff;border-bottom:4px solid var(--ambar)}
+  header.barra{background:#fff;color:var(--azul);box-shadow:0 2px 14px rgba(28,43,57,.08);position:sticky;top:0;z-index:50}
   header.barra .envoltura{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:64px}
   .marca{font:700 26px 'Barlow Condensed',sans-serif;letter-spacing:.02em;text-decoration:none}
-  .marca small{display:block;font:500 12px 'Public Sans',sans-serif;opacity:.8;letter-spacing:0}
+  .marca small{display:block;font:500 12px 'Public Sans',sans-serif;color:var(--suave);letter-spacing:0}
   .barra nav{display:flex;gap:8px;flex-wrap:wrap}
   .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:12px 18px;border-radius:10px;font-weight:700;text-decoration:none;border:0;cursor:pointer;font-size:15px}
   .btn-claro{background:#fff;color:var(--azul)}
-  .btn-borde{border:1.5px solid rgba(255,255,255,.6);color:#fff}
+  .btn-borde{border:1.5px solid var(--azul);color:var(--azul)}
+  .heroe .btn-claro{background:#fff;color:var(--azul)}
+  .btn-acento{background:#0E8571;color:#fff}
   .btn-azul{background:var(--azul);color:#fff}
   .btn-verde{background:var(--verde);color:#fff}
-  .heroe{background:linear-gradient(160deg,#152B39,var(--azul) 55%,var(--azul2));color:#fff;padding:56px 0 64px}
+  .heroe{background:linear-gradient(160deg,#0B4F8A,var(--azul) 55%,var(--azul2));color:#fff;padding:56px 0 64px}
   .heroe h1{font:700 clamp(38px,7vw,62px)/1.02 'Barlow Condensed',sans-serif;margin:0 0 14px;letter-spacing:.01em}
-  .heroe h1 em{font-style:normal;color:var(--ambar)}
+  .heroe h1 em{font-style:normal;color:#E3F6F2}
   .heroe p{max-width:620px;font-size:18px;opacity:.9;margin:0 0 26px}
   .heroe .acciones{display:flex;gap:10px;flex-wrap:wrap}
   .sellos{display:flex;gap:18px;flex-wrap:wrap;margin-top:28px;font-size:14px;opacity:.9}
-  .sellos span::before{content:'✓ ';color:var(--ambar);font-weight:700}
+  .sellos span::before{content:'✓ ';color:#E3F6F2;font-weight:700}
   section{padding:48px 0}
   h2{font:700 36px/1.1 'Barlow Condensed',sans-serif;color:var(--azul);margin:0 0 8px}
   .bajada{color:var(--suave);margin:0 0 26px;max-width:680px}
@@ -54,7 +56,7 @@
   .confianza div b{display:block;font:700 20px 'Barlow Condensed',sans-serif;color:var(--azul);margin-bottom:2px}
   .confianza div{font-size:14px;color:var(--suave)}
   .urgencia{background:#F8E4E0;border-left:5px solid #B4412F;border-radius:10px;padding:14px 16px;font-size:15px;margin-top:22px}
-  footer{background:#15232B;color:rgba(255,255,255,.8);padding:32px 0 90px;font-size:14px}
+  footer{background:#0B4F8A;color:rgba(255,255,255,.8);padding:32px 0 90px;font-size:14px}
   footer .envoltura{display:grid;gap:16px;grid-template-columns:repeat(auto-fit,minmax(240px,1fr))}
   footer b{color:#fff;font:700 20px 'Barlow Condensed',sans-serif;display:block;margin-bottom:4px}
   footer a{color:#fff}
@@ -70,7 +72,7 @@
     <a class="marca" href="index.html">Salud en Casa<small>Clínica Reina Elizabeth IPS</small></a>
     <nav>
       <a class="btn btn-borde" href="app-enfermero.html">Soy profesional</a>
-      <a class="btn btn-claro" href="app-paciente.html">Ingresar</a>
+      <a class="btn btn-azul" href="app-paciente.html">Ingresar</a>
     </nav>
   </div>
 </header>
@@ -105,10 +107,10 @@
     <h2>Cómo funciona</h2>
     <p class="bajada">Usted o un familiar pueden pedir el servicio. Una misma cuenta sirve para varios pacientes de la familia.</p>
     <div class="pasos">
-      <div class="paso"><h3>Pida el servicio</h3><p>Elija el servicio, el paciente y la dirección. Verá el valor antes de confirmar.</p></div>
-      <div class="paso"><h3>La IPS le asigna un profesional</h3><p>Un profesional verificado por la IPS acepta su solicitud y le avisa cuando va en camino.</p></div>
+      <div class="paso"><h3>Pida el servicio</h3><p>Elija el servicio, el paciente y la dirección. Verá el valor y si hay profesionales disponibles en ese momento.</p></div>
+      <div class="paso"><h3>Usted elige al profesional</h3><p>Los profesionales verificados que pueden ir se ofrecen; usted elige viendo sus estrellas y opiniones.</p></div>
       <div class="paso"><h3>Lo atienden en casa</h3><p>El profesional registra la nota clínica con signos vitales y procedimientos.</p></div>
-      <div class="paso"><h3>Califique y consulte</h3><p>Vea el historial de cada paciente y califique la atención. Si tiene dudas, escriba a la IPS.</p></div>
+      <div class="paso"><h3>Califique y consulte</h3><p>Califique con estrellas, cuente su experiencia o ponga una queja. Si tiene dudas, escriba a la IPS.</p></div>
     </div>
   </div>
 </section>

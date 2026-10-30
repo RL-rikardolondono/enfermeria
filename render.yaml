@@ -13,7 +13,7 @@ services:
       - key: NODE_ENV
         value: production
       - key: NODE_VERSION
-        value: "20"
+        value: "22"
       - key: DATABASE_URL        # Cadena de conexión de Neon (Postgres gratis)
         sync: false
       - key: JWT_SECRET
@@ -24,7 +24,7 @@ services:
         sync: false
       - key: VAPID_PRIVATE_KEY
         sync: false
-      - key: WOMPI_PUBLIC_KEY
+      - key: PAGOS_BOLD          # 1 = cobrar en línea con Bold (sistema central de SkyNet Genesis)
         sync: false
-      - key: WOMPI_INTEGRITY_SECRET
+      - key: ALERTAS_EMAIL       # Correo que recibe las quejas (por defecto saludencasa@skynetgenesis.com)
         sync: false

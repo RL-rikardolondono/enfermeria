@@ -2,19 +2,21 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="theme-color" content="#1E3A4C">
+<link rel="manifest" href="manifest-enfermero.webmanifest">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="theme-color" content="#0B4F8A">
 <title>Salud en Casa · Profesionales</title>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Public+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg:#EEF2F1;--bg2:#FFFFFF;--bg3:#F5F8F7;--card:#FFFFFF;
-    --border:#D3DCDA;--teal:#1E3A4C;--teal-dim:rgba(30,58,76,0.08);
-    --teal-glow:rgba(30,58,76,0.18);--amber:#9A6B06;--amber-dim:rgba(224,162,26,0.16);
-    --red:#B4412F;--red-dim:rgba(180,65,47,0.10);--blue:#2F6F95;
-    --blue-dim:rgba(47,111,149,0.10);--white:#15232B;--text:#15232B;
-    --muted:#5B6B73;--radius:18px;--radius-sm:12px;
+    --bg:#F4F8FB;--bg2:#FFFFFF;--bg3:#F4F8FB;--card:#FFFFFF;
+    --border:#DCE5EE;--teal:#0B4F8A;--teal-dim:rgba(11,79,138,0.08);
+    --teal-glow:rgba(11,79,138,0.18);--amber:#0E8571;--amber-dim:rgba(20,163,139,0.16);
+    --red:#B4412F;--red-dim:rgba(180,65,47,0.10);--blue:#1867B0;
+    --blue-dim:rgba(24,103,176,0.10);--white:#1C2B39;--text:#1C2B39;
+    --muted:#5D6B78;--radius:18px;--radius-sm:12px;
     --safe-bottom:env(safe-area-inset-bottom,16px);
   }
   *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
@@ -82,7 +84,7 @@
   .badge-amber{background:var(--amber-dim);color:var(--amber);}
   .badge-red{background:var(--red-dim);color:var(--red);}
   .badge-blue{background:var(--blue-dim);color:var(--blue);}
-  .badge-gray{background:rgba(107,128,153,0.2);color:var(--muted);}
+  .badge-gray{background:#DCE5EE;color:var(--muted);}
   .solicitud-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:18px;margin-bottom:12px;}
   .solicitud-card.urgente{border-left:3px solid var(--red);}
   .solicitud-card.normal{border-left:3px solid var(--teal);}
@@ -143,29 +145,45 @@
   /* Ajustes de la paleta institucional */
   .splash-text h1,.auth-top h1,.section-title,.topbar-name,.activo-tipo,.perfil-name,.stat-value{font-weight:700;letter-spacing:.01em}
   .splash-text h1{font-size:34px}.auth-top h1{font-size:32px}.section-title{font-size:20px}.topbar-name{font-size:21px}
-  #screen-splash{background:linear-gradient(160deg,#152B39,#1E3A4C 60%,#2C5470)}#screen-splash .splash-text h1{color:#fff}#screen-splash .splash-text p{color:rgba(255,255,255,.8)}
-  #screen-splash::before{background:radial-gradient(circle,rgba(224,162,26,.18) 0%,transparent 70%)}
-  .splash-badge{border-color:#E0A21A;box-shadow:none;background:rgba(255,255,255,.1)}.splash-role{background:rgba(224,162,26,.18);border-color:#E0A21A;color:#fff}
-  .auth-top{background:#1E3A4C;border-bottom:4px solid #E0A21A}.auth-top h1{color:#fff}.auth-top p{color:rgba(255,255,255,.82)}.auth-top::after{display:none}
-  .auth-tabs{background:rgba(255,255,255,.14)}.auth-tab{color:rgba(255,255,255,.8)}.auth-tab.active{background:#fff;color:#1E3A4C}
+  #screen-splash{background:linear-gradient(160deg,#0B4F8A,#0B4F8A 60%,#1867B0)}#screen-splash .splash-text h1{color:#fff}#screen-splash .splash-text p{color:rgba(255,255,255,.8)}
+  #screen-splash::before{background:radial-gradient(circle,rgba(20,163,139,.18) 0%,transparent 70%)}
+  .splash-badge{border-color:#14A38B;box-shadow:none;background:rgba(255,255,255,.1)}.splash-role{background:rgba(20,163,139,.18);border-color:#14A38B;color:#fff}
+  .auth-top{background:linear-gradient(160deg,#0B4F8A,#1867B0);border-bottom:0}.auth-top h1{color:#fff}.auth-top p{color:rgba(255,255,255,.82)}.auth-top::after{display:none}
+  .auth-tabs{background:rgba(255,255,255,.14)}.auth-tab{color:rgba(255,255,255,.8)}.auth-tab.active{background:#fff;color:#0B4F8A}
+  .auth-tab.active{box-shadow:0 2px 8px rgba(28,43,57,.15)}
   .btn-main,.btn-accept,.btn-completar{color:#fff!important}
-  .topbar{background:#1E3A4C;border-bottom:3px solid #E0A21A}.topbar-greeting{color:rgba(255,255,255,.75)}.topbar-name{color:#fff}
-  .status-pill.disponible{background:rgba(255,255,255,.12);color:#fff;border-color:rgba(255,255,255,.5)}.status-pill.disponible .status-dot{background:#3DDC84}
-  .nav-btn.active .nav-btn-label{color:#1E3A4C;font-weight:800}
-  .activo-card{background:linear-gradient(135deg,#152B39,#2C5470);border:0;box-shadow:0 6px 20px rgba(21,35,43,.2)}
-  .activo-card .activo-tipo{color:#fff}.activo-card .activo-dir{color:rgba(255,255,255,.8)}.activo-card .activo-label{color:#E0A21A}.activo-card .activo-label::before{background:#E0A21A}
-  .activo-card .btn-en-camino,.activo-card .btn-en-curso{background:#fff;color:#1E3A4C;border:0}.activo-card .btn-completar{background:#1F8A4C}
-  .vital-field{color:#1E3A4C}.vital-input.fuera{border-color:#B4412F;background:rgba(180,65,47,.06)}.vital-input.fuera .vital-field{color:#B4412F}
+  .btn-accept,.btn-completar{background:#0E8571!important}
+  .topbar{background:#fff;border-bottom:0;box-shadow:0 2px 14px rgba(28,43,57,.08)}.topbar-greeting{color:var(--muted)}.topbar-name{color:#0B4F8A}
+  .status-pill.disponible{background:#E3F6F2;color:#0E8571;border-color:#14A38B}.status-pill.disponible .status-dot{background:#14A38B}
+  .nav-btn.active .nav-btn-label{color:#0B4F8A;font-weight:800}
+  .activo-card{background:linear-gradient(135deg,#0B4F8A,#1867B0);border:0;box-shadow:0 6px 20px rgba(28,43,57,.2)}
+  .activo-card .activo-tipo{color:#fff}.activo-card .activo-dir{color:rgba(255,255,255,.8)}.activo-card .activo-label{color:#E3F6F2}.activo-card .activo-label::before{background:#E3F6F2}
+  .activo-card .btn-en-camino,.activo-card .btn-en-curso{background:#fff;color:#0B4F8A;border:0}.activo-card .btn-completar{background:#1F8A4C}
+  .vital-field{color:#0B4F8A}.vital-input.fuera{border-color:#B4412F;background:rgba(180,65,47,.06)}.vital-input.fuera .vital-field{color:#B4412F}
   .vital-ayuda{font-size:11px;color:var(--muted);margin:-4px 0 12px}
-  .solicitud-card,.stat-card,.info-card,.historial-item,.evolucion-form,.perfil-hero{box-shadow:0 2px 10px rgba(21,35,43,.06)}
-  .loading-overlay{background:rgba(238,242,241,.92)}
+  .vital-field::placeholder{color:#9AA7B3;font-weight:400}
+  .status-pill.ocupado{background:#F4F8FB;color:#5D6B78;border:1px solid #DCE5EE}.status-pill.ocupado .status-dot{background:#5D6B78}
+  .solicitud-card,.stat-card,.info-card,.historial-item,.evolucion-form,.perfil-hero{box-shadow:0 2px 10px rgba(28,43,57,.06)}
+  .loading-overlay{background:rgba(244,248,251,.92)}
   .check-legal{display:flex;gap:10px;align-items:flex-start;font-size:13px;color:var(--muted);margin:6px 0 4px;line-height:1.45}
-  .check-legal input{width:20px;height:20px;flex:none;margin-top:1px;accent-color:#1E3A4C}.check-legal a{color:#1E3A4C;font-weight:700}
+  .check-legal input{width:20px;height:20px;flex:none;margin-top:1px;accent-color:#0B4F8A}.check-legal a{color:#0B4F8A;font-weight:700}
   .btn-wa-grande{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:13px;background:#1F8A4C;color:#fff;border-radius:12px;font-weight:700;font-size:15px;text-decoration:none;margin-top:10px}
-  .nota-ok{display:none;background:#E3F2E9;color:#1F8A4C;border-radius:10px;padding:10px 12px;font-size:13px;font-weight:700;margin-top:10px}
+  .nota-ok{display:none;background:#E3F6F2;color:#1F8A4C;border-radius:10px;padding:10px 12px;font-size:13px;font-weight:700;margin-top:10px}
   #screen-app{padding-bottom:calc(140px + var(--safe-bottom))}
+  .sol-info-row span,.activo-detalle{overflow-wrap:anywhere}
+  .activo-detalle{font-size:13px;color:rgba(255,255,255,.9);margin:-6px 0 14px;display:grid;gap:4px;line-height:1.45}
+  .activo-links{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
+  .activo-link{background:rgba(255,255,255,.16);color:#fff;text-decoration:none;font-weight:700;font-size:13px;padding:8px 12px;border-radius:10px}
+  .activo-card .btn-desistir{background:transparent;color:#fff;border:1px solid rgba(255,255,255,.5)}
+  .oferta-hecha{flex:1;padding:11px;background:#E3F6F2;color:#0E8571;border-radius:var(--radius-sm);font-size:12px;font-weight:700;text-align:center}
+  .sol-ofertas{font-size:12px;color:#5D6B78;margin:-4px 0 10px}
+  .op-item{border-top:1px solid #DCE5EE;padding:8px 0;font-size:13px}.op-est{color:#E0A100;letter-spacing:1px}
+  .nota-titulo{font-size:12px;font-weight:800;color:#0B4F8A;text-transform:uppercase;letter-spacing:.5px;margin:14px 0 6px;padding-top:10px;border-top:1px solid #DCE5EE}
+  .nota-titulo:first-of-type{border-top:0;padding-top:0}
+  .firma-lienzo{width:100%;height:170px;background:#fff;border:2px dashed #14A38B;border-radius:10px;touch-action:none;display:block}
+  .firma-campo{width:100%;padding:11px;border:1.5px solid #DCE5EE;border-radius:10px;font:500 15px 'Public Sans',sans-serif;margin-top:8px;box-sizing:border-box}
 </style>
-<script src="comun.js" data-rol="profesional"></script>
+<script src="comun.js?v=20261022c" data-rol="profesional"></script>
 </head>
 <body>
 
@@ -191,7 +209,7 @@
   </div>
   <div class="auth-body">
     <div id="tab-login">
-      <div class="form-group"><label>Correo electrónico</label><input type="email" id="login-email" placeholder="tucorreo@email.com"></div>
+      <div class="form-group"><label>Correo electrónico</label><input type="email" id="login-email" placeholder="correo@ejemplo.com"></div>
       <div class="form-group"><label>Contraseña</label><input type="password" id="login-password" placeholder="••••••••"></div>
       <button class="btn-main" onclick="doLogin()">Ingresar</button>
       <div style="text-align:center;margin-top:14px"><a href="restablecer.html" style="color:inherit;font-weight:700;font-size:14px">¿Olvidó su contraseña?</a></div>
@@ -199,7 +217,7 @@
     </div>
     <div id="tab-registro" style="display:none">
       <div class="form-group"><label>Nombre completo *</label><input type="text" id="reg-nombre" placeholder="Ej: María García"></div>
-      <div class="form-group"><label>Correo electrónico *</label><input type="email" id="reg-email" placeholder="tucorreo@email.com"></div>
+      <div class="form-group"><label>Correo electrónico *</label><input type="email" id="reg-email" placeholder="correo@ejemplo.com"></div>
       <div class="form-group">
         <label>Teléfono celular *</label>
         <input type="tel" id="reg-telefono" placeholder="Ej: 3001234567">
@@ -234,8 +252,12 @@
       </div>
       <div class="form-group">
         <label>Contraseña *</label>
-        <input type="password" id="reg-password" placeholder="Mínimo 8 caracteres">
-        <div class="field-hint">Debe tener al menos 8 caracteres</div>
+        <input type="password" id="reg-password" placeholder="Mínimo 10 caracteres" autocomplete="new-password">
+        <div class="field-hint">Debe tener al menos 10 caracteres</div>
+      </div>
+      <div class="form-group">
+        <label>Repita la contraseña *</label>
+        <input type="password" id="reg-password2" placeholder="Escríbala otra vez" autocomplete="new-password">
       </div>
       <label class="check-legal"><input type="checkbox" id="reg-acepto"><span>Acepto los <a href="legal.html#terminos" target="_blank">términos de uso</a>, la <a href="legal.html#datos" target="_blank">política de datos personales</a> y me comprometo a guardar la confidencialidad de la historia clínica.</span></label>
       <button class="btn-main" onclick="doRegistro()">Crear cuenta</button>
@@ -249,13 +271,14 @@
 <div class="screen" id="screen-app">
   <div class="topbar">
     <div class="topbar-left">
-      <div class="topbar-greeting">Profesional</div>
-      <div class="topbar-name" id="app-nombre">Enfermero</div>
+      <div class="topbar-greeting" id="app-rol">Profesional</div>
+      <div class="topbar-greeting" id="turno-fin" style="color:#0E8571;font-weight:700" hidden></div>
+      <div class="topbar-name" id="app-nombre">Profesional</div>
     </div>
     <div class="topbar-right">
-      <button class="status-pill disponible" id="status-btn" onclick="toggleDisponible()">
+      <button class="status-pill ocupado" id="status-btn" onclick="toggleDisponible()">
         <div class="status-dot"></div>
-        <span id="status-label">Disponible</span>
+        <span id="status-label">No disponible</span>
       </button>
     </div>
   </div>
@@ -267,33 +290,42 @@
     </div>
     <div class="stats-row">
       <div class="stat-card"><div class="stat-value" id="stat-hoy">0</div><div class="stat-label">Hoy</div></div>
-      <div class="stat-card"><div class="stat-value" id="stat-total">0</div><div class="stat-label">Total</div></div>
-      <div class="stat-card"><div class="stat-value" id="stat-rating">—</div><div class="stat-label">Rating</div></div>
+      <div class="stat-card"><div class="stat-value" id="stat-total">0</div><div class="stat-label">Asignados</div></div>
+      <div class="stat-card"><div class="stat-value" id="stat-rating">—</div><div class="stat-label">Calificación</div></div>
     </div>
     <div id="servicio-activo-container" style="display:none">
       <div class="section-header">
         <div class="section-title">Servicio activo</div>
-        <span class="badge badge-teal">EN CURSO</span>
+        <span class="badge badge-teal" id="activo-estado">EN CURSO</span>
       </div>
       <div class="activo-card">
         <div class="activo-label">SERVICIO ACTIVO</div>
         <div class="activo-tipo" id="activo-tipo">—</div>
         <div class="activo-dir" id="activo-dir">—</div>
+        <div class="activo-detalle" id="activo-detalle"></div>
         <div class="estado-btns" id="estado-btns"></div>
       </div>
       <div class="evolucion-form" id="evolucion-form" style="display:none">
         <div class="section-title" style="margin-bottom:14px;font-size:14px">📋 Nota clínica de la atención</div>
+        <div class="nota-titulo">1. Signos vitales</div>
         <div class="vitales-grid">
-          <div class="vital-input"><div class="vital-label">T/A Sistólica</div><input class="vital-field" type="number" id="v-sistolica" placeholder="120"></div>
-          <div class="vital-input"><div class="vital-label">T/A Diastólica</div><input class="vital-field" type="number" id="v-diastolica" placeholder="80"></div>
-          <div class="vital-input"><div class="vital-label">FC (lpm)</div><input class="vital-field" type="number" id="v-fc" placeholder="72"></div>
-          <div class="vital-input"><div class="vital-label">Temp (°C)</div><input class="vital-field" type="number" id="v-temp" placeholder="36.5" step="0.1"></div>
-          <div class="vital-input"><div class="vital-label">SpO2 (%)</div><input class="vital-field" type="number" id="v-spo2" placeholder="98"></div>
-          <div class="vital-input"><div class="vital-label">Glucemia</div><input class="vital-field" type="number" id="v-glucemia" placeholder="100"></div>
+          <div class="vital-input"><div class="vital-label">T/A Sistólica</div><input class="vital-field" type="number" id="v-sistolica" placeholder="Ej: 120"></div>
+          <div class="vital-input"><div class="vital-label">T/A Diastólica</div><input class="vital-field" type="number" id="v-diastolica" placeholder="Ej: 80"></div>
+          <div class="vital-input"><div class="vital-label">FC (lpm)</div><input class="vital-field" type="number" id="v-fc" placeholder="Ej: 72"></div>
+          <div class="vital-input"><div class="vital-label">Temp (°C)</div><input class="vital-field" type="number" id="v-temp" placeholder="Ej: 36.5" step="0.1"></div>
+          <div class="vital-input"><div class="vital-label">SpO2 (%)</div><input class="vital-field" type="number" id="v-spo2" placeholder="Ej: 98"></div>
+          <div class="vital-input"><div class="vital-label">Glucemia (mg/dL)</div><input class="vital-field" type="number" id="v-glucemia" placeholder="Ej: 100"></div>
         </div>
         <div class="vital-ayuda">Los valores fuera de lo esperado se marcan en rojo y se le pedirá confirmarlos antes de guardar.</div>
-        <textarea class="form-area" id="v-observaciones" placeholder="Observaciones del servicio..."></textarea>
-        <textarea class="form-area" id="v-procedimientos" placeholder="Procedimientos realizados..."></textarea>
+        <div class="nota-titulo">2. Hallazgos</div>
+        <div class="vital-ayuda">Ya viene escrito lo normal: cambie solo lo que encuentre distinto.</div>
+        <textarea class="form-area" id="v-observaciones" style="height:96px">Paciente consciente, alerta y orientado. Sin signos de dificultad respiratoria. Piel y mucosas sin alteraciones. No refiere dolor ni síntomas nuevos.</textarea>
+        <div class="nota-titulo">3. Procedimientos realizados</div>
+        <textarea class="form-area" id="v-procedimientos" placeholder="Ej: curación de herida en pierna derecha con solución salina, apósito estéril."></textarea>
+        <div class="nota-titulo">4. Impresión diagnóstica</div>
+        <textarea class="form-area" id="v-impresion" placeholder="Ej: herida en proceso de cicatrización, sin signos de infección."></textarea>
+        <div class="nota-titulo">5. Recomendaciones</div>
+        <textarea class="form-area" id="v-recomendaciones">Signos de alarma explicados al paciente y acompañante. Consultar a urgencias si presenta fiebre, sangrado o empeoramiento.</textarea>
         <button class="btn-main" onclick="guardarEvolucion()">Guardar nota clínica</button>
         <div class="nota-ok" id="nota-ok">✓ Nota clínica guardada. Ya puede completar el servicio.</div>
       </div>
@@ -303,6 +335,7 @@
       <div class="section-title">Solicitudes pendientes</div>
       <span class="badge badge-amber" id="badge-pendientes">0</span>
     </div>
+    <div class="sec-origen">Aquí aparecen las solicitudes de pacientes que necesitan atención ahora, mientras usted está "Disponible". Al pulsar "Ofrecerme", el paciente ve su perfil y decide; si lo elige, el servicio pasa arriba como servicio activo.</div>
     <div id="solicitudes-list">
       <div class="empty"><div class="empty-icon">📭</div><div class="empty-text">Sin solicitudes por ahora</div></div>
     </div>
@@ -320,7 +353,7 @@
       <div class="perfil-role" id="perfil-rol">Profesional de la salud</div>
     </div>
     <div class="info-card">
-      <div class="info-row"><span class="info-label">Email</span><span class="info-value" id="perfil-email">—</span></div>
+      <div class="info-row"><span class="info-label">Correo</span><span class="info-value" id="perfil-email">—</span></div>
       <div class="info-row"><span class="info-label">Teléfono</span><span class="info-value" id="perfil-tel">—</span></div>
       <div class="info-row"><span class="info-label">Verificación</span><span id="perfil-verificacion" class="badge badge-amber">⏳ Cargando...</span></div>
       <div class="info-row"><span class="info-label">Especialidad</span><span class="info-value" id="perfil-especialidad">—</span></div>
@@ -332,19 +365,24 @@
       <div style="font-size:13px;color:var(--muted)">Clínica Reina Elizabeth IPS · Santa Marta</div>
       <a class="btn-wa-grande" target="_blank" rel="noopener" href="https://wa.me/573128886611?text=Hola%2C%20soy%20profesional%20de%20Salud%20en%20Casa%20y%20necesito%20ayuda">WhatsApp de la IPS · 312 888 6611</a>
     </div>
-    <div style="text-align:center;margin:6px 0 10px;font-size:13px"><a href="legal.html" style="color:var(--muted)">Términos y política de datos</a></div>
+    <div class="info-card">
+      <div style="font-size:12px;color:var(--muted);font-weight:600;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px">Lo que dicen sus pacientes</div>
+      <div id="perfil-opiniones" style="font-size:13px;color:var(--muted)">Cargando...</div>
+    </div>
+    <div style="text-align:center;margin:6px 0 10px;font-size:13px"><a href="legal.html" target="_blank" rel="noopener" style="color:var(--muted)">Términos y política de datos</a></div>
+    <button class="btn-main" style="margin-bottom:8px" onclick="activarAvisos()">🔔 Activar avisos de nuevas solicitudes</button>
     <button class="btn-danger" onclick="doLogout()">Cerrar sesión</button>
     <div data-firma-skynet></div>
   </div>
 
   <nav class="bottom-nav">
-    <button class="nav-btn active" onclick="showPage('inicio',this);loadInicio()">
+    <button class="nav-btn active" data-pag="inicio" onclick="showPage('inicio',this);loadInicio()">
       <span class="nav-btn-icon">🏠</span><span class="nav-btn-label">Inicio</span>
     </button>
-    <button class="nav-btn" onclick="showPage('historial',this);loadHistorial()">
+    <button class="nav-btn" data-pag="historial" onclick="showPage('historial',this);loadHistorial()">
       <span class="nav-btn-icon">📋</span><span class="nav-btn-label">Historial</span>
     </button>
-    <button class="nav-btn" onclick="showPage('perfil',this);loadPerfil()">
+    <button class="nav-btn" data-pag="perfil" onclick="showPage('perfil',this);loadPerfil()">
       <span class="nav-btn-icon">👤</span><span class="nav-btn-label">Perfil</span>
     </button>
   </nav>
@@ -352,8 +390,10 @@
 
 <script>
 const API = 'https://enfermeria-api-2ksu.onrender.com';
-let token = localStorage.getItem('re_e_token') || '';
-let user = JSON.parse(localStorage.getItem('re_e_user') || 'null');
+let token = '', user = null;
+// Datos guardados dañados o almacenamiento bloqueado: se empieza desde el ingreso, sin quedar trabados
+try { token = localStorage.getItem('re_e_token') || ''; user = JSON.parse(localStorage.getItem('re_e_user') || 'null'); }
+catch (e) { token = ''; user = null; try { localStorage.removeItem('re_e_token'); localStorage.removeItem('re_e_user'); } catch (x) {} }
 // Si la sesión venció, volver a la pantalla de ingreso en lugar de mostrar errores
 var __fetchOriginal = window.fetch, __sesionCerrada = false;
 window.fetch = function (url, opts) {
@@ -362,14 +402,20 @@ window.fetch = function (url, opts) {
     if (r.status === 401 && u.indexOf(API) === 0 && u.indexOf('/api/auth/') < 0 && !__sesionCerrada) {
       __sesionCerrada = true;
       localStorage.removeItem('re_e_token'); localStorage.removeItem('re_e_user');
-      alert('Su sesión venció. Por favor ingrese de nuevo.');
-      location.reload();
+      aviso('Su sesión se cerró. Por favor ingrese de nuevo.', 'error');
+      setTimeout(function(){ location.reload(); }, 1800);
     }
     return r;
   });
 };
 let disponible = false;
+let guardia = null, yaCargo = false, disponibleDesde = null, pagosEnLinea = false;
+let miPerfilId = null;
 let servicioActivoId = null;
+function esc(t){ return String(t==null?'':t).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];}); }
+// Solicitudes que este profesional ocultó (no las cancela para el paciente)
+function descartadas(){ try { return JSON.parse(localStorage.getItem('re_e_descartadas')||'[]'); } catch(e){ return []; } }
+function descartar(id){ try { var d=descartadas(); d.push(id); localStorage.setItem('re_e_descartadas', JSON.stringify(d.slice(-200))); } catch(e){} }
 let refreshInterval = null;
 
 setTimeout(function() {
@@ -398,13 +444,16 @@ async function doLogin() {
     const res = await fetch(API+'/api/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,password})});
     const data = await res.json();
     hideLoading();
-    if (!res.ok) throw new Error('Correo o contraseña incorrectos');
-    if (data.usuario.rol==='paciente') throw new Error('Esta app es para profesionales. Use la app de pacientes.');
+    if (!res.ok) throw new Error(data.error || 'Correo o contraseña incorrectos');
+    if (data.usuario.rol!=='profesional') {
+      fetch(API+'/api/auth/logout',{method:'POST',headers:{'Authorization':'Bearer '+data.accessToken}}).catch(function(){});
+      throw new Error(data.usuario.rol==='admin' ? 'Esta cuenta es de administrador. Use el panel de la IPS.' : 'Esta app es para profesionales. Use la app de pacientes.');
+    }
     token = data.accessToken; user = data.usuario;
     localStorage.setItem('re_e_token',token);
     localStorage.setItem('re_e_user',JSON.stringify(user));
     initApp();
-  } catch(e) { hideLoading(); showError(errEl,e.message); }
+  } catch(e) { hideLoading(); showError(errEl,mensajeRed(e)); }
 }
 
 async function doRegistro() {
@@ -423,7 +472,8 @@ async function doRegistro() {
   const telefonoDigitos = telefonoRaw.replace(/\D/g,'');
   if (telefonoDigitos.length<7||telefonoDigitos.length>15) { showError(errEl,'⚠️ Teléfono inválido. Ingrese solo los números. Ejemplo: 3001234567'); return; }
   if (!password) { showError(errEl,'⚠️ Por favor ingrese una contraseña'); return; }
-  if (password.length<8) { showError(errEl,'⚠️ La contraseña debe tener mínimo 8 caracteres'); return; }
+  if (password.length<10) { showError(errEl,'⚠️ La contraseña debe tener mínimo 10 caracteres'); return; }
+  if (password !== document.getElementById('reg-password2').value) { showError(errEl,'⚠️ Las dos contraseñas no coinciden. Escríbalas otra vez.'); return; }
   if (!especialidad) { showError(errEl,'⚠️ Seleccione su profesión o especialidad'); return; }
   if (!document.getElementById('reg-acepto').checked) { showError(errEl,'⚠️ Debe aceptar los términos y la política de datos'); return; }
   const telefono = telefonoRaw.startsWith('+')?telefonoRaw:'+57'+telefonoDigitos;
@@ -435,23 +485,26 @@ async function doRegistro() {
     hideLoading();
     if (!res.ok) {
       let msg = data.error||data.message||'Error al crear la cuenta';
-      if (msg.toLowerCase().includes('email')||msg.toLowerCase().includes('correo')) msg='⚠️ Este correo ya está registrado. Use otro o inicie sesión.';
-      else if (msg.toLowerCase().includes('telefono')||msg.toLowerCase().includes('phone')) msg='⚠️ Este teléfono ya está registrado.';
+      if (res.status===409) msg='⚠️ Este correo o teléfono ya está registrado. Use otro o inicie sesión.';
       throw new Error(msg);
     }
     token = data.accessToken; user = data.usuario;
     localStorage.setItem('re_e_token',token);
     localStorage.setItem('re_e_user',JSON.stringify(user));
     initApp();
-  } catch(e) { hideLoading(); showError(errEl,e.message); }
+  } catch(e) { hideLoading(); showError(errEl,mensajeRed(e)); }
 }
 
 function doLogout() {
-  clearInterval(refreshInterval);
+  if (refreshInterval) refreshInterval();
+  if (guardia) guardia.detener();
+  if (token) {
+    fetch(API+'/api/push/desuscribir',{method:'DELETE',headers:{'Authorization':'Bearer '+token}}).catch(function(){});
+    fetch(API+'/api/auth/logout',{method:'POST',headers:{'Authorization':'Bearer '+token}}).catch(function(){});
+  }
   token=''; user=null;
   localStorage.removeItem('re_e_token'); localStorage.removeItem('re_e_user');
-  document.getElementById('screen-app').classList.remove('active');
-  document.getElementById('screen-auth').classList.add('active');
+  setTimeout(function(){ location.reload(); }, 150);
 }
 
 function initApp() {
@@ -459,13 +512,38 @@ function initApp() {
   document.getElementById('screen-app').classList.add('active');
   const nombre = (user&&user.nombreCompleto)?user.nombreCompleto:'Profesional';
   document.getElementById('app-nombre').textContent = nombre.split(' ')[0];
+  try { history.replaceState({ pag: 'inicio', base: true }, ''); history.pushState({ pag: 'inicio' }, ''); } catch (e) {}
   loadInicio();
-  clearInterval(refreshInterval);
-  refreshInterval = setInterval(function(){ if (document.getElementById('page-inicio').classList.contains('active') && !document.hidden) loadSolicitudes(); },15000);
+  if (refreshInterval) refreshInterval();
+  // Mientras está "Disponible" o atiende un servicio, la app sigue pendiente de cambios aunque no la toque
+  refreshInterval = vigilarCambios(API, function(){ if (document.getElementById('page-inicio').classList.contains('active')) loadSolicitudes(); }, 15000, 5 * 60 * 1000, function(){ return disponible || !!servicioActivoId; });
+  // En turno ("Disponible") la sesión dura el turno: guarda el celular y le llegan los avisos.
+  // Fuera de turno, a los 15 minutos sin uso pregunta "¿Sigue ahí?" y, sin respuesta, cierra la sesión.
+  if (guardia) guardia.detener();
+  guardia = vigilarInactividad({
+    minutos: 15, avisoSeg: 120,
+    pausar: function(){ return !!servicioActivoId || (disponible && disponibleDesde && (Date.now() - new Date(disponibleDesde).getTime()) < 12 * 3600 * 1000); },
+    marcarUso: function(){ fetch(API+'/api/auth/sigo',{method:'POST',headers:{'Authorization':'Bearer '+token}}).catch(function(){}); },
+    alCerrar: async function(){
+      aviso('Por su seguridad cerramos la sesión por inactividad.', 'aviso');
+      doLogout();
+    }
+  });
+
   setTimeout(iniciarNotificacionesPush, 3000);
 }
 
-function showPage(name,btn) {
+let paginaActual = 'inicio';
+window.addEventListener('popstate', function (e) {
+  if (cerrarVentanaAbierta()) { try { history.pushState({ pag: paginaActual }, ''); } catch (x) {} return; }
+  if (!e.state || e.state.base) { try { history.pushState({ pag: 'inicio' }, ''); } catch (x) {} if (paginaActual !== 'inicio') { showPage('inicio', document.querySelector('.nav-btn[data-pag="inicio"]'), true); loadInicio(); } return; }
+  const pag = e.state.pag || 'inicio';
+  showPage(pag, document.querySelector('.nav-btn[data-pag="' + pag + '"]'), true);
+  if (pag === 'inicio') loadInicio(); else if (pag === 'historial') loadHistorial(); else if (pag === 'perfil') loadPerfil();
+});
+function showPage(name,btn,desdeHistorial) {
+  if (!desdeHistorial && name !== paginaActual) { try { history.pushState({ pag: name }, ''); } catch (e) {} }
+  paginaActual = name;
   document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active');});
   document.getElementById('page-'+name).classList.add('active');
   if (btn) { document.querySelectorAll('.nav-btn').forEach(function(b){b.classList.remove('active');}); btn.classList.add('active'); }
@@ -479,16 +557,26 @@ async function obtenerMiPerfil() {
     });
     if (!res.ok) return null;
     return await res.json();
-  } catch(e) { return null; }
+  } catch(e) { return { sinRed: true }; }
 }
 
 async function loadInicio() {
   // Cargar perfil para verificar estado actual
   const miPerfil = await obtenerMiPerfil();
   const aviso = document.getElementById('aviso-pendiente');
+  if (miPerfil && miPerfil.sinRed) { window.aviso('Sin conexión. Revise su internet: sus datos no se perdieron.', 'error'); return; }
   if (miPerfil) {
+    miPerfilId = miPerfil.id;
+    document.getElementById('app-rol').textContent = 'Profesional' + (miPerfil.especialidad ? ' · ' + miPerfil.especialidad : '');
+    disponible = !!miPerfil.disponible && !!miPerfil.disponibleDesde && (Date.now() - new Date(miPerfil.disponibleDesde).getTime()) < 12 * 3600 * 1000;
+    disponibleDesde = miPerfil.disponibleDesde || null;
+    pintarDisponible();
     const aprobado = miPerfil.estadoVerificacion === 'aprobado';
     aviso.style.display = aprobado ? 'none' : 'block';
+    if (miPerfil.estadoVerificacion === 'rechazado') {
+      aviso.querySelector('.aviso-pendiente-titulo').textContent = 'Cuenta no aprobada';
+      aviso.querySelector('.aviso-pendiente-texto').textContent = 'La IPS no aprobó su registro. Escríbanos por WhatsApp para más información.';
+    }
     // Actualizar rating en stats
     if (miPerfil.calificacionPromedio) {
       document.getElementById('stat-rating').textContent = '⭐'+Number(miPerfil.calificacionPromedio).toFixed(1);
@@ -502,12 +590,13 @@ async function loadInicio() {
 
 async function loadStats() {
   try {
-    const res = await fetch(API+'/api/servicios',{headers:{'Authorization':'Bearer '+token}});
+    const res = await fetch(API+'/api/servicios?limit=50',{headers:{'Authorization':'Bearer '+token}});
     if (!res.ok) return;
     const data = await res.json();
     const items = data.items||[];
-    const hoy = new Date().toDateString();
-    document.getElementById('stat-hoy').textContent = items.filter(function(s){return new Date(s.createdAt).toDateString()===hoy;}).length;
+    const diaCO = function(d){ return new Date(d).toLocaleDateString('es-CO', {timeZone:'America/Bogota'}); };
+    const hoy = diaCO(Date.now());
+    document.getElementById('stat-hoy').textContent = items.filter(function(s){return diaCO(s.createdAt)===hoy;}).length;
     document.getElementById('stat-total').textContent = data.total||items.length;
   } catch(e) {}
 }
@@ -522,23 +611,43 @@ async function loadSolicitudes() {
       document.getElementById('badge-pendientes').textContent = '0';
       el.innerHTML = '<div class="empty"><div class="empty-icon">⏳</div><div class="empty-text">Esperando verificación de su cuenta</div></div>';
     } else if (resPend.ok) {
+      aviso.style.display = 'none';
       const dataPend = await resPend.json();
-      const items = dataPend.items||[];
+      const ocultas = descartadas();
+      const items = (dataPend.items||[]).filter(function(s){ return ocultas.indexOf(s.id) < 0; });
       document.getElementById('badge-pendientes').textContent = items.length;
+      if (dataPend.motivo === 'no_disponible' && disponible) {
+        disponible = false; disponibleDesde = null; pintarDisponible();
+        window.aviso('Su turno terminó (pasaron 12 horas o dejó pasar 3 solicitudes seguidas). Cuando pueda atender, toque "Disponible".', 'aviso', 12000);
+      }
+      const vacio = dataPend.motivo === 'no_disponible' ? ['🔕','Póngase en "Disponible" (botón de arriba) para ver solicitudes y ofrecerse.']
+        : dataPend.motivo === 'ocupado' ? ['🩺','Termine su servicio activo para ver nuevas solicitudes.']
+        : ['📭','Sin solicitudes pendientes'];
       el.innerHTML = items.length
         ? items.map(function(s){return solicitudCard(s);}).join('')
-        : '<div class="empty"><div class="empty-icon">📭</div><div class="empty-text">Sin solicitudes pendientes</div></div>';
+        : '<div class="empty"><div class="empty-icon">'+vacio[0]+'</div><div class="empty-text">'+vacio[1]+'</div></div>';
     }
     // Cargar servicio activo del profesional
-    const resMios = await fetch(API+'/api/servicios',{headers:{'Authorization':'Bearer '+token}});
+    const resMios = await fetch(API+'/api/servicios?activos=1&limit=5',{headers:{'Authorization':'Bearer '+token}});
     if (resMios.ok) {
       const dataMios = await resMios.json();
+      pagosEnLinea = !!dataMios.pagosEnLinea;
       const activos = (dataMios.items||[]).filter(function(s){return['asignado','en_camino','en_curso'].includes(s.estado);});
-      if (activos.length>0) { mostrarServicioActivo(activos[0]); }
-      else { document.getElementById('servicio-activo-container').style.display='none'; servicioActivoId=null; }
+      if (activos.length>0) {
+        if (yaCargo && !servicioActivoId && activos[0].estado === 'asignado') { window.aviso('¡El paciente lo eligió! Revise la dirección y salga cuando esté listo.'); try { navigator.vibrate && navigator.vibrate([200,100,200]); } catch(e) {} }
+        mostrarServicioActivo(activos[0]);
+      }
+      else {
+        if (servicioActivoId) {
+          window.aviso('El servicio que tenía ya no está activo (el paciente lo canceló, no pagó a tiempo o la IPS lo cerró).', 'aviso', 12000);
+          limpiarNota();
+        }
+        document.getElementById('servicio-activo-container').style.display='none'; document.getElementById('evolucion-form').style.display='none'; servicioActivoId=null;
+      }
     }
+    yaCargo = true;
   } catch(e) {
-    el.innerHTML = '<div class="empty"><div class="empty-icon">📭</div><div class="empty-text">Sin solicitudes por ahora</div></div>';
+    el.innerHTML = '<div class="empty"><div class="empty-icon">📶</div><div class="empty-text">Sin conexión. Revise su internet; la lista se actualiza sola al volver.</div></div>';
   }
 }
 
@@ -548,13 +657,17 @@ function solicitudCard(s) {
   const pacNombre = (s.paciente&&s.paciente.nombreCompleto)?s.paciente.nombreCompleto:((s.paciente&&s.paciente.usuario)?s.paciente.usuario.nombreCompleto:'Paciente');
   return '<div class="solicitud-card '+(urgente?'urgente':'normal')+'">' +
     '<div class="sol-header"><div class="sol-tipo"><div class="sol-icon '+(urgente?'urgente':'')+'">'+(iconos[s.tipo]||'🏥')+'</div>' +
-    '<div><div class="sol-name">'+tipoLabel(s.tipo)+'</div><div class="sol-sub">'+pacNombre+'</div></div></div>' +
-    '<span class="badge '+(urgente?'badge-red':'badge-teal')+'">'+(urgente?'URGENTE':'RUTINA')+'</span></div>' +
-    '<div class="sol-info"><div class="sol-info-row">📍 <span>'+(s.direccion||'Sin dirección')+'</span></div>' +
+    '<div><div class="sol-name">'+tipoLabel(s.tipo)+'</div><div class="sol-sub">'+esc(pacNombre)+'</div></div></div>' +
+    '<span class="badge '+(urgente?'badge-red':'badge-teal')+'">'+(urgente?'PRIORITARIA':'INMEDIATA')+'</span></div>' +
+    '<div class="sol-info"><div class="sol-info-row">📍 <span>'+esc(s.direccion||'Sin dirección')+'</span></div>' +
     '<div class="sol-info-row">🕐 <span>'+formatDate(s.createdAt||s.fechaSolicitud)+'</span></div>' +
-    (s.descripcion?'<div class="sol-info-row">📝 <span>'+s.descripcion+'</span></div>':'') + '</div>' +
-    '<div class="sol-actions"><button class="btn-accept" onclick="aceptarServicio(\''+s.id+'\')">✅ Aceptar</button>' +
-    '<button class="btn-reject" onclick="rechazarServicio(\''+s.id+'\')">✕</button></div></div>';
+    (s.monto?'<div class="sol-info-row">💵 <span>Tarifa $'+Number(s.monto).toLocaleString('es-CO')+'</span></div>':'') +
+    (s.descripcion?'<div class="sol-info-row">📝 <span>'+esc(s.descripcion)+'</span></div>':'') + '</div>' +
+    '<div class="sol-ofertas">' + (s.totalOfertas ? s.totalOfertas + (s.totalOfertas === 1 ? ' profesional ofrecido' : ' profesionales ofrecidos') + ' · ' : '') + 'el paciente elige</div>' +
+    '<div class="sol-actions">' + (s.miOferta
+      ? '<div class="oferta-hecha">✔ Se ofreció · esperando que el paciente elija</div><button class="btn-reject" onclick="retirarOferta(\''+s.id+'\')">Retirar</button>'
+      : '<button class="btn-accept" onclick="ofrecerse(\''+s.id+'\')">🙋 Ofrecerme</button><button class="btn-reject" onclick="rechazarServicio(\''+s.id+'\')">✕</button>') +
+    '</div></div>';
 }
 
 function mostrarServicioActivo(s) {
@@ -563,51 +676,178 @@ function mostrarServicioActivo(s) {
   document.getElementById('servicio-activo-container').style.display='block';
   document.getElementById('activo-tipo').textContent = tipoLabel(s.tipo);
   document.getElementById('activo-dir').textContent = s.direccion||'Sin dirección';
+  var etiquetas = {asignado:'ASIGNADO', en_camino:'EN CAMINO', en_curso:'EN CURSO'};
+  document.getElementById('activo-estado').textContent = etiquetas[s.estado] || s.estado;
+  var pac = s.paciente || {};
+  var nombre = pac.nombreCompleto || (pac.usuario && pac.usuario.nombreCompleto) || 'Paciente';
+  var tel = pac.usuario && pac.usuario.telefono;
+  var det = '<div><b>'+esc(nombre)+'</b>'+(pac.parentesco && pac.parentesco!=='Titular' ? ' · '+esc(pac.parentesco)+' de '+esc(pac.usuario && pac.usuario.nombreCompleto) : '')+'</div>';
+  if (s.descripcion) det += '<div>📝 '+esc(s.descripcion)+'</div>';
+  if (pac.alergias && pac.alergias === pac.antecedentes) det += '<div>⚠️ Alergias y antecedentes: '+esc(pac.alergias)+'</div>';
+  else {
+    if (pac.alergias) det += '<div>⚠️ Alergias: '+esc(pac.alergias)+'</div>';
+    if (pac.antecedentes) det += '<div>📋 Antecedentes: '+esc(pac.antecedentes)+'</div>';
+  }
+  var acc = '';
+  if (tel) acc += '<a class="activo-link" href="tel:'+esc(tel)+'">📞 Llamar</a>';
+  if (s.direccion) acc += '<a class="activo-link" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(s.direccion)+'">🗺️ Cómo llegar</a>';
+  document.getElementById('activo-detalle').innerHTML = det + (acc ? '<div class="activo-links">'+acc+'</div>' : '');
+  if (s.estado !== 'en_curso') document.getElementById('evolucion-form').style.display='none';
   const btns = document.getElementById('estado-btns');
   let html='';
-  if (s.estado==='asignado') html='<button class="btn-estado btn-en-camino" onclick="cambiarEstado(\''+s.id+'\',\'en_camino\')">🚗 Voy en camino</button>';
-  else if (s.estado==='en_camino') html='<button class="btn-estado btn-en-curso" onclick="cambiarEstado(\''+s.id+'\',\'en_curso\')">▶️ Iniciar servicio</button>';
+  const faltaPago = pagosEnLinea && s.estado==='asignado' && !(s.pago && s.pago.estado==='aprobado');
+  clearTimeout(window.__plazoPago);
+  if (faltaPago && s.buscandoHasta) {
+    const resta = new Date(s.buscandoHasta).getTime() - Date.now();
+    window.__plazoPago = setTimeout(function(){ marcarSegundoPlano(); loadInicio(); }, resta > 0 ? resta + 5000 : 25000);
+  }
+  if (faltaPago) html='<div class="nota-ok" style="display:block;background:#E8F1FA;color:#0B4F8A;margin-bottom:8px">⏳ Esperando el pago del paciente'+(s.buscandoHasta ? ' (tiene hasta las '+new Date(s.buscandoHasta).toLocaleTimeString('es-CO',{hour:'2-digit',minute:'2-digit',timeZone:'America/Bogota'})+')' : '')+'. Le avisaremos cuando pague para que salga; si no paga a tiempo, usted queda libre.</div><button class="btn-estado btn-desistir" onclick="desistirServicio(\''+s.id+'\')">No puedo atenderlo</button>';
+  else if (s.estado==='asignado') html='<button class="btn-estado btn-en-camino" onclick="cambiarEstado(\''+s.id+'\',\'en_camino\')">🚗 Voy en camino</button><button class="btn-estado btn-desistir" onclick="desistirServicio(\''+s.id+'\')">No puedo atenderlo</button>';
+  else if (s.estado==='en_camino') html='<button class="btn-estado btn-en-curso" onclick="cambiarEstado(\''+s.id+'\',\'en_curso\')">▶️ Iniciar servicio</button><button class="btn-estado btn-desistir" onclick="desistirServicio(\''+s.id+'\')">No puedo atenderlo</button>';
   else if (s.estado==='en_curso') {
+    if (document.getElementById('evolucion-form').style.display !== 'block') recuperarBorrador(s.id);
     document.getElementById('evolucion-form').style.display='block';
     html='<button class="btn-estado btn-completar" onclick="completarServicio(\''+s.id+'\')">✅ Completar servicio</button>';
   }
   btns.innerHTML=html;
 }
 
-async function aceptarServicio(id) {
-  showLoading('Aceptando servicio...');
+async function ofrecerse(id) {
+  if (!disponible) { aviso('Póngase en "Disponible" (botón de arriba) para ofrecerse.', 'aviso'); return; }
+  showLoading('Enviando su oferta...');
   try {
-    const res = await fetch(API+'/api/servicios/'+id+'/estado',{method:'PUT',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},body:JSON.stringify({estado:'asignado'})});
+    const res = await fetch(API+'/api/servicios/'+id+'/ofertas',{method:'POST',headers:{'Authorization':'Bearer '+token}});
     const data = await res.json().catch(function(){ return {}; });
     hideLoading();
-    if (!res.ok) throw new Error(data.error || 'Error al aceptar el servicio. Intente de nuevo.');
-    await loadInicio();
-  } catch(e) { hideLoading(); alert(e.message); await loadInicio(); }
+    if (!res.ok) throw new Error(data.error || 'No se pudo enviar su oferta. Intente de nuevo.');
+    aviso(data.mensaje || 'Oferta enviada. Le avisaremos si el paciente lo elige.');
+    await loadSolicitudes();
+  } catch(e) { hideLoading(); aviso(mensajeRed(e), 'error'); await loadSolicitudes(); }
+}
+async function retirarOferta(id) {
+  try {
+    const r = await fetch(API+'/api/servicios/'+id+'/ofertas',{method:'DELETE',headers:{'Authorization':'Bearer '+token}});
+    const d = await r.json().catch(function(){ return {}; });
+    if (!r.ok) throw new Error(d.error || 'No se pudo retirar la oferta. Intente de nuevo.');
+    aviso('Oferta retirada');
+  } catch (e) { aviso(mensajeRed(e), 'error'); }
+  await loadSolicitudes();
 }
 
 async function rechazarServicio(id) {
-  if (!(await confirmar('La solicitud seguirá disponible para otros profesionales.', {titulo:'¿Rechazar esta solicitud?', si:'Sí, rechazar', peligro:true}))) return;
-  try {
-    await fetch(API+'/api/servicios/'+id+'/estado',{method:'PUT',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},body:JSON.stringify({estado:'cancelado'})});
-    await loadInicio();
-  } catch(e) {}
+  if (!(await confirmar('La solicitud seguirá disponible para otros profesionales.', {titulo:'¿Ocultar esta solicitud?', si:'Sí, ocultar', peligro:true}))) return;
+  descartar(id);
+  fetch(API+'/api/servicios/'+id+'/ofertas',{method:'DELETE',headers:{'Authorization':'Bearer '+token}}).catch(function(){});
+  aviso('Solicitud ocultada');
+  await loadSolicitudes();
 }
 
-async function cambiarEstado(id,estado) {
+async function desistirServicio(id) {
+  if (!(await confirmar('El servicio volverá a quedar disponible para otro profesional. Avise a la IPS si es posible.', {titulo:'¿No puede atender este servicio?', si:'Sí, liberarlo', peligro:true}))) return;
+  if (await cambiarEstado(id,'cancelado')) aviso('Servicio liberado para otro profesional');
+}
+
+async function cambiarEstado(id,estado,firma) {
   showLoading('Actualizando...');
   try {
-    const res = await fetch(API+'/api/servicios/'+id+'/estado',{method:'PUT',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},body:JSON.stringify({estado})});
+    const res = await fetch(API+'/api/servicios/'+id+'/estado',{method:'PUT',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},body:JSON.stringify(firma ? {estado, firma} : {estado})});
     const data = await res.json().catch(function(){ return {}; });
     hideLoading();
     if (!res.ok) throw new Error(data.error || 'Error al actualizar el estado. Intente de nuevo.');
+    // Cerrado desde este celular: no es una cancelación del paciente; la nota queda lista para el siguiente
+    if (estado === 'completado' || estado === 'cancelado') { servicioActivoId = null; limpiarNota(); document.getElementById('servicio-activo-container').style.display='none'; document.getElementById('evolucion-form').style.display='none'; }
     await loadInicio();
-  } catch(e) { hideLoading(); alert(e.message); }
+    return true;
+  } catch(e) { hideLoading(); aviso(mensajeRed(e), 'error'); return false; }
 }
 
 async function completarServicio(id) {
-  if (!(await confirmar('Debe haber guardado la nota clínica. Al completarlo, la IPS libera su pago.', {titulo:'¿Completar el servicio?', si:'Sí, completar'}))) return;
-  await cambiarEstado(id,'completado');
-  aviso('Servicio completado. ¡Gracias!');
+  if (getComputedStyle(document.getElementById('nota-ok')).display === 'none') {
+    const yaGuardo = await confirmar('No vemos una nota clínica guardada en este celular para este servicio. La firma del paciente se pide al final, después de guardar la nota.', {titulo:'¿Ya guardó la nota clínica?', si:'Sí, ya la guardé', no:'Ir a la nota'});
+    if (!yaGuardo) { document.getElementById('evolucion-form').scrollIntoView({behavior:'smooth'}); return; }
+  }
+  const firma = await pedirFirma();
+  if (!firma) return;
+  if (await cambiarEstado(id,'completado',firma)) aviso('Servicio completado y firmado. ¡Gracias! La IPS libera su pago.');
+}
+
+// Deja el formulario de la nota listo para el siguiente servicio (con lo normal ya escrito)
+function limpiarNota(guardada) {
+  ['v-sistolica','v-diastolica','v-fc','v-temp','v-spo2','v-glucemia','v-procedimientos','v-impresion'].forEach(function(id){document.getElementById(id).value='';});
+  document.getElementById('v-observaciones').value = document.getElementById('v-observaciones').defaultValue;
+  document.getElementById('v-recomendaciones').value = document.getElementById('v-recomendaciones').defaultValue;
+  if (!guardada) document.getElementById('nota-ok').style.display = 'none';
+  try { sessionStorage.removeItem('re_e_borrador'); } catch (e) {}
+}
+
+// Borrador de la nota en este celular: si la app se recarga o se cierra la sesión, no se pierde lo escrito
+var CAMPOS_NOTA = ['v-sistolica','v-diastolica','v-fc','v-temp','v-spo2','v-glucemia','v-observaciones','v-procedimientos','v-impresion','v-recomendaciones'];
+function guardarBorrador() {
+  if (!servicioActivoId) return;
+  var b = { id: servicioActivoId, v: {} };
+  CAMPOS_NOTA.forEach(function(id){ var el = document.getElementById(id); if (el) b.v[id] = el.value; });
+  try { sessionStorage.setItem('re_e_borrador', JSON.stringify(b)); } catch (e) {}
+}
+function recuperarBorrador(servicioId) {
+  try {
+    var b = JSON.parse(sessionStorage.getItem('re_e_borrador') || 'null');
+    if (!b || b.id !== servicioId || !b.v) return;
+    CAMPOS_NOTA.forEach(function(id){ var el = document.getElementById(id); if (el && typeof b.v[id] === 'string') el.value = b.v[id]; });
+  } catch (e) {}
+}
+document.addEventListener('input', function(e){ if (e.target && e.target.closest && e.target.closest('#evolucion-form')) guardarBorrador(); });
+
+// Firma manuscrita del paciente o acudiente en la pantalla (recibido del servicio)
+function pedirFirma() {
+  return new Promise(function(resolve){
+    const fondo = document.createElement('div');
+    fondo.className = 'sec-modal-fondo';
+    fondo.innerHTML = '<div class="sec-modal" role="dialog" aria-modal="true" style="max-width:440px"><h3>Firma de recibido</h3>' +
+      '<p style="margin-bottom:8px">Pida al paciente o a su acudiente que firme con el dedo en el recuadro. Debe haber guardado antes la nota clínica.</p>' +
+      '<canvas class="firma-lienzo" id="firma-lienzo"></canvas>' +
+      '<div style="display:flex;justify-content:space-between;align-items:center;margin-top:6px"><span style="font-size:12px;color:#5D6B78">Firme dentro del recuadro</span><button type="button" class="sec-volver" style="padding:6px 10px;font-size:13px" id="firma-borrar">Borrar firma</button></div>' +
+      '<input class="firma-campo" id="firma-nombre" maxlength="200" placeholder="Nombre de quien firma (paciente o acudiente)">' +
+      '<label style="display:flex;gap:8px;align-items:center;margin-top:10px;font-size:14px"><input type="checkbox" id="firma-no"> El paciente o acudiente no puede firmar</label>' +
+      '<input class="firma-campo" id="firma-motivo" maxlength="300" placeholder="¿Por qué no puede firmar?" hidden>' +
+      '<div class="sec-modal-botones" style="margin-top:14px"><button class="sec-btn-no" type="button">Cancelar</button><button class="sec-btn-si" type="button">Completar servicio</button></div></div>';
+    document.body.appendChild(fondo);
+    const lienzo = fondo.querySelector('#firma-lienzo'), ctx = lienzo.getContext('2d');
+    const escala = window.devicePixelRatio || 1;
+    lienzo.width = lienzo.clientWidth * escala; lienzo.height = lienzo.clientHeight * escala; ctx.scale(escala, escala);
+    ctx.lineWidth = 2.4; ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.strokeStyle = '#1C2B39';
+    let dibujando = false, trazos = 0;
+    function pos(e){ const r = lienzo.getBoundingClientRect(); return { x: e.clientX - r.left, y: e.clientY - r.top }; }
+    lienzo.addEventListener('pointerdown', function(e){ dibujando = true; lienzo.setPointerCapture(e.pointerId); const p = pos(e); ctx.beginPath(); ctx.moveTo(p.x, p.y); });
+    lienzo.addEventListener('pointermove', function(e){ if (!dibujando) return; const p = pos(e); ctx.lineTo(p.x, p.y); ctx.stroke(); trazos++; });
+    ['pointerup','pointercancel','pointerleave'].forEach(function(ev){ lienzo.addEventListener(ev, function(){ dibujando = false; }); });
+    fondo.querySelector('#firma-borrar').onclick = function(){ ctx.clearRect(0, 0, lienzo.width, lienzo.height); trazos = 0; };
+    const chk = fondo.querySelector('#firma-no'), motivo = fondo.querySelector('#firma-motivo');
+    chk.onchange = function(){ motivo.hidden = !chk.checked; lienzo.style.opacity = chk.checked ? .35 : 1; };
+    function cerrar(v){ fondo.remove(); resolve(v); }
+    fondo.__cerrar = function(){ cerrar(null); };
+    fondo.querySelector('.sec-btn-no').onclick = function(){ cerrar(null); };
+    fondo.querySelector('.sec-btn-si').onclick = function(){
+      if (chk.checked) {
+        const m = motivo.value.trim();
+        if (m.length < 5) { aviso('Escriba por qué no puede firmar (mínimo 5 letras).', 'aviso'); return; }
+        return cerrar({ motivo: m });
+      }
+      const nombre = fondo.querySelector('#firma-nombre').value.trim();
+      if (trazos < 8) { aviso('Falta la firma en el recuadro.', 'aviso'); return; }
+      if (nombre.length < 3) { aviso('Escriba el nombre de quien firma.', 'aviso'); return; }
+      // Imagen pequeña para no llenar el servidor: máximo 400 px de ancho; si aún pesa mucho, más pequeña
+      function exportar(maxAncho) {
+        const ancho = Math.min(maxAncho, lienzo.width), alto = Math.round(lienzo.height * ancho / lienzo.width);
+        const c2 = document.createElement('canvas'); c2.width = ancho; c2.height = alto;
+        const x2 = c2.getContext('2d'); x2.fillStyle = '#fff'; x2.fillRect(0, 0, ancho, alto); x2.drawImage(lienzo, 0, 0, ancho, alto);
+        return c2.toDataURL('image/png');
+      }
+      let img = exportar(400);
+      if (img.length > 200000) img = exportar(280);
+      if (img.length > 240000) { aviso('La firma quedó muy pesada. Bórrela y firme de nuevo, más sencilla.', 'aviso'); return; }
+      cerrar({ imagen: img, nombre: nombre });
+    };
+  });
 }
 
 async function guardarEvolucion() {
@@ -621,6 +861,8 @@ async function guardarEvolucion() {
     glucemia:parseInt(document.getElementById('v-glucemia').value)||undefined,
     observaciones:document.getElementById('v-observaciones').value||undefined,
     procedimientos:document.getElementById('v-procedimientos').value||undefined,
+    impresionDiagnostica:document.getElementById('v-impresion').value.trim()||undefined,
+    recomendaciones:document.getElementById('v-recomendaciones').value.trim()||undefined,
   };
   // Rangos esperados: si algo está por fuera, se pide confirmación (evita errores de digitación)
   const rangos = {'v-sistolica':[70,220,'Tensión sistólica'],'v-diastolica':[40,130,'Tensión diastólica'],'v-fc':[40,180,'Frecuencia cardiaca'],'v-temp':[34,41,'Temperatura'],'v-spo2':[80,100,'Saturación de oxígeno'],'v-glucemia':[40,400,'Glucemia']};
@@ -637,25 +879,60 @@ async function guardarEvolucion() {
   try {
     const res = await fetch(API+'/api/servicios/'+servicioActivoId+'/evolucion',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},body:JSON.stringify(body)});
     hideLoading();
-    if (!res.ok) throw new Error();
+    if (!res.ok) { const d = await res.json().catch(function(){return {};}); throw new Error(d.error || 'No se pudo guardar la nota clínica. Revise su conexión e intente de nuevo.'); }
     aviso('Nota clínica guardada correctamente');
     document.getElementById('nota-ok').style.display = 'block';
     document.querySelectorAll('.vital-input.fuera').forEach(function(x){ x.classList.remove('fuera'); });
-    ['v-sistolica','v-diastolica','v-fc','v-temp','v-spo2','v-glucemia','v-observaciones','v-procedimientos'].forEach(function(id){document.getElementById(id).value='';});
-  } catch(e) { hideLoading(); aviso('No se pudo guardar la nota clínica. Revise su conexión e intente de nuevo.', 'error'); }
+    limpiarNota(true);
+  } catch(e) { hideLoading(); aviso(mensajeRed(e), 'error'); }
 }
 
-async function toggleDisponible() {
-  disponible = !disponible;
+function mesAnio(f) {
+  var m = /^(\d{4})-(\d{2})/.exec(String(f || ''));
+  if (!m) return '';
+  return ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'][Number(m[2]) - 1] + ' de ' + m[1];
+}
+function pintarDisponible() {
   document.getElementById('status-btn').className = 'status-pill '+(disponible?'disponible':'ocupado');
   document.getElementById('status-label').textContent = disponible?'Disponible':'No disponible';
+  const fin = disponible && disponibleDesde ? new Date(new Date(disponibleDesde).getTime() + 12 * 3600 * 1000) : null;
+  const hora = fin ? fin.toLocaleTimeString('es-CO', {hour:'2-digit', minute:'2-digit', timeZone:'America/Bogota'}) : '';
+  document.getElementById('status-btn').title = fin ? 'En turno hasta las ' + hora : 'Toque para iniciar su turno';
+  const tf = document.getElementById('turno-fin'); tf.hidden = !fin; tf.textContent = fin ? 'En turno hasta las ' + hora : '';
+}
+var avisosActivos = false;
+async function toggleDisponible() {
+  if (!miPerfilId) { aviso('Cargando su perfil, intente en un momento', 'aviso'); return; }
+  const nuevo = !disponible;
+  try {
+    if (nuevo) { pidiendoAvisos = true; await iniciarNotificacionesPush(); pidiendoAvisos = false; }
+    const res = await fetch(API+'/api/profesionales/'+miPerfilId+'/disponibilidad',{method:'PUT',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},body:JSON.stringify({disponible:nuevo})});
+    const d = await res.json().catch(function(){ return {}; });
+    if (!res.ok) { if (d.faltanAvisos) { mostrarAyudaAvisos(); return; } throw new Error(d.error); }
+    if (d.accessToken) { token = d.accessToken; try { localStorage.setItem('re_e_token', token); } catch(e) {} }
+    disponible = nuevo; disponibleDesde = d.disponibleDesde || null; pintarDisponible();
+    aviso(disponible ? (avisosActivos ? 'Turno iniciado. Puede guardar el celular: le avisaremos cada solicitud.' : 'Turno iniciado. Mantenga la app abierta para ver las solicitudes.') : 'Turno terminado. Ya no le llegarán solicitudes.');
+    loadSolicitudes();
+  } catch(e) { aviso(mensajeRed(e, 'No se pudo cambiar su disponibilidad. Intente de nuevo.'), 'error'); }
 }
 
-async function loadHistorial() {
+// Ayuda cuando el celular no puede recibir avisos (en iPhone hay que agregar la app a la pantalla de inicio)
+function mostrarAyudaAvisos() {
+  const esIphone = /iPhone|iPad|iPod/.test(navigator.userAgent);
+  const instalada = window.matchMedia && window.matchMedia('(display-mode: standalone)').matches;
+  let texto = 'Para recibir las solicitudes con el celular guardado, permita las notificaciones de esta app.';
+  if (esIphone && !instalada) texto = 'En iPhone primero toque el botón Compartir (cuadro con flecha) y elija "Agregar a pantalla de inicio". Abra la app desde ese ícono, toque "Disponible" y acepte las notificaciones.';
+  else if (typeof Notification !== 'undefined' && Notification.permission === 'denied') texto = 'Las notificaciones están bloqueadas para esta página. Actívelas en la configuración del navegador (ícono de candado junto a la dirección) y vuelva a tocar "Disponible".';
+  confirmar(texto, { titulo: 'Active los avisos', si: 'Entendido', no: 'Cerrar' });
+}
+
+let paginaHistorial = 1;
+async function loadHistorial(mas) {
   const el = document.getElementById('historial-list');
-  el.innerHTML = '<div style="text-align:center;padding:40px"><div class="loading-ring" style="margin:0 auto;display:block"></div></div>';
+  paginaHistorial = mas ? paginaHistorial + 1 : 1;
+  if (!mas) el.innerHTML = '<div style="text-align:center;padding:40px"><div class="loading-ring" style="margin:0 auto;display:block"></div></div>';
   try {
-    const res = await fetch(API+'/api/servicios',{headers:{'Authorization':'Bearer '+token}});
+    const res = await fetch(API+'/api/servicios?limit='+Math.min(100, 30*paginaHistorial),{headers:{'Authorization':'Bearer '+token}});
     if (!res.ok) throw new Error();
     const data = await res.json();
     const items = (data.items||[]).filter(function(s){return['completado','cancelado'].includes(s.estado);});
@@ -663,9 +940,10 @@ async function loadHistorial() {
     const iconos={curacion:'🩹',medicacion:'💊',inyeccion:'💉',control:'🩺',cuidado_basico:'🛁',urgencia:'🚨'};
     el.innerHTML = items.map(function(s){
       return '<div class="historial-item"><div class="hist-icon" style="background:'+(s.estado==='completado'?'var(--teal-dim)':'var(--red-dim)')+'">'+( iconos[s.tipo]||'🏥')+'</div>' +
-        '<div class="hist-info"><div class="hist-tipo">'+tipoLabel(s.tipo)+'</div><div class="hist-fecha">'+formatDate(s.createdAt)+'</div></div>' +
+        '<div class="hist-info"><div class="hist-tipo">'+tipoLabel(s.tipo)+'</div><div class="hist-fecha">'+esc((s.paciente&&(s.paciente.nombreCompleto||(s.paciente.usuario&&s.paciente.usuario.nombreCompleto)))||'')+' · '+formatDate(s.createdAt)+'</div></div>' +
         '<span class="badge '+(s.estado==='completado'?'badge-teal':'badge-red')+'">'+(s.estado==='completado'?'Completado':'Cancelado')+'</span></div>';
-    }).join('');
+    }).join('') +
+      ((data.total||0) > (data.items||[]).length && (data.items||[]).length < 100 ? '<button class="btn-main" style="margin-top:10px" onclick="loadHistorial(true)">Ver servicios anteriores</button>' : '');
   } catch(e) { el.innerHTML='<div class="empty"><div class="empty-icon">📋</div><div class="empty-text">Sin historial aún</div></div>'; }
 }
 
@@ -688,55 +966,73 @@ async function loadPerfil() {
       else { el.textContent='⏳ Pendiente'; el.className='badge badge-amber'; }
       document.getElementById('perfil-especialidad').textContent = miPerfil.especialidad||'—';
       if (miPerfil.especialidad) document.getElementById('perfil-rol').textContent = miPerfil.especialidad;
+      document.getElementById('app-rol').textContent = 'Profesional' + (miPerfil.especialidad ? ' · ' + miPerfil.especialidad : '');
       document.getElementById('perfil-servicios').textContent = miPerfil.totalServicios||0;
       document.getElementById('perfil-cal').textContent = miPerfil.calificacionPromedio?'⭐ '+Number(miPerfil.calificacionPromedio).toFixed(1):'—';
+      cargarOpiniones(miPerfil.id);
     }
   } catch(e) {}
+}
+
+async function cargarOpiniones(id) {
+  const el = document.getElementById('perfil-opiniones');
+  try {
+    const r = await fetch(API+'/api/profesionales/'+id+'/opiniones',{headers:{'Authorization':'Bearer '+token}});
+    const d = await r.json();
+    if (!r.ok) throw new Error();
+    const est = function(n){ let t=''; for (let i=1;i<=5;i++) t += i<=n?'★':'☆'; return t; };
+    el.innerHTML = (d.total ? '<div style="margin-bottom:6px;color:var(--text)"><b>'+d.promedio+'</b> de 5 · '+d.total+(d.total===1?' calificación':' calificaciones')+'</div>' : 'Aún no tiene calificaciones.') +
+      (d.items||[]).map(function(o){ return '<div class="op-item"><span class="op-est">'+est(o.estrellas)+'</span> <span style="color:var(--text)">'+esc(o.comentario)+'</span><div style="font-size:11px">'+mesAnio(o.fecha)+'</div></div>'; }).join('');
+  } catch(e) { el.textContent = 'No se pudieron cargar las opiniones.'; }
 }
 
 function showLoading(text) { document.getElementById('loading-text').textContent=text||'Cargando...'; document.getElementById('loading-overlay').classList.add('active'); }
 function hideLoading() { document.getElementById('loading-overlay').classList.remove('active'); }
 function showError(el,msg) { el.textContent=msg; el.style.display='block'; }
 function tipoLabel(tipo) {
-  const map={curacion:'Curación',medicacion:'Medicación',inyeccion:'Inyección',control:'Control',cuidado_basico:'Cuidado básico',urgencia:'Urgencia'};
+  const map={curacion:'Curación',medicacion:'Medicación',inyeccion:'Inyección',control:'Control',cuidado_basico:'Cuidado básico',urgencia:'Atención prioritaria'};
   return map[tipo]||tipo;
 }
 function formatDate(d) {
   if (!d) return '—';
-  return new Date(d).toLocaleDateString('es-CO',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'});
+  var f = new Date(d), esteAno = f.getFullYear() === new Date().getFullYear();
+  return f.toLocaleString('es-CO', esteAno ? {day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit',timeZone:'America/Bogota'} : {day:'2-digit',month:'short',year:'numeric',timeZone:'America/Bogota'});
 }
 
 // ─── NOTIFICACIONES PUSH ─────────────────────────────
+let pidiendoAvisos = false;
+function activarAvisos() { pidiendoAvisos = true; iniciarNotificacionesPush().finally(function(){ pidiendoAvisos = false; }); }
 async function iniciarNotificacionesPush() {
   try {
     // Verificar soporte
     if (!('serviceWorker' in navigator) || !('PushManager' in window)) return;
 
     // Registrar Service Worker
-    const reg = await navigator.serviceWorker.register('/enfermeria/sw-enfermero.js');
-    console.log('SW registrado');
-
-    // Pedir permiso
-    const permiso = await Notification.requestPermission();
-    if (permiso !== 'granted') return;
-
-    // Obtener clave pública VAPID
-    const resKey = await fetch(API + '/api/push/vapid-public-key');
-    const { publicKey } = await resKey.json();
-
-    // Suscribirse
-    const suscripcion = await reg.pushManager.subscribe({
-      userVisibleOnly: true,
-      applicationServerKey: urlBase64ToUint8Array(publicKey)
-    });
+    const reg = await navigator.serviceWorker.register('sw-enfermero.js');
+    let suscripcion = await reg.pushManager.getSubscription();
+    if (!suscripcion) {
+      // Solo se pide permiso si la persona tocó "Activar avisos" (iPhone lo exige)
+      if (Notification.permission !== 'granted') {
+        if (!pidiendoAvisos) return;
+        const permiso = await Notification.requestPermission();
+        if (permiso !== 'granted') { aviso('No se activaron los avisos. Puede activarlos en la configuración del navegador.', 'aviso'); return; }
+      }
+      const resKey = await fetch(API + '/api/push/vapid-public-key');
+      const { publicKey } = await resKey.json();
+      if (!publicKey) { if (pidiendoAvisos) aviso('Los avisos todavía no están disponibles.', 'aviso'); return; }
+      suscripcion = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: urlBase64ToUint8Array(publicKey) });
+    }
+    // Se envía siempre: el servidor evita duplicados y así queda ligada al profesional que ingresó
 
     // Guardar suscripción en el servidor
-    await fetch(API + '/api/push/suscribir', {
+    const rs = await fetch(API + '/api/push/suscribir', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
       body: JSON.stringify(suscripcion)
     });
-    console.log('Push activado');
+    if (!rs.ok) { const ds = await rs.json().catch(function(){ return {}; }); if (pidiendoAvisos) aviso(ds.error || 'No se pudieron activar los avisos en este celular.', 'aviso'); return; }
+    avisosActivos = true;
+    if (pidiendoAvisos) aviso('Avisos activados en este dispositivo');
   } catch(e) {
     console.log('Push no disponible:', e.message);
   }

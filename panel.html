@@ -4,21 +4,21 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Salud en Casa · Panel de la IPS</title>
-<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Public+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Public+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root {
-    --cream:#EEF2F1;--warm-white:#FFFFFF;--ink:#15232B;--ink-light:#3A4A52;
-    --muted:#5B6B73;--border:#D3DCDA;--teal:#1E3A4C;--teal-light:#2C5470;
-    --teal-pale:#E3ECEF;--amber:#9A6B06;--amber-pale:#FBF1DA;--red:#B4412F;
-    --red-pale:#F8E4E0;--blue:#2F6F95;--blue-pale:#E6F0F6;--gold:#E0A21A;--green:#1F8A4C;
-    --shadow-lg:0 8px 32px rgba(26,23,20,0.12);--shadow-md:0 4px 16px rgba(26,23,20,0.10);
+    --cream:#F4F8FB;--warm-white:#FFFFFF;--ink:#1C2B39;--ink-light:#1C2B39;
+    --muted:#5D6B78;--border:#DCE5EE;--teal:#0B4F8A;--teal-light:#1867B0;
+    --teal-pale:#E8F1FA;--amber:#0E8571;--amber-pale:#E3F6F2;--red:#B4412F;
+    --red-pale:#F8E4E0;--blue:#1867B0;--blue-pale:#E8F1FA;--gold:#14A38B;--green:#1F8A4C;
+    --shadow-lg:0 8px 32px rgba(28,43,57,0.12);--shadow-md:0 4px 16px rgba(28,43,57,0.10);
     --radius:12px;--radius-sm:8px;
   }
   *{margin:0;padding:0;box-sizing:border-box;}
   body{font-family:'Public Sans',sans-serif;background:var(--cream);color:var(--ink);min-height:100vh;display:flex;flex-direction:column;}
-  #login-screen{min-height:100vh;display:flex;align-items:center;justify-content:center;background:var(--ink);position:relative;overflow:hidden;}
-  #login-screen::before{content:'';position:absolute;width:600px;height:600px;border-radius:50%;background:radial-gradient(circle,rgba(27,107,90,0.3) 0%,transparent 70%);top:-200px;right:-100px;}
-  .login-card{background:var(--warm-white);border-radius:20px;padding:48px;width:420px;position:relative;z-index:1;box-shadow:var(--shadow-lg);animation:fadeUp 0.6s ease;}
+  #login-screen{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:16px;background:var(--ink);position:relative;overflow:hidden;}
+  #login-screen::before{content:'';position:absolute;width:600px;height:600px;border-radius:50%;background:radial-gradient(circle,rgba(20,163,139,0.3) 0%,transparent 70%);top:-200px;right:-100px;}
+  .login-card{background:var(--warm-white);border-radius:20px;padding:48px;width:100%;max-width:420px;position:relative;z-index:1;box-shadow:var(--shadow-lg);animation:fadeUp 0.6s ease;}
   @keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
   .login-logo{display:flex;align-items:center;gap:12px;margin-bottom:32px;}
   .login-logo-icon{width:44px;height:44px;background:var(--teal);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;}
@@ -106,19 +106,42 @@
   .profile-email{font-size:12px;color:var(--muted);}
   .section{display:none;}
   .section.active{display:block;}
-  .mono{font-family:'DM Mono',monospace;font-size:12px;}
-  .api-url-bar{background:var(--ink);color:var(--gold);font-family:'DM Mono',monospace;font-size:12px;padding:10px 16px;border-radius:var(--radius-sm);margin-bottom:24px;display:flex;align-items:center;gap:10px;}
-  .api-url-dot{width:8px;height:8px;background:#4CAF50;border-radius:50%;}
-  .token-display{background:var(--cream);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 14px;font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);word-break:break-all;margin-top:12px;}
-  @media(max-width:900px){.stats-grid{grid-template-columns:1fr 1fr;}.grid-2{grid-template-columns:1fr;}.sidebar{display:none;}}
+  .mono{font-family:'Public Sans',monospace;font-size:12px;}
+  .api-url-bar{background:#E8F1FA;color:#0B4F8A;font-family:'Public Sans',monospace;font-size:12px;padding:10px 16px;border-radius:var(--radius-sm);margin-bottom:24px;display:flex;align-items:center;gap:10px;}
+  .api-url-dot{width:8px;height:8px;background:#14A38B;border-radius:50%;}
+  .token-display{background:var(--cream);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 14px;font-family:'Public Sans',monospace;font-size:11px;color:var(--muted);word-break:break-all;margin-top:12px;}
+  @media(max-width:900px){.stats-grid{grid-template-columns:1fr 1fr;}.grid-2{grid-template-columns:1fr;}
+    .main-layout{flex-direction:column}
+    .sidebar{display:flex;width:100%;height:auto;position:static;overflow-x:auto;border-right:0;border-bottom:1px solid var(--border);padding:8px 10px;gap:4px}
+    .sidebar-section{display:flex;gap:4px;margin:0}.sidebar-section-title{display:none}
+    .nav-item{white-space:nowrap;width:auto}
+    .topbar{padding:8px 14px;height:auto;min-height:60px;gap:8px}.topbar-user{font-size:12px}.topbar-user #user-name{font-size:12px}.topbar-logo .largo{display:none}.content{padding:20px 14px}#filtro-estado,#filtro-prof{width:100%;max-width:100%}
+    .page-header{flex-direction:column;gap:12px}
+    table{display:block;overflow-x:auto;white-space:nowrap}}
+  @media(max-width:480px){.stats-grid{grid-template-columns:1fr}.login-card{padding:28px 20px}}
   /* Paleta institucional */
-  #login-screen{background:linear-gradient(160deg,#152B39,#1E3A4C 60%,#2C5470)}
-  #login-screen::before{background:radial-gradient(circle,rgba(224,162,26,0.18) 0%,transparent 70%)}
-  .topbar{background:#1E3A4C;border-bottom:3px solid #E0A21A}
+  #login-screen{background:linear-gradient(160deg,#0B4F8A,#0B4F8A 60%,#1867B0)}
+  #login-screen::before{background:radial-gradient(circle,rgba(20,163,139,0.18) 0%,transparent 70%)}
+  .topbar{background:#fff;color:var(--ink);border-bottom:0;box-shadow:0 2px 14px rgba(28,43,57,.08)}
+  .topbar-logo{color:#0B4F8A}.topbar-user{color:var(--ink-light)}
+  .btn-logout{background:#E8F1FA;color:#0B4F8A;font-weight:600}.btn-logout:hover{background:#DCE5EE}
+  .nav-item.active{background:#E3F6F2;color:#0E8571}
   .login-title,.page-title{letter-spacing:.01em}.page-title{font-size:32px}.login-title{font-size:32px}
   .topbar-logo{font-size:21px;letter-spacing:.02em}
+  /* En el celular las tablas se ven como tarjetas (cada dato con el nombre de su columna) */
+  @media (max-width:700px){
+    .table-wrap table,.table-wrap tbody,.table-wrap tr,.table-wrap td{display:block;width:100%}
+    .table-wrap thead{display:none}
+    .table-wrap tr{border:1px solid #DCE5EE;border-radius:12px;margin:0 0 10px;padding:6px 10px;background:#fff}
+    .table-wrap td{border:0!important;padding:6px 0!important;display:flex;gap:10px;justify-content:space-between;align-items:flex-start;text-align:right;white-space:normal!important;max-width:none!important}
+    .table-wrap td::before{content:attr(data-label);font-weight:700;color:#5D6B78;font-size:12px;text-align:left;flex:none;max-width:45%}
+    .table-wrap td:not([data-label])::before{content:none}
+    .table-wrap tr.fila-unica td{display:block;text-align:center}
+    .table-wrap td .profile-cell{justify-content:flex-end}
+  }
+  .user-rol{font-size:11px;color:#0E8571;font-weight:700;display:block;line-height:1.1}
 </style>
-<script src="comun.js" data-rol="admin"></script>
+<script src="comun.js?v=20261022c" data-rol="admin"></script>
 </head>
 <body>
 
@@ -151,12 +174,12 @@
 <div id="app">
   <div class="topbar">
     <div style="display:flex;align-items:center;gap:16px;">
-      <div class="topbar-logo"><div class="topbar-logo-dot"></div>Salud en Casa · Panel IPS</div>
+      <div class="topbar-logo"><div class="topbar-logo-dot"></div><span class="largo">Salud en Casa · </span>Panel IPS</div>
     </div>
     <div class="topbar-right">
       <div class="topbar-user">
         <div class="topbar-avatar" id="user-avatar">A</div>
-        <span id="user-name">Admin</span>
+        <span><span id="user-name">Administrador</span><span class="user-rol">Administrador de la IPS</span></span>
       </div>
       <button class="btn-logout" onclick="doLogout()">Cerrar sesión</button>
     </div>
@@ -167,7 +190,7 @@
       <div class="sidebar-section">
         <div class="sidebar-section-title">Principal</div>
         <button class="nav-item active" onclick="showSection('dashboard',this)">
-          <span class="nav-item-icon">📊</span> Dashboard
+          <span class="nav-item-icon">📊</span> Resumen
         </button>
         <button class="nav-item" onclick="showSection('servicios',this)">
           <span class="nav-item-icon">🏥</span> Servicios
@@ -182,6 +205,10 @@
         <button class="nav-item" onclick="showSection('pacientes',this)">
           <span class="nav-item-icon">🧑‍🦽</span> Pacientes
         </button>
+        <button class="nav-item" onclick="showSection('quejas',this)">
+          <span class="nav-item-icon">⭐</span> Quejas y opiniones
+          <span class="nav-badge" id="badge-quejas" style="display:none">0</span>
+        </button>
         <button class="nav-item" onclick="showSection('tarifas',this)">
           <span class="nav-item-icon">💲</span> Tarifas
         </button>
@@ -191,6 +218,9 @@
       </div>
       <div class="sidebar-section">
         <div class="sidebar-section-title">Sistema</div>
+        <button class="nav-item" onclick="showSection('cuentas',this)">
+          <span class="nav-item-icon">🔐</span> Cuentas y accesos
+        </button>
         <button class="nav-item" onclick="showSection('api',this)">
           <span class="nav-item-icon">⚡</span> API & Conexión
         </button>
@@ -203,34 +233,34 @@
       <div class="section active" id="section-dashboard">
         <div class="page-header">
           <div>
-            <div class="page-title">Dashboard</div>
+            <div class="page-title">Resumen</div>
             <div class="page-subtitle" id="dashboard-date"></div>
           </div>
           <button class="btn btn-teal" onclick="loadDashboard()">↻ Actualizar</button>
         </div>
         <div class="stats-grid">
-          <div class="stat-card">
+          <div role="button" tabindex="0" title="Ver la lista" style="cursor:pointer" onclick="irA('servicios',{estado:'hoy'})" class="stat-card">
             <div class="stat-label">Servicios hoy</div>
             <div class="stat-value" id="stat-hoy">—</div>
             <div class="stat-change">Solicitudes del día</div>
             <div class="stat-icon">📋</div>
           </div>
-          <div class="stat-card amber">
+          <div role="button" tabindex="0" title="Ver la lista" style="cursor:pointer" onclick="irA('servicios',{estado:'activos'})" class="stat-card amber">
             <div class="stat-label">Activos ahora</div>
             <div class="stat-value" id="stat-activos">—</div>
             <div class="stat-change">En curso / camino</div>
             <div class="stat-icon">🚑</div>
           </div>
-          <div class="stat-card blue">
-            <div class="stat-label">Profesionales</div>
+          <div role="button" tabindex="0" title="Ver la lista" style="cursor:pointer" onclick="irA('profesionales',{estado:'turno'})" class="stat-card blue">
+            <div class="stat-label">En turno ahora</div>
             <div class="stat-value" id="stat-profesionales">—</div>
-            <div class="stat-change">Disponibles y verificados</div>
+            <div class="stat-change" id="stat-buscando">Profesionales disponibles</div>
             <div class="stat-icon">👩‍⚕️</div>
           </div>
-          <div class="stat-card red">
+          <div role="button" tabindex="0" title="Ver la lista" style="cursor:pointer" onclick="irA('profesionales',{estado:'pendiente'})" class="stat-card red">
             <div class="stat-label">Por verificar</div>
             <div class="stat-value" id="stat-pendientes">—</div>
-            <div class="stat-change">Solicitudes pendientes</div>
+            <div class="stat-change" id="stat-quejas">Profesionales por revisar</div>
             <div class="stat-icon">⏳</div>
           </div>
         </div>
@@ -252,12 +282,25 @@
           <div><div class="page-title">Servicios</div><div class="page-subtitle">Historial completo de atenciones</div></div>
           <button class="btn btn-teal" onclick="loadServicios()">↻ Actualizar</button>
         </div>
+        <div style="margin-bottom:12px">
+          <select id="filtro-estado" onchange="loadServicios()" style="padding:9px 12px;border:1px solid var(--border);border-radius:8px;font:inherit;background:#fff">
+            <option value="">Todos los estados</option>
+            <option value="hoy">Pedidos hoy</option>
+            <option value="activos">Activos ahora (asignados, en camino, en curso)</option>
+            <option value="pendiente">Pendientes</option>
+            <option value="asignado">Asignados</option>
+            <option value="en_camino">En camino</option>
+            <option value="en_curso">En curso</option>
+            <option value="completado">Completados</option>
+            <option value="cancelado">Cancelados</option>
+          </select>
+        </div>
         <div class="card">
           <div class="card-body" style="padding:0">
             <div class="table-wrap">
               <table>
-                <thead><tr><th>Paciente</th><th>Tipo</th><th>Estado</th><th>Profesional</th><th>Fecha</th><th>Monto</th></tr></thead>
-                <tbody id="servicios-tbody"><tr><td colspan="6"><div class="loading"><div class="spinner"></div> Cargando...</div></td></tr></tbody>
+                <thead><tr><th>Paciente</th><th>Tipo</th><th>Estado</th><th>Profesional</th><th>Fecha</th><th>Valor</th><th></th></tr></thead>
+                <tbody id="servicios-tbody"><tr><td colspan="7"><div class="loading"><div class="spinner"></div> Cargando...</div></td></tr></tbody>
               </table>
             </div>
           </div>
@@ -267,8 +310,17 @@
       <!-- PROFESIONALES -->
       <div class="section" id="section-profesionales">
         <div class="page-header">
-          <div><div class="page-title">Profesionales</div><div class="page-subtitle">Gestión y verificación de enfermeros</div></div>
-          <button class="btn btn-teal" onclick="loadProfesionales()">↻ Actualizar</button>
+          <div><div class="page-title">Profesionales</div><div class="page-subtitle">Verificación de profesionales de la salud</div></div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+            <select id="filtro-prof" onchange="loadProfesionales()" style="padding:9px 12px;border:1px solid var(--border);border-radius:8px;font:inherit;background:#fff">
+              <option value="">Todos</option>
+              <option value="turno">En turno ahora</option>
+              <option value="pendiente">Por verificar</option>
+              <option value="aprobado">Aprobados</option>
+              <option value="rechazado">Rechazados</option>
+            </select>
+            <button class="btn btn-teal" onclick="loadProfesionales()">↻ Actualizar</button>
+          </div>
         </div>
         <div id="alert-prof" class="alert"></div>
         <div class="card">
@@ -289,15 +341,71 @@
           <div><div class="page-title">Pacientes</div><div class="page-subtitle">Registro de pacientes en el sistema</div></div>
           <button class="btn btn-teal" onclick="loadPacientes()">↻ Actualizar</button>
         </div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:12px">
+          <input id="buscar-paciente" type="search" placeholder="Buscar por nombre, documento, correo o teléfono" onkeydown="if(event.key==='Enter')loadPacientes()" style="flex:1;min-width:220px;padding:9px 12px;border:1px solid var(--border);border-radius:8px;font:inherit">
+          <button class="btn btn-sm btn-teal" onclick="loadPacientes()">Buscar</button>
+          <label style="font-size:13px;display:flex;gap:6px;align-items:center"><input type="checkbox" id="ver-retirados" onchange="loadPacientes()"> Ver retirados</label>
+        </div>
         <div class="card">
           <div class="card-body" style="padding:0">
             <div class="table-wrap">
               <table>
-                <thead><tr><th>Paciente</th><th>Teléfono</th><th>Tipo de sangre</th><th>Antecedentes</th><th>Registro</th></tr></thead>
-                <tbody id="pacientes-tbody"><tr><td colspan="5"><div class="loading"><div class="spinner"></div> Cargando...</div></td></tr></tbody>
+                <thead><tr><th>Paciente</th><th>Cuenta (quien lo registró)</th><th>Parentesco</th><th>Alergias / antecedentes</th><th>Registro</th><th></th></tr></thead>
+                <tbody id="pacientes-tbody"><tr><td colspan="6"><div class="loading"><div class="spinner"></div> Cargando...</div></td></tr></tbody>
               </table>
             </div>
           </div>
+        </div>
+      </div>
+
+      <!-- CUENTAS Y ACCESOS -->
+      <div class="section" id="section-cuentas">
+        <div class="page-header">
+          <div><div class="page-title">🔐 Cuentas y accesos</div><div class="page-subtitle">Todas las cuentas de la app: pacientes, profesionales y administración de la IPS. Las contraseñas se guardan cifradas y nadie puede verlas (Ley 1581 de 2012): para crearlas o cambiarlas se envía un enlace al correo de la persona. Los enlaces de las cuentas de administración llegan al correo del dueño.</div></div>
+          <button class="btn btn-teal" onclick="loadCuentas()">↻ Actualizar</button>
+        </div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:12px">
+          <input id="buscar-cuenta" type="search" placeholder="Buscar por nombre, correo o teléfono" onkeydown="if(event.key==='Enter')loadCuentas()" style="flex:1;min-width:220px;padding:9px 12px;border:1px solid var(--border);border-radius:8px;font:inherit">
+          <select id="filtro-rol" onchange="loadCuentas()" style="padding:9px 12px;border:1px solid var(--border);border-radius:8px;font:inherit;background:#fff;max-width:100%">
+            <option value="">Todos los perfiles</option>
+            <option value="paciente">Pacientes</option>
+            <option value="profesional">Profesionales</option>
+            <option value="admin">Administración de la IPS</option>
+          </select>
+          <button class="btn btn-sm btn-teal" onclick="loadCuentas()">Buscar</button>
+          <button class="btn btn-sm" onclick="descargarCuentas(this)">⬇ Descargar CSV</button>
+        </div>
+        <div class="card">
+          <div class="card-body" style="padding:0">
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Persona</th><th>Correo</th><th>Perfil</th><th>Contraseña</th><th>Último ingreso</th><th>Estado</th><th></th></tr></thead>
+                <tbody id="cuentas-tbody"><tr><td colspan="7"><div class="loading"><div class="spinner"></div> Cargando...</div></td></tr></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- QUEJAS Y OPINIONES -->
+      <div class="section" id="section-quejas">
+        <div class="page-header">
+          <div><div class="page-title">Quejas y opiniones</div><div class="page-subtitle">Lo que dicen los pacientes de cada profesional</div></div>
+          <button class="btn btn-teal" onclick="loadQuejas()">↻ Actualizar</button>
+        </div>
+        <div class="card" style="margin-bottom:18px">
+          <div class="card-header"><div class="card-title">Quejas</div></div>
+          <div class="card-body" style="padding:0"><div class="table-wrap"><table>
+            <thead><tr><th>Fecha</th><th>Paciente</th><th>Profesional</th><th>Queja</th><th>Estado</th><th></th></tr></thead>
+            <tbody id="quejas-tbody"><tr><td colspan="6"><div class="loading"><div class="spinner"></div> Cargando...</div></td></tr></tbody>
+          </table></div></div>
+        </div>
+        <div class="card">
+          <div class="card-header"><div class="card-title">Últimas calificaciones</div></div>
+          <div class="card-body" style="padding:0"><div class="table-wrap"><table>
+            <thead><tr><th>Fecha</th><th>Profesional</th><th>Estrellas</th><th>Comentario (lo ven otros pacientes)</th><th></th></tr></thead>
+            <tbody id="opiniones-tbody"><tr><td colspan="5"><div class="loading"><div class="spinner"></div> Cargando...</div></td></tr></tbody>
+          </table></div></div>
         </div>
       </div>
 
@@ -321,7 +429,7 @@
 
       <div class="section" id="section-pagos">
         <div class="page-header">
-          <div><div class="page-title">Pagos</div><div class="page-subtitle">El paciente paga a la IPS al confirmar. El valor del profesional se libera cuando registra la nota clínica y completa el servicio.</div></div>
+          <div><div class="page-title">Pagos</div><div class="page-subtitle">El paciente paga a la IPS después de elegir al profesional. El valor del profesional se libera cuando registra la nota clínica y completa el servicio.</div></div>
           <button class="btn btn-teal" onclick="loadPagos()">↻ Actualizar</button>
         </div>
         <div class="stats-grid" id="pagos-resumen" style="margin-bottom:24px"></div>
@@ -351,10 +459,16 @@
             <div class="card-body"><div id="health-result" class="loading"><div class="spinner"></div> Verificando...</div></div>
           </div>
           <div class="card">
-            <div class="card-header"><div class="card-title">Token de acceso</div></div>
+            <div class="card-header"><div class="card-title">Sesión</div></div>
             <div class="card-body">
-              <p style="font-size:13px;color:var(--muted);margin-bottom:8px;">Token JWT activo:</p>
-              <div class="token-display" id="token-display">—</div>
+              <p style="font-size:13px;color:var(--muted);">Por seguridad, a los 15 minutos sin uso le preguntamos si sigue ahí; si no responde en 2 minutos, la sesión se cierra. En todo caso se cierra a las 12 horas. También se cierra de inmediato si usted sale o cambia la contraseña.</p>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-header"><div class="card-title">Pagos en línea con Bold</div></div>
+            <div class="card-body">
+              <p style="font-size:13px;color:var(--muted);margin:0 0 10px">Hace un pago real de $1.000 para comprobar que Bold, el sistema central de SkyNet Genesis y este servidor están conectados. No toca ningún servicio ni paciente.</p>
+              <button class="btn btn-teal" id="btn-prueba-bold" onclick="pagoPruebaBold(this)">Pago de prueba de $1.000</button>
             </div>
           </div>
         </div>
@@ -370,7 +484,7 @@ let token = localStorage.getItem('re_token') || '';
 let currentUser = JSON.parse(localStorage.getItem('re_user') || 'null');
 
 async function doLogin() {
-  const email = document.getElementById('login-email').value;
+  const email = document.getElementById('login-email').value.trim();
   const password = document.getElementById('login-password').value;
   const errEl = document.getElementById('login-error');
   errEl.style.display = 'none';
@@ -381,24 +495,28 @@ async function doLogin() {
       body: JSON.stringify({ email, password })
     });
     const data = await res.json();
-    if (!res.ok) throw new Error(data.message || 'Credenciales incorrectas');
+    if (!res.ok) throw new Error(data.error || 'Correo o contraseña incorrectos');
+    if (!data.usuario || data.usuario.rol !== 'admin') {
+      if (data.accessToken) fetch(API + '/api/auth/logout', { method: 'POST', headers: { 'Authorization': 'Bearer ' + data.accessToken } }).catch(function(){});
+      throw new Error('Esta cuenta no es de administrador. Use la app de pacientes o de profesionales.');
+    }
     token = data.accessToken;
     currentUser = data.usuario;
     localStorage.setItem('re_token', token);
     localStorage.setItem('re_user', JSON.stringify(currentUser));
     initApp();
   } catch (e) {
-    errEl.textContent = e.message;
+    errEl.textContent = window.mensajeRed ? mensajeRed(e) : e.message;
     errEl.style.display = 'block';
   }
 }
 
 function doLogout() {
+  if (token) fetch(API + '/api/auth/logout', { method: 'POST', headers: { 'Authorization': 'Bearer ' + token } }).catch(function(){});
   token = ''; currentUser = null;
   localStorage.removeItem('re_token');
   localStorage.removeItem('re_user');
-  document.getElementById('login-screen').style.display = 'flex';
-  document.getElementById('app').style.display = 'none';
+  setTimeout(function(){ location.reload(); }, 150);
 }
 
 document.getElementById('login-password').addEventListener('keydown', function(e) {
@@ -414,24 +532,99 @@ function initApp() {
     document.getElementById('user-name').textContent = currentUser.nombreCompleto || 'Admin';
   }
   document.getElementById('dashboard-date').textContent =
-    new Date().toLocaleDateString('es-CO', {weekday:'long', year:'numeric', month:'long', day:'numeric'});
-  document.getElementById('token-display').textContent = token.slice(0,60) + '...';
+    new Date().toLocaleDateString('es-CO', {weekday:'long', year:'numeric', month:'long', day:'numeric', timeZone:'America/Bogota'});
   loadDashboard();
   checkHealth();
+  try { if (!history.state || !history.state.sec) { history.replaceState({ sec: 'dashboard', base: true }, ''); history.pushState({ sec: 'dashboard' }, ''); } } catch (e) {}
+  if (window.__guardia) window.__guardia.detener();
+  window.__guardia = vigilarInactividad({ minutos: 15, avisoSeg: 120, marcarUso: function(){ fetch(API + '/api/auth/sigo', { method: 'POST', headers: { 'Authorization': 'Bearer ' + token } }).catch(function(){}); }, alCerrar: function(){
+    if (token) fetch(API + '/api/auth/logout', { method: 'POST', headers: { 'Authorization': 'Bearer ' + token } }).catch(function(){});
+    token = ''; localStorage.removeItem('re_token'); localStorage.removeItem('re_user');
+    aviso('Por seguridad cerramos la sesión por inactividad.', 'aviso');
+    setTimeout(function(){ location.reload(); }, 1500);
+  } });
+  if (window.__vigia) window.__vigia();
+  window.__vigia = vigilarCambios(API, function(){
+    var activa = document.querySelector('.section.active');
+    if (!activa) return;
+    if (activa.id === 'section-dashboard') loadDashboard();
+    if (activa.id === 'section-servicios') loadServicios(true);
+    if (activa.id === 'section-quejas') loadQuejas();
+  }, 30000);
 }
 
 if (token && currentUser) initApp();
+revisarRegresoPrueba();
 
+// Al volver del pago de prueba de Bold: confirma con el servidor y limpia la dirección
+async function revisarRegresoPrueba() {
+  var q = new URLSearchParams(location.search), ref = q.get('bold-order-id'), vuelve = !!ref;
+  if (!ref) { try { var g = JSON.parse(localStorage.getItem('re_prueba_bold') || 'null'); if (g && Date.now() - g.t < 30 * 60000) ref = g.ref; } catch (e) {} }
+  if (!ref) return;
+  if (vuelve) history.replaceState(history.state, '', location.pathname);
+  var st = (q.get('bold-tx-status') || '').toLowerCase();
+  if (st === 'rejected' || st === 'failed') { try { localStorage.removeItem('re_prueba_bold'); } catch (e) {} aviso('Bold rechazó el pago de prueba. Puede intentarlo de nuevo.', 'aviso'); return; }
+  try {
+    var r = await fetch(API + '/api/pagos/bold/volver', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ref: ref }) });
+    var d = await r.json().catch(function(){ return null; });
+    if (d && d.ok && d.prueba) { try { localStorage.removeItem('re_prueba_bold'); } catch (e) {} aviso('Pago de prueba confirmado: el circuito de Bold funciona. Puede devolver los $1.000 desde el panel de Bold.'); }
+    else if (d && d.pendiente) { if (vuelve) aviso('Bold aún no confirma el pago de prueba (con PSE puede tardar unos minutos). Recargue esta página en un momento para revisar de nuevo.', 'aviso'); }
+    else aviso((d && (d.error || d.mensaje)) || 'No se pudo confirmar el pago de prueba.', 'error');
+  } catch (e) { aviso(window.mensajeRed ? window.mensajeRed(e) : 'Sin conexión', 'error'); }
+}
+new MutationObserver(function(){ if (window.etiquetarTablas) etiquetarTablas(document.getElementById('app')); }).observe(document.body, { childList: true, subtree: true });
+
+var avisoSesion = false;
 async function apiFetch(path, opts) {
   opts = opts || {};
-  const res = await fetch(API + path, Object.assign({}, opts, {
-    headers: Object.assign({ 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token }, opts.headers || {})
-  }));
-  if (res.status === 401) { doLogout(); return null; }
-  return res.json();
+  var res;
+  try {
+    res = await fetch(API + path, Object.assign({}, opts, {
+      headers: Object.assign({ 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token }, opts.headers || {})
+    }));
+  } catch (e) {
+    // Sin conexión o servidor despertando: nunca deja pantallas ni botones trabados
+    return { error: window.mensajeRed ? mensajeRed(e) : 'Sin conexión', sinRed: true };
+  }
+  if (res.status === 401) {
+    if (avisoSesion) return null;
+    avisoSesion = true;
+    if (window.__vigia) { window.__vigia(); window.__vigia = null; }
+    if (window.__guardia) { window.__guardia.detener(); window.__guardia = null; }
+    token = ''; localStorage.removeItem('re_token'); localStorage.removeItem('re_user');
+    aviso('Su sesión se cerró. Ingrese de nuevo.', 'error');
+    setTimeout(function(){ location.reload(); }, 1800);
+    document.getElementById('login-screen').style.display = 'flex';
+    document.getElementById('app').style.display = 'none';
+    return null;
+  }
+  return res.json().catch(function(){ return null; });
 }
 
-function showSection(name, btn) {
+function irA(name, filtro) {
+  if (filtro && filtro.estado != null) {
+    var sel = document.getElementById(name === 'servicios' ? 'filtro-estado' : name === 'profesionales' ? 'filtro-prof' : '');
+    if (sel) sel.value = filtro.estado;
+  }
+  var b = Array.prototype.filter.call(document.querySelectorAll('.nav-item'), function(x){ return (x.getAttribute('onclick') || '').indexOf("'" + name + "'") >= 0; })[0];
+  if (b) showSection(name, b);
+}
+
+// Botón atrás del celular: cierra ventanas y vuelve entre secciones sin salir del panel
+var seccionActual = 'dashboard';
+window.addEventListener('popstate', function (e) {
+  if (cerrarVentanaAbierta()) { try { history.pushState({ sec: seccionActual }, ''); } catch (x) {} return; }
+  if (!e.state || e.state.base) { try { history.pushState({ sec: 'dashboard' }, ''); } catch (x) {} if (seccionActual !== 'dashboard') irDesdeHistorial('dashboard'); return; }
+  irDesdeHistorial(e.state.sec || 'dashboard');
+});
+function irDesdeHistorial(name) {
+  var b = Array.prototype.filter.call(document.querySelectorAll('.nav-item'), function(x){ return (x.getAttribute('onclick') || '').indexOf("'" + name + "'") >= 0; })[0];
+  if (b) showSection(name, b, true);
+}
+
+function showSection(name, btn, desdeHistorial) {
+  if (!desdeHistorial && name !== seccionActual) { try { history.pushState({ sec: name }, ''); } catch (e) {} }
+  seccionActual = name;
   document.querySelectorAll('.section').forEach(function(s){ s.classList.remove('active'); });
   document.querySelectorAll('.nav-item').forEach(function(b){ b.classList.remove('active'); });
   document.getElementById('section-' + name).classList.add('active');
@@ -442,48 +635,131 @@ function showSection(name, btn) {
   if (name === 'api') checkHealth();
   if (name === 'tarifas') loadTarifas();
   if (name === 'pagos') loadPagos();
+  if (name === 'quejas') loadQuejas();
+  if (name === 'cuentas') loadCuentas();
+}
+
+var pagQuejas = 1, pagOpiniones = 1;
+function pieLista(pag, total, fn, cols) {
+  var n = Math.ceil((total || 0) / 50);
+  if (n <= 1) return '';
+  return '<tr><td colspan="' + cols + '" style="text-align:center">Página ' + pag + ' de ' + n + ' (' + total + ') · ' +
+    (pag > 1 ? '<button class="btn btn-sm" onclick="' + fn + '(' + (pag - 1) + ')">← Anterior</button> ' : '') +
+    (pag < n ? '<button class="btn btn-sm btn-teal" onclick="' + fn + '(' + (pag + 1) + ')">Siguiente →</button>' : '') + '</td></tr>';
+}
+function verQuejas(p) { pagQuejas = p; loadQuejas(); }
+function verOpiniones(p) { pagOpiniones = p; loadQuejas(); }
+async function loadQuejas() {
+  var tb = document.getElementById('quejas-tbody'), to = document.getElementById('opiniones-tbody');
+  var q = await apiFetch('/api/admin/quejas?limit=50&page=' + pagQuejas);
+  if (!q || !q.items) tb.innerHTML = '<tr><td colspan="6"><div class="empty"><div class="empty-text">Error cargando quejas</div></div></td></tr>';
+  else if (!q.items.length) tb.innerHTML = '<tr><td colspan="6"><div class="empty"><div class="empty-icon">✅</div><div class="empty-text">No hay quejas</div></div></td></tr>';
+  else tb.innerHTML = q.items.map(function(x){
+    var sv = x.servicio || {}, pa = sv.paciente || {}, cu = pa.usuario || {};
+    return '<tr><td style="font-size:12px;color:var(--muted)">' + formatDate(x.createdAt) + '</td>' +
+      '<td>' + esc(pa.nombreCompleto || cu.nombreCompleto || '—') + '<div class="profile-email">' + esc(cu.telefono || '') + '</div></td>' +
+      '<td>' + esc(x.profesional && x.profesional.usuario ? x.profesional.usuario.nombreCompleto : '—') + '</td>' +
+      '<td style="max-width:320px;white-space:normal;font-size:13px">' + esc(x.texto) + (x.respuesta ? '<div class="profile-email" style="margin-top:4px">Nota IPS: ' + esc(x.respuesta) + '</div>' : '') + '</td>' +
+      '<td>' + (x.estado === 'abierta' ? '<span class="badge badge-red">Sin revisar</span>' : '<span class="badge badge-green">Revisada</span>') + '</td>' +
+      '<td>' + (x.estado === 'abierta' ? '<button class="btn btn-sm btn-teal" onclick="revisarQueja(\'' + x.id + '\')">Marcar revisada</button>' : '') + '</td></tr>';
+  }).join('') + pieLista(pagQuejas, q.total, 'verQuejas', 6);
+  var o = await apiFetch('/api/admin/opiniones?limit=50&page=' + pagOpiniones);
+  if (!o || !o.items) to.innerHTML = '<tr><td colspan="5"><div class="empty"><div class="empty-text">Error cargando opiniones</div></div></td></tr>';
+  else if (!o.items.length) to.innerHTML = '<tr><td colspan="5"><div class="empty"><div class="empty-text">Aún no hay calificaciones</div></div></td></tr>';
+  else to.innerHTML = o.items.map(function(x){
+    var est = ''; for (var i = 1; i <= 5; i++) est += i <= x.calificacion ? '★' : '☆';
+    return '<tr><td style="font-size:12px;color:var(--muted)">' + formatDate(x.calificadoEn || x.fechaFin) + '</td>' +
+      '<td>' + esc(x.profesional && x.profesional.usuario ? x.profesional.usuario.nombreCompleto : '—') + '</td>' +
+      '<td style="color:#E0A100;white-space:nowrap">' + est + '</td>' +
+      '<td style="max-width:320px;white-space:normal;font-size:13px">' + (x.comentarioCalificacion ? (x.resenaOculta ? '<s style="color:var(--muted)">' + esc(x.comentarioCalificacion) + '</s> <span class="badge badge-red">Oculto</span>' : esc(x.comentarioCalificacion)) : '<span style="color:var(--muted)">Sin comentario</span>') + '</td>' +
+      '<td>' + (x.comentarioCalificacion ? '<button class="btn btn-sm" onclick="ocultarOpinion(\'' + x.id + '\',' + (!x.resenaOculta) + ')">' + (x.resenaOculta ? 'Mostrar' : 'Ocultar') + '</button>' : '') + '</td></tr>';
+  }).join('') + pieLista(pagOpiniones, o.total, 'verOpiniones', 5);
+}
+
+function revisarQueja(id) {
+  var fondo = document.createElement('div');
+  fondo.className = 'sec-modal-fondo';
+  fondo.innerHTML = '<div class="sec-modal" role="dialog" aria-modal="true"><h3>Marcar queja como revisada</h3><p style="margin-bottom:8px">Escriba qué se hizo (llamada al paciente, llamado de atención, reembolso...).</p>' +
+    '<textarea id="q-respuesta" style="width:100%;height:90px;padding:10px;border:1px solid #DCE5EE;border-radius:8px;font:inherit;box-sizing:border-box" maxlength="2000"></textarea>' +
+    '<div class="sec-modal-botones" style="margin-top:12px"><button class="sec-btn-no" type="button">Cancelar</button><button class="sec-btn-si" type="button">Guardar</button></div></div>';
+  fondo.querySelector('.sec-btn-no').onclick = function(){ fondo.remove(); };
+  fondo.querySelector('.sec-btn-si').onclick = async function(){
+    var r = document.getElementById('q-respuesta').value.trim();
+    if (r.length < 3) { aviso('Escriba una nota corta de lo que se hizo', 'aviso'); return; }
+    var d = await apiFetch('/api/admin/quejas/' + id, { method: 'PUT', body: JSON.stringify({ respuesta: r }) });
+    if (d && !d.error) { fondo.remove(); aviso('Queja marcada como revisada'); loadQuejas(); loadDashboard(); }
+    else aviso((d && d.error) || 'No se pudo guardar', 'error');
+  };
+  document.body.appendChild(fondo);
+}
+
+async function ocultarOpinion(id, oculta) {
+  if (oculta && !(await confirmar('Los pacientes dejarán de ver este comentario. Las estrellas siguen contando en el promedio.', {titulo:'¿Ocultar comentario?', si:'Sí, ocultar'}))) return;
+  var d = await apiFetch('/api/admin/opiniones/' + id, { method: 'PUT', body: JSON.stringify({ oculta: oculta }) });
+  if (d && !d.error) { aviso(oculta ? 'Comentario oculto' : 'Comentario visible de nuevo'); loadQuejas(); }
+  else aviso((d && d.error) || 'No se pudo guardar', 'error');
 }
 
 var ETIQUETA_LIQ = {
   retenido: ['Retenido', 'Pagado por el paciente; servicio en curso'],
   liberado: ['Por transferir', 'Servicio completado; transferir al profesional'],
   transferido: ['Transferido', 'Ya pagado al profesional'],
-  reembolso: ['Reembolso pendiente', 'Servicio cancelado después de pagar']
+  reembolso: ['Reembolso pendiente', 'Servicio cancelado después de pagar: devolver el dinero desde el panel de Bold'],
+  revisar: ['Revisar', 'El valor pagado en Bold no cubre la tarifa'],
+  reembolsado: ['Reembolsado', 'Dinero ya devuelto al paciente']
 };
+function claveLiq(p) { return p.estado === 'reembolsado' ? 'reembolsado' : p.estadoLiquidacion; }
 function cop(n) { return '$' + Number(n || 0).toLocaleString('es-CO', {maximumFractionDigits: 0}); }
 function esc(t) { return String(t == null ? '' : t).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
 
-async function loadPagos() {
+var paginaPagos = 1, filtroPagos = '';
+async function loadPagos(pagina, filtro) {
+  paginaPagos = pagina || 1;
+  if (filtro !== undefined) filtroPagos = filtro;
   var tbody = document.getElementById('pagos-tbody');
-  var data = await apiFetch('/api/pagos/liquidaciones');
-  if (!data || !data.items) { tbody.innerHTML = '<tr><td colspan="8">No se pudieron cargar los pagos.</td></tr>'; return; }
-  var res = {}; (data.resumen || []).forEach(function(r){ res[r.estadoLiquidacion] = r; });
-  document.getElementById('pagos-resumen').innerHTML = ['retenido','liberado','transferido','reembolso'].map(function(k){
+  var data = await apiFetch('/api/pagos/liquidaciones?page=' + paginaPagos + (filtroPagos ? '&estado=' + filtroPagos : ''));
+  if (!data || !data.items) { tbody.innerHTML = '<tr><td colspan="8">' + esc((data && data.error) || 'No se pudieron cargar los pagos.') + '</td></tr>'; return; }
+  var res = {};
+  (data.resumen || []).forEach(function(r){
+    var k = claveLiq(r), a = res[k] || { _count: { _all: 0 }, _sum: { monto: 0, valorProfesional: 0 } };
+    a._count._all += r._count._all; a._sum.monto = Number(a._sum.monto || 0) + Number(r._sum.monto || 0); a._sum.valorProfesional = Number(a._sum.valorProfesional || 0) + Number(r._sum.valorProfesional || 0);
+    res[k] = a;
+  });
+  document.getElementById('pagos-resumen').innerHTML = ['retenido','liberado','transferido','reembolso','revisar','reembolsado'].map(function(k){
     var r = res[k] || {_count:{_all:0}, _sum:{}};
+    if ((k === 'revisar' || k === 'reembolsado') && !r._count._all) return '';
     var valor = k === 'liberado' || k === 'transferido' ? r._sum.valorProfesional : r._sum.monto;
-    return '<div class="stat-card"><div class="stat-label">' + ETIQUETA_LIQ[k][0] + '</div><div class="stat-value" style="font-size:26px">' + cop(valor) + '</div><div class="stat-change">' + r._count._all + ' servicio(s)</div></div>';
+    return '<div class="stat-card" role="button" tabindex="0" title="Ver solo estos pagos" style="cursor:pointer;' + (filtroPagos === k ? 'outline:3px solid #14A38B' : '') + '" onclick="loadPagos(1,\'' + (filtroPagos === k ? '' : k) + '\')"><div class="stat-label">' + ETIQUETA_LIQ[k][0] + '</div><div class="stat-value" style="font-size:26px">' + cop(valor) + '</div><div class="stat-change">' + r._count._all + ' servicio(s)</div></div>';
   }).join('');
-  if (!data.items.length) { tbody.innerHTML = '<tr><td colspan="8" style="color:var(--muted)">Aún no hay pagos aprobados.</td></tr>'; return; }
+  if (!data.items.length) { tbody.innerHTML = '<tr><td colspan="8" style="color:var(--muted)">' + (filtroPagos ? 'No hay pagos en «' + ETIQUETA_LIQ[filtroPagos][0] + '». <button class="btn btn-sm" onclick="loadPagos(1,\'\')">Ver todos</button>' : 'Aún no hay pagos aprobados.') + '</td></tr>'; return; }
   tbody.innerHTML = data.items.map(function(p){
     var s = p.servicio || {}, pr = s.profesional, pac = s.paciente || {};
     var nombrePac = pac.nombreCompleto || (pac.usuario && pac.usuario.nombreCompleto) || '—';
-    var cuenta = pr && pr.cuentaBancaria ? esc(pr.banco || '') + ' ' + esc(pr.tipoCuenta || '') + ' ' + esc(pr.cuentaBancaria) : '<span style="color:var(--muted)">Sin datos</span>';
+    var kl = claveLiq(p);
+    var et = ETIQUETA_LIQ[kl] || [kl, ''];
+    var sinProf = kl === 'revisar' || kl === 'reembolso' || kl === 'reembolsado';
+    var cuenta = sinProf ? '<span style="color:var(--muted)">No se paga al profesional</span>' : pr && pr.cuentaBancaria ? esc(pr.banco || '') + ' ' + esc(pr.tipoCuenta || '') + ' ' + esc(pr.cuentaBancaria) : '<span style="color:var(--muted)">Sin datos</span>';
     var accion = '';
     if (p.estadoLiquidacion === 'liberado') accion = '<button class="btn btn-teal btn-sm" onclick="marcarLiquidacion(\'' + p.id + '\',\'transferido\',this)">Marcar transferido</button>';
-    if (p.estadoLiquidacion === 'reembolso') accion = '<button class="btn btn-teal btn-sm" onclick="marcarLiquidacion(\'' + p.id + '\',\'reembolsado\',this)">Marcar reembolsado</button>';
+    if (p.estadoLiquidacion === 'revisar') accion = '<div style="font-size:12px;color:var(--muted);margin-bottom:6px">Revise el pago en el panel de Bold y devuelva el dinero al paciente.</div><button class="btn btn-teal btn-sm" onclick="marcarLiquidacion(\'' + p.id + '\',\'reembolsado\',this)">Marcar reembolsado</button>';
+    if (kl === 'reembolso') accion = '<button class="btn btn-teal btn-sm" onclick="marcarLiquidacion(\'' + p.id + '\',\'reembolsado\',this)">Marcar reembolsado</button>';
     return '<tr>' +
-      '<td><strong>' + ETIQUETA_LIQ[p.estadoLiquidacion][0] + '</strong><div style="color:var(--muted);font-size:12px">' + ETIQUETA_LIQ[p.estadoLiquidacion][1] + '</div></td>' +
+      '<td><strong>' + et[0] + '</strong><div style="color:var(--muted);font-size:12px">' + et[1] + '</div></td>' +
       '<td>' + (pr && pr.usuario ? esc(pr.usuario.nombreCompleto) : '—') + '</td>' +
       '<td>' + esc(nombrePac) + '<div style="color:var(--muted);font-size:12px">' + tipoLabel(s.tipo) + '</div></td>' +
-      '<td>' + cop(p.monto) + '</td><td>' + cop(p.comision) + '</td><td><strong>' + cop(p.valorProfesional) + '</strong></td>' +
+      '<td>' + cop(p.monto) + '</td><td>' + (sinProf ? '—' : cop(p.comision)) + '</td><td><strong>' + (sinProf ? '—' : cop(p.valorProfesional)) + '</strong></td>' +
       '<td style="font-size:12px">' + cuenta + '</td><td>' + accion + '</td></tr>';
   }).join('');
+  if (paginaPagos > 1 || data.hayMas) tbody.innerHTML += '<tr><td colspan="8" style="text-align:center">Página ' + paginaPagos + ' · ' +
+    (paginaPagos > 1 ? '<button class="btn btn-sm" onclick="loadPagos(' + (paginaPagos - 1) + ')">← Anterior</button> ' : '') +
+    (data.hayMas ? '<button class="btn btn-sm btn-teal" onclick="loadPagos(' + (paginaPagos + 1) + ')">Siguiente →</button>' : '') + '</td></tr>';
 }
 
 async function marcarLiquidacion(id, accion, btn) {
+  if (accion === 'reembolsado' && !(await confirmar('Confirme que ya devolvió el dinero al paciente desde el panel de Bold.', {titulo:'¿Marcar como reembolsado?', si:'Sí, ya lo devolví'}))) return;
   btn.disabled = true; btn.textContent = 'Guardando...';
   var res = await apiFetch('/api/pagos/liquidaciones/' + id + '/' + accion, { method: 'PUT', body: '{}' });
-  if (res && res.ok) { loadPagos(); } else { btn.disabled = false; btn.textContent = (res && res.error) || 'Error, reintente'; }
+  if (res && res.ok) { aviso(accion === 'transferido' ? 'Marcado como transferido' : 'Marcado como reembolsado'); loadPagos(paginaPagos, filtroPagos); } else { btn.disabled = false; btn.textContent = accion === 'transferido' ? 'Marcar transferido' : 'Marcar reembolsado'; aviso((res && res.error) || 'No se pudo guardar. Intente de nuevo.', 'error'); }
 }
 
 async function loadTarifas() {
@@ -492,9 +768,9 @@ async function loadTarifas() {
   if (!data || !data.items) { tbody.innerHTML = '<tr><td colspan="6">No se pudieron cargar las tarifas.</td></tr>'; return; }
   tbody.innerHTML = data.items.map(function(t){
     return '<tr>' +
-      '<td><strong>' + t.nombre + '</strong></td>' +
-      '<td style="color:var(--muted)">' + (t.descripcion || '') + '</td>' +
-      '<td><input type="number" id="tarifa-' + t.tipo + '" value="' + t.precio + '" min="10000" step="1000" style="width:120px;padding:6px 8px;border:1px solid var(--border);border-radius:6px;font-family:inherit"></td>' +
+      '<td><strong>' + esc(t.nombre) + '</strong></td>' +
+      '<td style="color:var(--muted)">' + esc(t.descripcion || '') + '</td>' +
+      '<td><input type="number" id="tarifa-' + t.tipo + '" value="' + t.precio + '" min="10000" max="2000000" step="1000" style="width:120px;padding:6px 8px;border:1px solid var(--border);border-radius:6px;font-family:inherit"></td>' +
       '<td><input type="checkbox" id="activo-' + t.tipo + '"' + (t.activo ? ' checked' : '') + '></td>' +
       '<td style="color:var(--muted)">' + formatDate(t.updatedAt) + '</td>' +
       '<td><button class="btn btn-teal btn-sm" onclick="guardarTarifa(\'' + t.tipo + '\', this)">Guardar</button></td>' +
@@ -505,11 +781,12 @@ async function loadTarifas() {
 async function guardarTarifa(tipo, btn) {
   var precio = parseInt(document.getElementById('tarifa-' + tipo).value, 10);
   var activo = document.getElementById('activo-' + tipo).checked;
-  if (!precio || precio < 10000) { btn.textContent = 'Mínimo $10.000'; return; }
+  if (!precio || precio < 10000 || precio > 2000000) { aviso('La tarifa debe estar entre $10.000 y $2.000.000', 'aviso'); return; }
   btn.disabled = true; btn.textContent = 'Guardando...';
   var res = await apiFetch('/api/tarifas/' + tipo, { method: 'PUT', body: JSON.stringify({ precio: precio, activo: activo }) });
   btn.disabled = false;
   btn.textContent = (res && res.tipo) ? 'Guardado' : 'Error, reintente';
+  if (res && res.tipo) aviso('Tarifa guardada'); else aviso((res && res.error) || 'No se pudo guardar la tarifa', 'error');
   setTimeout(function(){ btn.textContent = 'Guardar'; }, 2500);
 }
 
@@ -517,9 +794,15 @@ async function loadDashboard() {
   try {
     const data = await apiFetch('/api/admin/dashboard');
     if (!data) return;
+    if (data.error) throw new Error(data.error);
     document.getElementById('stat-hoy').textContent = data.serviciosHoy != null ? data.serviciosHoy : '0';
     document.getElementById('stat-activos').textContent = data.serviciosActivos != null ? data.serviciosActivos : '0';
-    document.getElementById('stat-profesionales').textContent = data.profesionalesDisponibles != null ? data.profesionalesDisponibles : '0';
+    document.getElementById('stat-profesionales').textContent = data.conectadosAhora != null ? data.conectadosAhora : '0';
+    document.getElementById('stat-buscando').textContent = (data.buscando ? data.buscando + (data.buscando === 1 ? ' solicitud buscando' : ' solicitudes buscando') + ' profesional' : 'Profesionales disponibles');
+    var sq = document.getElementById('stat-quejas');
+    sq.textContent = 'Profesionales por revisar';
+    var bq = document.getElementById('badge-quejas');
+    if (data.quejasAbiertas > 0) { bq.textContent = data.quejasAbiertas; bq.style.display = 'inline-block'; } else bq.style.display = 'none';
     document.getElementById('stat-pendientes').textContent = data.pendientesVerificacion != null ? data.pendientesVerificacion : '0';
     var badge = document.getElementById('badge-pendientes');
     if (data.pendientesVerificacion > 0) {
@@ -530,8 +813,9 @@ async function loadDashboard() {
     }
   } catch(e) {
     ['stat-hoy','stat-activos','stat-profesionales','stat-pendientes'].forEach(function(id){
-      document.getElementById(id).textContent = '0';
+      document.getElementById(id).textContent = '—';
     });
+    aviso('No se pudo cargar el resumen: ' + (e.message || 'sin conexión') + ' Toque "Actualizar" en un momento.', 'error');
   }
   loadServiciosRecientes();
   loadProfesionalesPendientes();
@@ -545,10 +829,10 @@ async function loadServiciosRecientes() {
       el.innerHTML = '<div class="empty"><div class="empty-icon">📋</div><div class="empty-text">No hay servicios aún</div></div>';
       return;
     }
-    el.innerHTML = '<table><thead><tr><th>Paciente</th><th>Tipo</th><th>Estado</th></tr></thead><tbody>' +
+    el.innerHTML = '<div class="table-wrap"><table><thead><tr><th>Paciente</th><th>Tipo</th><th>Estado</th></tr></thead><tbody>' +
       data.items.map(function(s){
-        return '<tr><td>' + (s.paciente ? (s.paciente.nombreCompleto || (s.paciente.usuario && s.paciente.usuario.nombreCompleto) || '—') : '—') + '</td><td>' + tipoLabel(s.tipo) + '</td><td>' + estadoBadge(s.estado) + '</td></tr>';
-      }).join('') + '</tbody></table>';
+        return '<tr><td>' + esc(s.paciente ? (s.paciente.nombreCompleto || (s.paciente.usuario && s.paciente.usuario.nombreCompleto) || '—') : '—') + '</td><td>' + tipoLabel(s.tipo) + '</td><td>' + estadoBadge(s.estado) + '</td></tr>';
+      }).join('') + '</tbody></table></div>';
   } catch(e) {
     el.innerHTML = '<div class="empty"><div class="empty-icon">📋</div><div class="empty-text">No hay servicios aún</div></div>';
   }
@@ -562,109 +846,276 @@ async function loadProfesionalesPendientes() {
       el.innerHTML = '<div class="empty"><div class="empty-icon">✅</div><div class="empty-text">Sin pendientes</div></div>';
       return;
     }
-    el.innerHTML = '<table><thead><tr><th>Nombre</th><th>Email</th><th>Acción</th></tr></thead><tbody>' +
+    el.innerHTML = '<div class="table-wrap"><table><thead><tr><th>Nombre</th><th>Correo</th><th>Acción</th></tr></thead><tbody>' +
       data.items.slice(0,4).map(function(p){
-        return '<tr><td>' + (p.usuario ? p.usuario.nombreCompleto : '—') + '</td>' +
-          '<td style="font-size:12px;color:var(--muted)">' + (p.usuario ? p.usuario.email : '—') + '</td>' +
+        return '<tr><td>' + esc(p.usuario ? p.usuario.nombreCompleto : '—') + '<div style="font-size:12px;color:var(--muted)">' + esc(p.especialidad || '') + '</div></td>' +
+          '<td style="font-size:12px;color:var(--muted)">' + esc(p.usuario ? p.usuario.email : '—') + '</td>' +
           '<td><button class="btn btn-sm btn-approve" onclick="aprobarProf(\'' + p.id + '\',\'aprobado\')">✓ Aprobar</button></td></tr>';
-      }).join('') + '</tbody></table>';
+      }).join('') + '</tbody></table></div>';
   } catch(e) {
     el.innerHTML = '<div class="empty"><div class="empty-icon">✅</div><div class="empty-text">Sin pendientes</div></div>';
   }
 }
 
-async function loadServicios() {
+var paginaServicios = 1;
+async function loadServicios(mantener, pagina) {
+  if (pagina) paginaServicios = pagina; else if (!mantener) paginaServicios = 1;
+  var filtro = document.getElementById('filtro-estado').value;
   var tbody = document.getElementById('servicios-tbody');
-  tbody.innerHTML = '<tr><td colspan="6"><div class="loading"><div class="spinner"></div> Cargando...</div></td></tr>';
+  tbody.innerHTML = '<tr><td colspan="7"><div class="loading"><div class="spinner"></div> Cargando...</div></td></tr>';
   try {
-    var data = await apiFetch('/api/admin/servicios?limit=50');
+    var data = await apiFetch('/api/admin/servicios?limit=50&page=' + paginaServicios + (filtro === 'hoy' ? '&hoy=1' : filtro ? '&estado=' + filtro : ''));
     if (!data || !data.items || data.items.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="6"><div class="empty"><div class="empty-icon">📋</div><div class="empty-text">No hay servicios</div></div></td></tr>';
+      tbody.innerHTML = '<tr><td colspan="7"><div class="empty"><div class="empty-icon">📋</div><div class="empty-text">No hay servicios</div></div></td></tr>';
       return;
     }
     tbody.innerHTML = data.items.map(function(s){
-      return '<tr><td>' + (s.paciente ? (s.paciente.nombreCompleto || (s.paciente.usuario && s.paciente.usuario.nombreCompleto) || '—') : '—') + '</td>' +
+      return '<tr><td>' + esc(s.paciente ? (s.paciente.nombreCompleto || (s.paciente.usuario && s.paciente.usuario.nombreCompleto) || '—') : '—') + '</td>' +
         '<td>' + tipoLabel(s.tipo) + '</td>' +
         '<td>' + estadoBadge(s.estado) + '</td>' +
-        '<td>' + (s.profesional && s.profesional.usuario ? s.profesional.usuario.nombreCompleto : '<span style="color:var(--muted)">Sin asignar</span>') + '</td>' +
+        '<td>' + (s.profesional && s.profesional.usuario ? esc(s.profesional.usuario.nombreCompleto) : '<span style="color:var(--muted)">Sin asignar</span>') + '</td>' +
         '<td style="font-size:12px;color:var(--muted)">' + formatDate(s.createdAt) + '</td>' +
-        '<td>' + (s.monto ? '$' + Number(s.monto).toLocaleString('es-CO') : '—') + '</td></tr>';
+        '<td>' + (s.monto ? '$' + Number(s.monto).toLocaleString('es-CO') : '—') + '</td>' +
+        '<td><div style="display:flex;gap:6px;flex-wrap:wrap">' + (['en_camino','en_curso'].indexOf(s.estado) >= 0 ? '<button class="btn btn-sm btn-teal" onclick="cerrarConNota(\'' + s.id + '\')">Nota y completar</button>' : '') +
+        (['completado','cancelado'].indexOf(s.estado) < 0 ? '<button class="btn btn-sm btn-reject" onclick="cancelarServicioAdmin(\'' + s.id + '\')">Cancelar</button>' : '') + '</div></td></tr>';
     }).join('');
+    var pagS = Math.ceil((data.total || 0) / 50);
+    if (pagS > 1) tbody.innerHTML += '<tr><td colspan="7" style="text-align:center">Página ' + paginaServicios + ' de ' + pagS + ' (' + data.total + ' servicios) · ' +
+      (paginaServicios > 1 ? '<button class="btn btn-sm" onclick="loadServicios(false,' + (paginaServicios - 1) + ')">← Anterior</button> ' : '') +
+      (paginaServicios < pagS ? '<button class="btn btn-sm btn-teal" onclick="loadServicios(false,' + (paginaServicios + 1) + ')">Siguiente →</button>' : '') + '</td></tr>';
   } catch(e) {
-    tbody.innerHTML = '<tr><td colspan="6"><div class="empty"><div class="empty-text">Error cargando servicios</div></div></td></tr>';
+    tbody.innerHTML = '<tr><td colspan="7"><div class="empty"><div class="empty-text">Error cargando servicios</div></div></td></tr>';
   }
 }
 
-async function loadProfesionales() {
+// La IPS cierra un servicio que sí se prestó (por ejemplo, el profesional fue suspendido con la visita en curso)
+function cerrarConNota(id) {
+  var fondo = document.createElement('div');
+  fondo.className = 'sec-modal-fondo';
+  fondo.innerHTML = '<div class="sec-modal" role="dialog" aria-modal="true"><h3>Nota y completar</h3><p style="margin-bottom:8px">Use esto solo si el servicio sí se prestó. Escriba lo que se hizo según lo que informó el profesional o el paciente. Queda en la historia clínica como nota de la IPS.</p>' +
+    '<textarea id="ips-nota" style="width:100%;height:110px;padding:10px;border:1px solid #DCE5EE;border-radius:8px;font:inherit;box-sizing:border-box" maxlength="5000" placeholder="Procedimientos realizados y observaciones"></textarea>' +
+    '<div class="sec-modal-botones" style="margin-top:12px"><button class="sec-btn-no" type="button">Cancelar</button><button class="sec-btn-si" type="button">Guardar y completar</button></div></div>';
+  fondo.__cerrar = function(){ fondo.remove(); };
+  fondo.querySelector('.sec-btn-no').onclick = function(){ fondo.remove(); };
+  fondo.querySelector('.sec-btn-si').onclick = async function(){
+    var t = document.getElementById('ips-nota').value.trim();
+    if (t.length < 10) { aviso('Escriba la nota (mínimo 10 letras)', 'aviso'); return; }
+    var b = this; if (b.disabled) return; b.disabled = true; b.textContent = 'Guardando...';
+    var n = await apiFetch('/api/servicios/' + id + '/evolucion', { method: 'POST', body: JSON.stringify({ procedimientos: t, observaciones: 'Nota registrada por la IPS.' }) });
+    if (!n || n.error) { aviso((n && n.error) || 'No se pudo guardar la nota', 'error'); b.disabled = false; b.textContent = 'Guardar y completar'; return; }
+    var c = await apiFetch('/api/servicios/' + id + '/estado', { method: 'PUT', body: JSON.stringify({ estado: 'completado' }) });
+    if (!c || c.error) { aviso((c && c.error) || 'La nota quedó guardada, pero no se pudo completar. Intente de nuevo.', 'error'); b.disabled = false; b.textContent = 'Guardar y completar'; return; }
+    fondo.remove(); aviso('Servicio completado con la nota de la IPS'); loadServicios(true); loadDashboard();
+  };
+  document.body.appendChild(fondo);
+}
+
+// ── Cuentas y accesos ──
+var paginaCuentas = 1;
+var PERFILES = { paciente: 'Paciente', profesional: 'Profesional', admin: 'Administración IPS' };
+function filtroCuentas() {
+  var q = document.getElementById('buscar-cuenta').value.trim(), r = document.getElementById('filtro-rol').value;
+  return (q ? '&q=' + encodeURIComponent(q) : '') + (r ? '&rol=' + r : '');
+}
+function fechaHora(d) { return d ? new Date(d).toLocaleString('es-CO', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit', timeZone:'America/Bogota' }) : 'Nunca'; }
+async function loadCuentas(pagina) {
+  paginaCuentas = pagina || 1;
+  var tb = document.getElementById('cuentas-tbody');
+  tb.innerHTML = '<tr><td colspan="7"><div class="loading"><div class="spinner"></div> Cargando...</div></td></tr>';
+  var d = await apiFetch('/api/admin/cuentas?limit=50&page=' + paginaCuentas + filtroCuentas());
+  if (!d || !d.items) { tb.innerHTML = '<tr><td colspan="7">' + esc((d && d.error) || 'No se pudieron cargar las cuentas.') + '</td></tr>'; return; }
+  if (!d.items.length) { tb.innerHTML = '<tr><td colspan="7"><div class="empty"><div class="empty-text">No hay cuentas con ese filtro</div></div></td></tr>'; return; }
+  var yo = currentUser && currentUser.id;
+  tb.innerHTML = d.items.map(function(u){
+    var perfil = PERFILES[u.rol] || u.rol;
+    if (u.profesional) perfil += '<div class="profile-email">' + esc(u.profesional.especialidad || '') + ' · ' + esc(u.profesional.estadoVerificacion) + '</div>';
+    var clave = u.claveCreada ? '<span class="badge badge-green">Creada</span>' : '<span class="badge badge-amber">Sin crear</span>';
+    var est = u.estado === 'activo' ? '<span class="badge badge-green">Activa</span>' : '<span class="badge badge-red">Bloqueada</span>';
+    var acc = '';
+    if (u.estado === 'activo') acc += '<button class="btn btn-sm btn-teal" onclick="enlaceCuenta(\'' + u.id + '\',this)">Enviar enlace</button>';
+    if (u.id !== yo) acc += u.estado === 'activo'
+      ? '<button class="btn btn-sm btn-reject" onclick="bloquearCuenta(\'' + u.id + '\')">Bloquear</button>'
+      : '<button class="btn btn-sm btn-approve" onclick="cambiarCuenta(\'' + u.id + '\',\'activo\').then(function(){loadCuentas(paginaCuentas);})">Reactivar</button>';
+    return '<tr><td><strong>' + esc(u.nombreCompleto) + '</strong>' + (u.telefono ? '<div class="profile-email">' + esc(u.telefono) + '</div>' : '') + '</td>' +
+      '<td style="word-break:break-all">' + esc(u.email) + (u.email === d.superadmin ? '<div class="profile-email">Superadministrador</div>' : '') + '</td>' +
+      '<td>' + perfil + '</td><td>' + clave + '</td><td style="font-size:12px">' + fechaHora(u.ultimoIngreso) + '</td><td>' + est + '</td>' +
+      '<td><div style="display:flex;gap:6px;flex-wrap:wrap">' + acc + '</div></td></tr>';
+  }).join('') + pieLista(paginaCuentas, d.total, 'loadCuentas', 7);
+}
+async function enlaceCuenta(id, btn) {
+  if (!(await confirmar('Se enviará un enlace (válido 1 hora) para crear o cambiar la contraseña. Las cuentas de administración lo reciben en el correo del dueño.', { titulo: '¿Enviar enlace de contraseña?', si: 'Sí, enviar' }))) return;
+  btn.disabled = true; var t = btn.textContent; btn.textContent = 'Enviando...';
+  var r = await apiFetch('/api/admin/cuentas/' + id + '/enlace', { method: 'POST', body: '{}' });
+  btn.disabled = false; btn.textContent = t;
+  if (r && r.ok) aviso('Enlace enviado a ' + r.para); else aviso((r && r.error) || 'No se pudo enviar el enlace', 'error');
+}
+function bloquearCuenta(id) {
+  var fondo = document.createElement('div');
+  fondo.className = 'sec-modal-fondo';
+  fondo.innerHTML = '<div class="sec-modal" role="dialog" aria-modal="true"><h3>Bloquear cuenta</h3><p style="margin-bottom:8px">La persona no podrá entrar y se cierran sus sesiones. Si es un profesional, sus servicios no iniciados vuelven a buscar a otro. Escriba el motivo (queda registrado).</p>' +
+    '<textarea id="motivo-bloqueo" style="width:100%;height:80px;padding:10px;border:1px solid #DCE5EE;border-radius:8px;font:inherit;box-sizing:border-box" maxlength="400"></textarea>' +
+    '<div class="sec-modal-botones" style="margin-top:12px"><button class="sec-btn-no" type="button">Cancelar</button><button class="sec-btn-si peligro" type="button">Bloquear</button></div></div>';
+  fondo.__cerrar = function(){ fondo.remove(); };
+  fondo.querySelector('.sec-btn-no').onclick = function(){ fondo.remove(); };
+  fondo.querySelector('.sec-btn-si').onclick = async function(){
+    var m = document.getElementById('motivo-bloqueo').value.trim();
+    if (m.length < 5) { aviso('Escriba el motivo del bloqueo', 'aviso'); return; }
+    var b = this; if (b.disabled) return; b.disabled = true; b.textContent = 'Bloqueando...';
+    var r = await apiFetch('/api/admin/usuarios/' + id + '/estado', { method: 'PUT', body: JSON.stringify({ estado: 'suspendido', motivo: m }) });
+    if (r && !r.error) { fondo.remove(); aviso('Cuenta bloqueada'); loadCuentas(paginaCuentas); loadDashboard(); }
+    else { aviso((r && r.error) || 'No se pudo bloquear', 'error'); b.disabled = false; b.textContent = 'Bloquear'; }
+  };
+  document.body.appendChild(fondo);
+}
+async function descargarCuentas(btn) {
+  btn.disabled = true;
+  var d = await apiFetch('/api/admin/cuentas?todo=1' + filtroCuentas());
+  btn.disabled = false;
+  if (!d || !d.items) { aviso((d && d.error) || 'No se pudo descargar', 'error'); return; }
+  var celda = function(v){ v = String(v == null ? '' : v); if (/^[=+\-@]/.test(v)) v = "'" + v; return '"' + v.replace(/"/g, '""') + '"'; };
+  var filas = [['Nombre','Correo','Teléfono','Perfil','Contraseña creada','Último ingreso','Estado','Registro']].concat(d.items.map(function(u){
+    return [u.nombreCompleto, u.email, u.telefono, PERFILES[u.rol] || u.rol, u.claveCreada ? 'Sí' : 'No', u.ultimoIngreso ? fechaHora(u.ultimoIngreso) : 'Nunca', u.estado === 'activo' ? 'Activa' : 'Bloqueada', fechaHora(u.createdAt)];
+  }));
+  var csv = '\ufeff' + filas.map(function(f){ return f.map(celda).join(';'); }).join('\r\n') + '\r\n\r\nSalud en Casa · Clínica Reina Elizabeth IPS · Tecnología SkyNet Genesis · contacto@skynetgenesis.com · WhatsApp 3044375758';
+  var a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
+  a.download = 'cuentas-salud-en-casa.csv'; document.body.appendChild(a); a.click();
+  setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); }, 500);
+  aviso('Descarga lista: ' + d.items.length + ' cuentas');
+}
+
+async function cancelarServicioAdmin(id) {
+  if (!(await confirmar('El paciente verá el servicio como cancelado y, si ya pagó, quedará marcado para reembolso.', {titulo:'¿Cancelar este servicio?', si:'Sí, cancelar', peligro:true}))) return;
+  var d = await apiFetch('/api/servicios/' + id + '/estado', { method: 'PUT', body: JSON.stringify({ estado: 'cancelado' }) });
+  if (d && !d.error) { aviso('Servicio cancelado'); loadServicios(); loadDashboard(); }
+  else aviso((d && d.error) || 'No se pudo cancelar el servicio', 'error');
+}
+
+var paginaProf = 1;
+async function loadProfesionales(pagina) {
+  paginaProf = pagina || 1;
   var tbody = document.getElementById('profesionales-tbody');
   tbody.innerHTML = '<tr><td colspan="6"><div class="loading"><div class="spinner"></div> Cargando...</div></td></tr>';
   try {
-    var data = await apiFetch('/api/admin/profesionales?limit=50');
+    var fp = document.getElementById('filtro-prof').value;
+    var data = await apiFetch('/api/admin/profesionales?limit=100&page=' + paginaProf + (fp ? '&estado=' + fp : ''));
     if (!data || !data.items || data.items.length === 0) {
       tbody.innerHTML = '<tr><td colspan="6"><div class="empty"><div class="empty-icon">👩‍⚕️</div><div class="empty-text">No hay profesionales registrados</div></div></td></tr>';
       return;
     }
     tbody.innerHTML = data.items.map(function(p){
       return '<tr><td><div class="profile-cell"><div class="avatar-sm">' + initials(p.usuario ? p.usuario.nombreCompleto : '') + '</div>' +
-        '<div><div class="profile-name">' + (p.usuario ? p.usuario.nombreCompleto : '—') + '</div>' +
-        '<div class="profile-email">' + (p.usuario ? p.usuario.email : '') + '</div></div></div></td>' +
-        '<td>' + (p.especialidad || '—') + '</td>' +
-        '<td>' + verificacionBadge(p.estadoVerificacion) + '</td>' +
-        '<td>' + (p.calificacionPromedio ? '⭐ ' + Number(p.calificacionPromedio).toFixed(1) : '—') + '</td>' +
+        '<div><div class="profile-name">' + esc(p.usuario ? p.usuario.nombreCompleto : '—') + '</div>' +
+        '<div class="profile-email">' + esc(p.usuario ? p.usuario.email : '') + (p.usuario && p.usuario.telefono ? ' · ' + esc(p.usuario.telefono) : '') + '</div>' +
+        (p.registroProfesional ? '<div class="profile-email">Registro: ' + esc(p.registroProfesional) + '</div>' : '') + '</div></div></td>' +
+        '<td>' + esc(p.especialidad || '—') + '</td>' +
+        '<td>' + verificacionBadge(p.estadoVerificacion) + (p.disponible && p.disponibleDesde && Date.now() - new Date(p.disponibleDesde).getTime() < 12 * 3600 * 1000 ? ' <span class="badge badge-green">En turno</span>' : '') + '</td>' +
+        '<td>' + (p.calificacionPromedio ? '⭐ ' + Number(p.calificacionPromedio).toFixed(1) : '—') +
+          (p._count && p._count.quejas ? '<div><span class="badge badge-red">' + p._count.quejas + (p._count.quejas === 1 ? ' queja' : ' quejas') + '</span></div>' : '') +
+          (p._count && p._count.bloqueos ? '<div class="profile-email">Bloqueado por ' + p._count.bloqueos + (p._count.bloqueos === 1 ? ' paciente' : ' pacientes') + '</div>' : '') + '</td>' +
         '<td>' + (p.totalServicios || 0) + '</td>' +
-        '<td style="display:flex;gap:6px">' +
+        '<td><div style="display:flex;gap:6px;flex-wrap:wrap">' +
           (p.estadoVerificacion === 'pendiente' ?
             '<button class="btn btn-sm btn-approve" onclick="aprobarProf(\'' + p.id + '\',\'aprobado\')">✓ Aprobar</button>' +
             '<button class="btn btn-sm btn-reject" onclick="aprobarProf(\'' + p.id + '\',\'rechazado\')">✗ Rechazar</button>'
-            : '—') +
-        '</td></tr>';
+            : p.estadoVerificacion === 'aprobado'
+              ? '<button class="btn btn-sm btn-reject" onclick="aprobarProf(\'' + p.id + '\',\'pendiente\')">Retirar aprobación</button>'
+              : '<button class="btn btn-sm btn-approve" onclick="aprobarProf(\'' + p.id + '\',\'aprobado\')">✓ Aprobar</button>') +
+          (p.usuario && p.usuario.id ? (p.usuario.estado === 'suspendido'
+            ? '<button class="btn btn-sm btn-approve" onclick="cambiarCuenta(\'' + p.usuario.id + '\',\'activo\')">Reactivar cuenta</button>'
+            : '<button class="btn btn-sm" onclick="cambiarCuenta(\'' + p.usuario.id + '\',\'suspendido\')">Suspender cuenta</button>') : '') +
+        '</div></td></tr>';
     }).join('');
+    var pagP = Math.ceil((data.total || 0) / 100);
+    if (pagP > 1) tbody.innerHTML += '<tr><td colspan="6" style="text-align:center">Página ' + paginaProf + ' de ' + pagP + ' (' + data.total + ' profesionales) · ' +
+      (paginaProf > 1 ? '<button class="btn btn-sm" onclick="loadProfesionales(' + (paginaProf - 1) + ')">← Anterior</button> ' : '') +
+      (paginaProf < pagP ? '<button class="btn btn-sm btn-teal" onclick="loadProfesionales(' + (paginaProf + 1) + ')">Siguiente →</button>' : '') + '</td></tr>';
   } catch(e) {
     tbody.innerHTML = '<tr><td colspan="6"><div class="empty"><div class="empty-text">Error cargando profesionales</div></div></td></tr>';
   }
 }
 
+async function cambiarCuenta(usuarioId, estado) {
+  if (estado === 'suspendido' && !(await confirmar('No podrá ingresar a la app. Si tiene un servicio en curso, vuelve a quedar disponible para otro profesional.', {titulo:'¿Suspender esta cuenta?', si:'Sí, suspender', peligro:true}))) return;
+  var d = await apiFetch('/api/admin/usuarios/' + usuarioId + '/estado', { method: 'PUT', body: JSON.stringify({ estado: estado }) });
+  if (d && !d.error) { aviso(estado === 'suspendido' ? 'Cuenta suspendida' : 'Cuenta reactivada'); loadProfesionales(); loadDashboard(); }
+  else aviso((d && d.error) || 'No se pudo cambiar la cuenta', 'error');
+}
+
 async function aprobarProf(id, estado) {
-  var alertEl = document.getElementById('alert-prof');
+  if (estado === 'rechazado' && !(await confirmar('El profesional no podrá ver ni aceptar solicitudes.', {titulo:'¿Rechazar a este profesional?', si:'Sí, rechazar', peligro:true}))) return;
+  if (estado === 'pendiente' && !(await confirmar('Dejará de ver y aceptar solicitudes hasta que lo apruebe de nuevo.', {titulo:'¿Retirar la aprobación?', si:'Sí, retirar', peligro:true}))) return;
   try {
     var data = await apiFetch('/api/admin/profesionales/' + id + '/verificar', {
       method: 'PUT',
       body: JSON.stringify({ estado: estado })
     });
-    if (!data) return;
-    alertEl.className = 'alert alert-success';
-    alertEl.textContent = estado === 'aprobado' ? '✅ Profesional aprobado correctamente' : '❌ Profesional rechazado';
-    alertEl.style.display = 'block';
-    setTimeout(function(){ alertEl.style.display = 'none'; }, 3000);
+    if (!data || data.error) throw new Error((data && data.error) || 'No se pudo guardar el cambio');
+    aviso(estado === 'aprobado' ? 'Profesional aprobado' : estado === 'rechazado' ? 'Profesional rechazado' : 'Aprobación retirada');
     loadProfesionales();
     loadDashboard();
   } catch(e) {
-    alertEl.className = 'alert alert-error';
-    alertEl.textContent = 'Error al procesar la solicitud';
-    alertEl.style.display = 'block';
+    aviso(e.message, 'error');
   }
 }
 
-async function loadPacientes() {
+var paginaPacientes = 1;
+async function loadPacientes(pagina) {
+  if (pagina) paginaPacientes = pagina; else paginaPacientes = 1;
   var tbody = document.getElementById('pacientes-tbody');
-  tbody.innerHTML = '<tr><td colspan="5"><div class="loading"><div class="spinner"></div> Cargando...</div></td></tr>';
+  tbody.innerHTML = '<tr><td colspan="6"><div class="loading"><div class="spinner"></div> Cargando...</div></td></tr>';
   try {
-    var data = await apiFetch('/api/admin/usuarios?rol=paciente&limit=50');
+    var q = document.getElementById('buscar-paciente').value.trim();
+    var retirados = document.getElementById('ver-retirados').checked;
+    var data = await apiFetch('/api/admin/pacientes?limit=100&page=' + (paginaPacientes || 1) + (q ? '&q=' + encodeURIComponent(q) : '') + (retirados ? '&inactivos=1' : ''));
     if (!data || !data.items || data.items.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="5"><div class="empty"><div class="empty-icon">🧑‍🦽</div><div class="empty-text">No hay pacientes registrados</div></div></td></tr>';
+      tbody.innerHTML = '<tr><td colspan="6"><div class="empty"><div class="empty-icon">🧑‍🦽</div><div class="empty-text">' + (data && data.error ? esc(data.error) : q ? 'Sin resultados para «' + esc(q) + '»' : 'No hay pacientes registrados') + '</div></div></td></tr>';
       return;
     }
-    tbody.innerHTML = data.items.map(function(u){
-      return '<tr><td><div class="profile-cell"><div class="avatar-sm">' + initials(u.nombreCompleto) + '</div>' +
-        '<div><div class="profile-name">' + (u.nombreCompleto || '—') + '</div>' +
-        '<div class="profile-email">' + (u.email || '') + '</div></div></div></td>' +
-        '<td>' + (u.telefono || '—') + '</td>' +
-        '<td>—</td><td>—</td>' +
-        '<td style="font-size:12px;color:var(--muted)">' + formatDate(u.createdAt) + '</td></tr>';
+    tbody.innerHTML = data.items.map(function(pa){
+      var cu = pa.usuario || {};
+      var nombre = pa.nombreCompleto || cu.nombreCompleto || '—';
+      var clin = [pa.alergias, pa.antecedentes].filter(function(x, i, a){ return x && a.indexOf(x) === i; }).join(' · ');
+      return '<tr><td><div class="profile-cell"><div class="avatar-sm">' + initials(nombre) + '</div>' +
+        '<div><div class="profile-name">' + esc(nombre) + '</div>' +
+        '<div class="profile-email">' + (pa.documentoNumero ? 'Doc. ' + esc(pa.documentoNumero) : 'Sin documento') + (pa.eps ? ' · ' + esc(pa.eps) : '') + '</div></div></div></td>' +
+        '<td>' + esc(cu.nombreCompleto || '—') + '<div class="profile-email">' + esc(cu.telefono || '') + ' ' + esc(cu.email || '') + '</div></td>' +
+        '<td>' + esc(pa.esTitular ? 'Titular' : (pa.parentesco || '—')) + '</td>' +
+        '<td style="max-width:260px;white-space:normal;font-size:13px">' + (clin ? esc(clin) : '<span style="color:var(--muted)">—</span>') + '</td>' +
+        '<td style="font-size:12px;color:var(--muted)">' + formatDate(pa.createdAt) + '</td>' +
+        '<td>' + (pa.activo === false
+          ? '<button class="btn btn-sm btn-approve" onclick="cambiarPaciente(\'' + pa.id + '\',true)">Reactivar</button>'
+          : '<button class="btn btn-sm" onclick="cambiarPaciente(\'' + pa.id + '\',false)">Retirar</button>') + '</td></tr>';
     }).join('');
+    var totalPac = data.total || data.items.length, paginas = Math.ceil(totalPac / 100);
+    if (paginas > 1) tbody.innerHTML += '<tr><td colspan="6" style="text-align:center">Página ' + paginaPacientes + ' de ' + paginas + ' · ' +
+      (paginaPacientes > 1 ? '<button class="btn btn-sm" onclick="loadPacientes(' + (paginaPacientes - 1) + ')">← Anterior</button> ' : '') +
+      (paginaPacientes < paginas ? '<button class="btn btn-sm btn-teal" onclick="loadPacientes(' + (paginaPacientes + 1) + ')">Siguiente →</button>' : '') + '</td></tr>';
   } catch(e) {
-    tbody.innerHTML = '<tr><td colspan="5"><div class="empty"><div class="empty-text">Error cargando pacientes</div></div></td></tr>';
+    tbody.innerHTML = '<tr><td colspan="6"><div class="empty"><div class="empty-text">Error cargando pacientes</div></div></td></tr>';
   }
+}
+
+async function cambiarPaciente(id, activo) {
+  if (!activo && !(await confirmar('Ya no aparecerá para pedir servicios. Su historia clínica se conserva y puede reactivarlo cuando quiera.', {titulo:'¿Retirar a este paciente?', si:'Sí, retirar', peligro:true}))) return;
+  var d = await apiFetch('/api/admin/pacientes/' + id + '/activo', { method: 'PUT', body: JSON.stringify({ activo: activo }) });
+  if (d && !d.error) { aviso(activo ? 'Paciente reactivado' : 'Paciente retirado'); loadPacientes(paginaPacientes); }
+  else aviso((d && d.error) || 'No se pudo guardar el cambio', 'error');
+}
+
+async function pagoPruebaBold(btn) {
+  btn.disabled = true; var txt = btn.textContent; btn.textContent = 'Abriendo Bold...';
+  try {
+    var d = await apiFetch('/api/pagos/bold/prueba', { method: 'POST', body: '{}' });
+    if (!d || !d.url) throw new Error((d && d.error) || 'No se pudo preparar el pago de prueba');
+    var rf = await fetch(d.url, { cache: 'no-store' }), f = await rf.json().catch(function(){ return {}; });
+    if (!rf.ok || !f.ok) throw new Error('El sistema central de Bold no firmó el pago de prueba. Revise que el plan saludencasa:prueba esté en el firmador.');
+    if (Number(f.amount) !== 1000) throw new Error('El valor del pago de prueba no coincide.');
+    try { localStorage.setItem('re_prueba_bold', JSON.stringify({ ref: f.orderId, t: Date.now() })); } catch (e) {}
+    if (!window.BoldCheckout) await new Promise(function(ok, ko){ var sc = document.createElement('script'); sc.src = 'https://checkout.bold.co/library/boldPaymentButton.js'; sc.onload = ok; sc.onerror = ko; document.head.appendChild(sc); });
+    new window.BoldCheckout({ orderId: f.orderId, currency: f.currency, amount: String(f.amount), apiKey: f.apiKey, integritySignature: f.signature, description: f.description, redirectionUrl: f.redirectionUrl }).open();
+  } catch (e) { aviso(window.mensajeRed ? mensajeRed(e, 'No se pudo abrir Bold') : 'No se pudo abrir Bold', 'error'); }
+  finally { btn.disabled = false; btn.textContent = txt; }
 }
 
 async function checkHealth() {
@@ -677,7 +1128,7 @@ async function checkHealth() {
       '<div style="display:flex;align-items:center;gap:8px"><span style="color:var(--teal);font-size:20px">✅</span><span style="font-weight:600">Servidor operativo</span></div>' +
       '<div style="font-size:13px;color:var(--muted)">Estado: <strong style="color:var(--teal)">' + data.status + '</strong></div>' +
       '<div style="font-size:13px;color:var(--muted)">Versión: <strong>' + data.version + '</strong></div>' +
-      '<div style="font-size:13px;color:var(--muted)">Timestamp: <span class="mono">' + data.timestamp + '</span></div></div>';
+      '<div style="font-size:13px;color:var(--muted)">Fecha y hora: <span class="mono">' + esc(new Date(data.timestamp).toLocaleString('es-CO', {timeZone:'America/Bogota'})) + '</span></div></div>';
   } catch(e) {
     el.innerHTML = '<div style="color:var(--red)">❌ No se puede conectar al servidor</div>';
   }
@@ -696,18 +1147,18 @@ function verificacionBadge(estado) {
 }
 
 function tipoLabel(tipo) {
-  var map = {curacion:'🩹 Curación',medicacion:'💊 Medicación',inyeccion:'💉 Inyección',control:'🩺 Control',cuidado_basico:'🛁 Cuidado básico',urgencia:'🚨 Urgencia'};
+  var map = {curacion:'🩹 Curación',medicacion:'💊 Medicación',inyeccion:'💉 Inyección',control:'🩺 Control',cuidado_basico:'🛁 Cuidado básico',urgencia:'🚨 Atención prioritaria'};
   return map[tipo] || tipo;
 }
 
 function formatDate(dateStr) {
   if (!dateStr) return '—';
-  return new Date(dateStr).toLocaleDateString('es-CO', {day:'2-digit',month:'short',year:'numeric'});
+  return new Date(dateStr).toLocaleDateString('es-CO', {day:'2-digit',month:'short',year:'numeric',timeZone:'America/Bogota'});
 }
 
 function initials(name) {
   if (!name) return '?';
-  return name.split(' ').map(function(w){return w[0];}).join('').slice(0,2).toUpperCase();
+  return esc(name.split(' ').map(function(w){return w[0]||'';}).join('').slice(0,2).toUpperCase());
 }
 </script>
 </body>

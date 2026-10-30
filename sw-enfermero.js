@@ -1,5 +1,5 @@
 // Service Worker para notificaciones push — RE IPS Enfermeros
-const CACHE_NAME = 're-ips-sw-v1';
+const CACHE_NAME = 're-ips-sw-v3';
 
 self.addEventListener('install', function(event) {
   self.skipWaiting();
@@ -11,7 +11,7 @@ self.addEventListener('activate', function(event) {
 
 // Recibir notificación push
 self.addEventListener('push', function(event) {
-  let data = { title: 'Reina Elizabeth IPS', body: 'Nueva solicitud de servicio', icon: '/enfermeria/icon-192.png' };
+  let data = { title: 'Salud en Casa', body: 'Nueva solicitud de servicio', icon: 'icon-192.png' };
   try {
     if (event.data) {
       data = Object.assign(data, event.data.json());
@@ -20,8 +20,8 @@ self.addEventListener('push', function(event) {
 
   const options = {
     body: data.body,
-    icon: data.icon || '/enfermeria/icon-192.png',
-    badge: '/enfermeria/icon-72.png',
+    icon: data.icon || 'icon-192.png',
+    badge: 'icon-72.png',
     vibrate: [200, 100, 200, 100, 200],
     requireInteraction: true,
     data: data.url ? { url: data.url } : {},
@@ -43,7 +43,7 @@ self.addEventListener('notificationclick', function(event) {
 
   const url = (event.notification.data && event.notification.data.url)
     ? event.notification.data.url
-    : 'https://rl-rikardolondono.github.io/enfermeria/app-enfermero.html';
+    : 'https://saludencasa.skynetgenesis.com/app-enfermero.html';
 
   event.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true }).then(function(clientList) {

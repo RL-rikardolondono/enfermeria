@@ -7,10 +7,10 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Public+Sans:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
-  :root{--azul:#1E3A4C;--ambar:#E0A21A;--verde:#1F8A4C;--fondo:#EEF2F1;--blanco:#FFFFFF;--texto:#15232B;--suave:#5B6B73;--borde:#D3DCDA;--rojo:#B4412F}
+  :root{--azul:#0B4F8A;--ambar:#14A38B;--verde:#1F8A4C;--fondo:#F4F8FB;--blanco:#FFFFFF;--texto:#1C2B39;--suave:#5D6B78;--borde:#DCE5EE;--rojo:#B4412F}
   *{box-sizing:border-box}
   body{margin:0;min-height:100vh;background:var(--fondo);color:var(--texto);font:16px/1.5 'Public Sans',system-ui,sans-serif;display:flex;flex-direction:column}
-  header{background:var(--azul);color:#fff;padding:16px 20px;border-bottom:4px solid var(--ambar)}
+  header{background:#fff;color:var(--azul);padding:16px 20px;box-shadow:0 2px 14px rgba(28,43,57,.08)}
   header h1{margin:0;font:700 22px 'Barlow Condensed',sans-serif;letter-spacing:.02em}
   main{flex:1;display:flex;justify-content:center;padding:32px 16px}
   .card{background:var(--blanco);border:1px solid var(--borde);border-radius:14px;padding:28px 24px;width:100%;max-width:420px;align-self:flex-start}
@@ -23,32 +23,33 @@
   button:disabled{opacity:.6;cursor:wait}
   button:focus-visible,a:focus-visible{outline:3px solid var(--ambar);outline-offset:2px}
   .msg{display:none;padding:12px 14px;border-radius:10px;margin-bottom:16px;font-size:14px}
-  .msg.ok{display:block;background:#E3F2E9;color:var(--verde)}
+  .msg.ok{display:block;background:#E3F6F2;color:var(--verde)}
   .msg.err{display:block;background:#F8E4E0;color:var(--rojo)}
   .links{margin-top:18px;display:grid;gap:8px;font-size:14px}
   .links a{color:var(--azul);font-weight:600}
   .wa{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:18px;padding:12px;border-radius:10px;background:var(--verde);color:#fff;text-decoration:none;font-weight:700}
 </style>
-<script src="comun.js" data-rol="publico"></script>
+<script src="comun.js?v=20261022c" data-rol="publico"></script>
 </head>
 <body data-sin-whatsapp>
 <header><h1>Salud en Casa <span style="font-weight:600;opacity:.75;font-size:16px">· Clínica Reina Elizabeth IPS</span></h1></header>
 <main>
   <div class="card">
+    <a class="sec-volver" href="app-paciente.html" id="volver-inicio" style="margin-bottom:14px">&#x2190; Volver al inicio</a>
     <!-- Paso 1: pedir el enlace -->
     <section id="pedir">
       <h2>¿Olvidó su contraseña?</h2>
       <p>Escriba el correo con el que se registró. Le enviaremos un enlace para crear una contraseña nueva.</p>
       <div class="msg" id="msg-pedir"></div>
       <label for="email">Correo electrónico</label>
-      <input type="email" id="email" autocomplete="email" placeholder="tucorreo@ejemplo.com">
+      <input type="email" id="email" autocomplete="email" placeholder="correo@ejemplo.com">
       <button id="btn-pedir">Enviar enlace</button>
     </section>
 
     <!-- Paso 2: crear la contraseña nueva (llega desde el correo) -->
     <section id="nueva" hidden>
       <h2>Contraseña nueva</h2>
-      <p>Debe tener al menos 8 caracteres.</p>
+      <p>Debe tener al menos 10 caracteres. Escríbala dos veces.</p>
       <div class="msg" id="msg-nueva"></div>
       <label for="pass1">Contraseña nueva</label>
       <input type="password" id="pass1" autocomplete="new-password">
@@ -90,7 +91,7 @@ document.getElementById('btn-pedir').onclick = async function () {
 
 document.getElementById('btn-nueva').onclick = async function () {
   var p1 = document.getElementById('pass1').value, p2 = document.getElementById('pass2').value;
-  if (p1.length < 8) return mostrar('msg-nueva', 'La contraseña debe tener al menos 8 caracteres.', false);
+  if (p1.length < 10) return mostrar('msg-nueva', 'La contraseña debe tener al menos 10 caracteres.', false);
   if (p1 !== p2) return mostrar('msg-nueva', 'Las dos contraseñas no coinciden.', false);
   this.disabled = true; this.textContent = 'Guardando...';
   try {
