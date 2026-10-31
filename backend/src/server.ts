@@ -16,7 +16,7 @@ import { adminRoutes } from './routes/admin'
 import { pagosRoutes } from './routes/pagos'
 import { pushRoutes } from './routes/push'
 import { tarifasRoutes } from './routes/tarifas'
-import { asegurarTarifas } from './services/tarifas'
+import { asegurarCatalogo } from './services/catalogo'
 import { asegurarSuperadmin } from './services/cuentas'
 import { prepararVapid } from './routes/push'
 import { prisma } from './utils/prisma'
@@ -127,7 +127,7 @@ async function bootstrap() {
   process.on('SIGINT', shutdown)
 
   // Tarifas iniciales de la IPS (solo crea las que falten)
-  await asegurarTarifas().catch((err) => app.log.error(err, 'No se pudieron crear las tarifas iniciales'))
+  await asegurarCatalogo().catch((err) => app.log.error(err, 'No se pudo preparar el catálogo de servicios'))
   // Cuentas creadas antes de permitir varios pacientes: su único paciente es el titular
   await prisma.paciente.updateMany({ where: { nombreCompleto: null, esTitular: false }, data: { esTitular: true, parentesco: 'Titular' } })
     .catch((err: unknown) => app.log.error(err, 'No se pudo marcar a los titulares'))
