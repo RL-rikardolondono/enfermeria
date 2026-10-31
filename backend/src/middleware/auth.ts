@@ -12,7 +12,7 @@ export interface JwtPayload {
 
 declare module 'fastify' {
   interface FastifyRequest {
-    usuario: { id: string; rol: string }
+    usuario: { id: string; rol: string; rolIps?: string | null }
   }
 }
 
@@ -24,7 +24,7 @@ export const INACTIVIDAD_MS = 17 * 60 * 1000
 // Caché corta de sesiones válidas: evita consultar la base en cada solicitud (ahorra horas de Neon).
 // Cerrar sesión, suspender o cambiar la contraseña la invalidan de inmediato en este servidor.
 const CACHE_MS = 60 * 1000
-const cache = new Map<string, { usuarioId: string; rol: string; hasta: number; usoAnotado: number }>()
+const cache = new Map<string, { usuarioId: string; rol: string; rolIps: string | null; hasta: number; usoAnotado: number }>()
 
 export function olvidarSesion(sid?: string) {
   if (sid) cache.delete(sid)
@@ -54,13 +54,13 @@ export async function autenticar(request: FastifyRequest, reply: FastifyReply) {
       if (u.count === 0) { cache.delete(payload.sid); return reply.status(401).send({ error: 'Sesión expirada o inválida' }) }
       enCache.usoAnotado = Date.now()
     }
-    request.usuario = { id: payload.sub, rol: enCache.rol }
+    request.usuario = { id: payload.sub, rol: enCache.rol, rolIps: enCache.rolIps }
     return
   }
 
   const sesion = await prisma.sesion.findFirst({
     where: { id: payload.sid, usuarioId: payload.sub, activa: true, expiresAt: { gt: new Date() } },
-    select: { ultimoUso: true, usuario: { select: { estado: true, rol: true } } },
+    select: { ultimoUso: true, usuario: { select: { estado: true, rol: true, rolIps: true } } },
   })
   if (!sesion || sesion.usuario.estado !== 'activo') {
     cache.delete(payload.sid)
@@ -85,8 +85,8 @@ export async function autenticar(request: FastifyRequest, reply: FastifyReply) {
     usoAnotado = Date.now()
   }
   if (cache.size > 5000) cache.clear() // límite de memoria
-  cache.set(payload.sid, { usuarioId: payload.sub, rol: sesion.usuario.rol, hasta: Date.now() + CACHE_MS, usoAnotado })
-  request.usuario = { id: payload.sub, rol: sesion.usuario.rol }
+  cache.set(payload.sid, { usuarioId: payload.sub, rol: sesion.usuario.rol, rolIps: sesion.usuario.rolIps, hasta: Date.now() + CACHE_MS, usoAnotado })
+  request.usuario = { id: payload.sub, rol: sesion.usuario.rol, rolIps: sesion.usuario.rolIps }
 }
 
 export function requerirRol(...roles: string[]) {
@@ -95,6 +95,31 @@ export function requerirRol(...roles: string[]) {
     if (reply.sent) return reply
     if (!roles.includes(request.usuario?.rol)) {
       return reply.status(403).send({ error: 'Acceso no autorizado' })
+    }
+  }
+}
+
+// ── Perfiles dentro de la IPS (separación de funciones: quien aprueba profesionales no paga, quien paga no fija tarifas) ──
+// superadmin (o cuenta de administración antigua sin perfil): todo.
+export const PERMISOS_IPS: Record<string, string[]> = {
+  superadmin: ['resumen', 'servicios', 'profesionales', 'pacientes', 'quejas', 'tarifas', 'pagos', 'cuentas'],
+  coordinador: ['resumen', 'servicios', 'profesionales', 'pacientes', 'quejas'],
+  tesoreria: ['resumen', 'pagos'],
+}
+export const PERFILES_IPS: Record<string, string> = { superadmin: 'Superadministrador', coordinador: 'Coordinación de servicios', tesoreria: 'Tesorería' }
+export function permisosDe(u: { rol: string; rolIps?: string | null }) {
+  if (u.rol !== 'admin') return []
+  return PERMISOS_IPS[u.rolIps || 'superadmin'] || []
+}
+export function tienePermiso(u: { rol: string; rolIps?: string | null }, permiso: string) {
+  return permisosDe(u).includes(permiso)
+}
+export function requerirPermiso(permiso: string) {
+  return async (request: FastifyRequest, reply: FastifyReply) => {
+    await autenticar(request, reply)
+    if (reply.sent) return reply
+    if (!tienePermiso(request.usuario, permiso)) {
+      return reply.status(403).send({ error: 'Su perfil en la IPS no tiene permiso para esto. Pídaselo al Superadministrador.' })
     }
   }
 }
