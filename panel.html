@@ -100,6 +100,8 @@
   .alert{padding:14px 18px;border-radius:var(--radius-sm);font-size:14px;margin-bottom:20px;display:none;}
   .alert-success{background:var(--teal-pale);color:var(--teal);}
   .alert-error{background:var(--red-pale);color:var(--red);}
+  .alert-warn{background:#FFF4DC;color:#7A5200;}
+  .alert-ok{background:var(--teal-pale);color:var(--teal);}
   .profile-cell{display:flex;align-items:center;gap:10px;}
   .avatar-sm{width:32px;height:32px;border-radius:50%;background:var(--teal-pale);color:var(--teal);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;}
   .profile-name{font-weight:500;font-size:14px;}
@@ -140,6 +142,9 @@
     .table-wrap td .profile-cell{justify-content:flex-end}
   }
   .user-rol{font-size:11px;color:#0E8571;font-weight:700;display:block;line-height:1.1}
+  .chips{display:flex;flex-wrap:wrap;gap:6px}
+  .chip-sel{border:1.5px solid #DCE5EE;background:#fff;color:#1C2B39;border-radius:999px;padding:5px 11px;font:600 12px 'Public Sans',sans-serif;cursor:pointer}
+  .chip-sel.on{background:#14A38B;border-color:#14A38B;color:#fff}
 </style>
 <script src="comun.js?v=20261022c" data-rol="admin"></script>
 </head>
@@ -238,6 +243,7 @@
           </div>
           <button class="btn btn-teal" onclick="loadDashboard()">↻ Actualizar</button>
         </div>
+        <div id="aviso-base" class="alert" hidden style="display:block;margin-bottom:16px"></div>
         <div class="stats-grid">
           <div role="button" tabindex="0" title="Ver la lista" style="cursor:pointer" onclick="irA('servicios',{estado:'hoy'})" class="stat-card">
             <div class="stat-label">Servicios hoy</div>
@@ -374,6 +380,7 @@
           </select>
           <button class="btn btn-sm btn-teal" onclick="loadCuentas()">Buscar</button>
           <button class="btn btn-sm" onclick="descargarCuentas(this)">⬇ Descargar CSV</button>
+          <button class="btn btn-sm btn-teal" onclick="crearCuentaIps()">+ Cuenta de la IPS</button>
         </div>
         <div class="card">
           <div class="card-body" style="padding:0">
@@ -412,14 +419,14 @@
       <!-- API -->
       <div class="section" id="section-tarifas">
         <div class="page-header">
-          <div><div class="page-title">Tarifas</div><div class="page-subtitle">Precios fijos que ve el paciente antes de pedir (COP, incluyen desplazamiento e insumos básicos)</div></div>
+          <div><div class="page-title">Servicios y tarifas</div><div class="page-subtitle">Catálogo que ve el paciente: precio fijo (COP, incluye desplazamiento e insumos básicos), qué perfil de profesional puede atender cada servicio y si exige orden médica. Los servicios nuevos (médico y terapias) empiezan apagados: fije el precio y actívelos cuando tenga profesionales de ese perfil.</div></div>
           <button class="btn btn-teal" onclick="loadTarifas()">↻ Actualizar</button>
         </div>
         <div class="card">
           <div class="card-body" style="padding:0">
             <div class="table-wrap">
               <table>
-                <thead><tr><th>Servicio</th><th>Descripción</th><th>Precio (COP)</th><th>Activo</th><th>Última actualización</th><th></th></tr></thead>
+                <thead><tr><th>Servicio</th><th>Precio (COP)</th><th>Quién puede atenderlo</th><th>Orden médica</th><th>Activo</th><th></th></tr></thead>
                 <tbody id="tarifas-tbody"><tr><td colspan="6"><div class="loading"><div class="spinner"></div> Cargando...</div></td></tr></tbody>
               </table>
             </div>
@@ -523,9 +530,25 @@ document.getElementById('login-password').addEventListener('keydown', function(e
   if (e.key === 'Enter') doLogin();
 });
 
+var PERFIL_IPS_NOMBRE = { superadmin: 'Superadministrador de la IPS', coordinador: 'Coordinación de servicios', tesoreria: 'Tesorería' };
+var SECCION_PERMISO = { dashboard: 'resumen', servicios: 'servicios', profesionales: 'profesionales', pacientes: 'pacientes', quejas: 'quejas', tarifas: 'tarifas', pagos: 'pagos', cuentas: 'cuentas', api: 'resumen' };
+function puede(permiso) {
+  var p = currentUser && currentUser.permisos;
+  return !p || p.indexOf(permiso) >= 0; // cuentas antiguas guardadas sin permisos: el servidor decide
+}
+function aplicarPermisos() {
+  document.querySelectorAll('.nav-item').forEach(function(b){
+    var m = /showSection\('([a-z]+)'/.exec(b.getAttribute('onclick') || '');
+    if (m && SECCION_PERMISO[m[1]]) b.hidden = !puede(SECCION_PERMISO[m[1]]);
+  });
+  var rol = document.querySelector('.user-rol');
+  if (rol && currentUser) rol.textContent = PERFIL_IPS_NOMBRE[currentUser.rolIps || 'superadmin'] || 'Administración de la IPS';
+}
 function initApp() {
   document.getElementById('login-screen').style.display = 'none';
   document.getElementById('app').style.display = 'flex';
+  aplicarPermisos();
+  cargarCatalogo();
   if (currentUser) {
     const ini = (currentUser.nombreCompleto || 'Admin').split(' ').map(function(w){return w[0];}).join('').slice(0,2).toUpperCase();
     document.getElementById('user-avatar').textContent = ini;
@@ -553,7 +576,16 @@ function initApp() {
   }, 30000);
 }
 
-if (token && currentUser) initApp();
+if (token && currentUser) {
+  initApp();
+  // Refresca perfil y permisos guardados (por si la IPS cambió el perfil de esta cuenta)
+  fetch(API + '/api/auth/me', { headers: { 'Authorization': 'Bearer ' + token } }).then(function(r){ return r.ok ? r.json() : null; }).then(function(u){
+    if (!u || !u.id || u.rol !== 'admin') return;
+    currentUser = Object.assign({}, currentUser, u);
+    try { localStorage.setItem('re_user', JSON.stringify(currentUser)); } catch (e) {}
+    aplicarPermisos();
+  }).catch(function(){});
+}
 revisarRegresoPrueba();
 
 // Al volver del pago de prueba de Bold: confirma con el servidor y limpia la dirección
@@ -762,17 +794,29 @@ async function marcarLiquidacion(id, accion, btn) {
   if (res && res.ok) { aviso(accion === 'transferido' ? 'Marcado como transferido' : 'Marcado como reembolsado'); loadPagos(paginaPagos, filtroPagos); } else { btn.disabled = false; btn.textContent = accion === 'transferido' ? 'Marcar transferido' : 'Marcar reembolsado'; aviso((res && res.error) || 'No se pudo guardar. Intente de nuevo.', 'error'); }
 }
 
+var PERFILES_PROF = {}, CATALOGO = {};
+async function cargarCatalogo() {
+  var d = await apiFetch('/api/tarifas');
+  if (d && d.items) { PERFILES_PROF = d.perfiles || {}; d.items.forEach(function(t){ CATALOGO[t.tipo] = t; }); }
+  return d;
+}
+// Chips seleccionables (en vez de casillas negras)
+function chip(id, texto, activo) {
+  return '<button type="button" class="chip-sel' + (activo ? ' on' : '') + '" data-id="' + esc(id) + '" aria-pressed="' + (activo ? 'true' : 'false') + '" onclick="this.classList.toggle(\'on\');this.setAttribute(\'aria-pressed\',this.classList.contains(\'on\'))">' + esc(texto) + '</button>';
+}
 async function loadTarifas() {
   var tbody = document.getElementById('tarifas-tbody');
-  var data = await apiFetch('/api/tarifas');
-  if (!data || !data.items) { tbody.innerHTML = '<tr><td colspan="6">No se pudieron cargar las tarifas.</td></tr>'; return; }
+  var data = await cargarCatalogo();
+  if (!data || !data.items) { tbody.innerHTML = '<tr><td colspan="6">' + esc((data && data.error) || 'No se pudieron cargar las tarifas.') + '</td></tr>'; return; }
   tbody.innerHTML = data.items.map(function(t){
+    var perfiles = Object.keys(PERFILES_PROF).map(function(k){ return chip(k, PERFILES_PROF[k], (t.perfiles || []).indexOf(k) >= 0); }).join('');
     return '<tr>' +
-      '<td><strong>' + esc(t.nombre) + '</strong></td>' +
-      '<td style="color:var(--muted)">' + esc(t.descripcion || '') + '</td>' +
+      '<td><input id="nombre-' + t.tipo + '" value="' + esc(t.nombre) + '" maxlength="100" style="width:100%;min-width:160px;padding:6px 8px;border:1px solid var(--border);border-radius:6px;font:inherit;font-weight:700">' +
+        '<input id="desc-' + t.tipo + '" value="' + esc(t.descripcion || '') + '" maxlength="200" style="width:100%;margin-top:4px;padding:6px 8px;border:1px solid var(--border);border-radius:6px;font:inherit;font-size:12px;color:var(--muted)"></td>' +
       '<td><input type="number" id="tarifa-' + t.tipo + '" value="' + t.precio + '" min="10000" max="2000000" step="1000" style="width:120px;padding:6px 8px;border:1px solid var(--border);border-radius:6px;font-family:inherit"></td>' +
-      '<td><input type="checkbox" id="activo-' + t.tipo + '"' + (t.activo ? ' checked' : '') + '></td>' +
-      '<td style="color:var(--muted)">' + formatDate(t.updatedAt) + '</td>' +
+      '<td><div class="chips" id="perfiles-' + t.tipo + '">' + perfiles + '</div></td>' +
+      '<td><div class="chips" id="orden-' + t.tipo + '">' + chip('si', 'Exige orden', t.requiereOrden) + '</div></td>' +
+      '<td><div class="chips" id="activo-' + t.tipo + '">' + chip('si', t.activo ? 'Activo' : 'Activar', t.activo) + '</div><div class="profile-email">' + formatDate(t.updatedAt) + '</div></td>' +
       '<td><button class="btn btn-teal btn-sm" onclick="guardarTarifa(\'' + t.tipo + '\', this)">Guardar</button></td>' +
     '</tr>';
   }).join('');
@@ -780,10 +824,16 @@ async function loadTarifas() {
 
 async function guardarTarifa(tipo, btn) {
   var precio = parseInt(document.getElementById('tarifa-' + tipo).value, 10);
-  var activo = document.getElementById('activo-' + tipo).checked;
+  var activo = !!document.querySelector('#activo-' + tipo + ' .chip-sel.on');
+  var requiereOrden = !!document.querySelector('#orden-' + tipo + ' .chip-sel.on');
+  var perfiles = Array.prototype.map.call(document.querySelectorAll('#perfiles-' + tipo + ' .chip-sel.on'), function(c){ return c.dataset.id; });
+  var nombre = document.getElementById('nombre-' + tipo).value.trim(), descripcion = document.getElementById('desc-' + tipo).value.trim();
   if (!precio || precio < 10000 || precio > 2000000) { aviso('La tarifa debe estar entre $10.000 y $2.000.000', 'aviso'); return; }
+  if (!perfiles.length) { aviso('Elija al menos un perfil que pueda atender este servicio', 'aviso'); return; }
+  if (nombre.length < 3) { aviso('Escriba el nombre del servicio', 'aviso'); return; }
   btn.disabled = true; btn.textContent = 'Guardando...';
-  var res = await apiFetch('/api/tarifas/' + tipo, { method: 'PUT', body: JSON.stringify({ precio: precio, activo: activo }) });
+  var res = await apiFetch('/api/tarifas/' + tipo, { method: 'PUT', body: JSON.stringify({ precio: precio, activo: activo, perfiles: perfiles, requiereOrden: requiereOrden, nombre: nombre, descripcion: descripcion }) });
+  if (res && res.tipo) setTimeout(loadTarifas, 600);
   btn.disabled = false;
   btn.textContent = (res && res.tipo) ? 'Guardado' : 'Error, reintente';
   if (res && res.tipo) aviso('Tarifa guardada'); else aviso((res && res.error) || 'No se pudo guardar la tarifa', 'error');
@@ -804,6 +854,14 @@ async function loadDashboard() {
     var bq = document.getElementById('badge-quejas');
     if (data.quejasAbiertas > 0) { bq.textContent = data.quejasAbiertas; bq.style.display = 'inline-block'; } else bq.style.display = 'none';
     document.getElementById('stat-pendientes').textContent = data.pendientesVerificacion != null ? data.pendientesVerificacion : '0';
+    var base = document.getElementById('aviso-base');
+    if (base && data.limiteMB) {
+      var pct = Math.round(100 * (data.baseMB || 0) / data.limiteMB);
+      base.hidden = false;
+      base.className = 'alert ' + (pct >= 85 ? 'alert-error' : pct >= 70 ? 'alert-warn' : 'alert-ok');
+      base.innerHTML = '<b>Espacio de la base de datos:</b> ' + (data.baseMB || 0) + ' MB de ' + data.limiteMB + ' MB (' + pct + ' %).' +
+        (pct >= 70 ? ' Se está llenando: hay que pasar la base a un plan pago antes de llegar al 100 %, o los servicios nuevos dejarán de guardarse.' : ' Hay espacio suficiente.');
+    }
     var badge = document.getElementById('badge-pendientes');
     if (data.pendientesVerificacion > 0) {
       badge.textContent = data.pendientesVerificacion;
@@ -875,7 +933,7 @@ async function loadServicios(mantener, pagina) {
         '<td>' + estadoBadge(s.estado) + '</td>' +
         '<td>' + (s.profesional && s.profesional.usuario ? esc(s.profesional.usuario.nombreCompleto) : '<span style="color:var(--muted)">Sin asignar</span>') + '</td>' +
         '<td style="font-size:12px;color:var(--muted)">' + formatDate(s.createdAt) + '</td>' +
-        '<td>' + (s.monto ? '$' + Number(s.monto).toLocaleString('es-CO') : '—') + '</td>' +
+        '<td>' + (s.monto ? '$' + Number(s.monto).toLocaleString('es-CO') : '—') + (s.ordenArchivoId ? '<div><button class="btn btn-sm" data-id="' + s.id + '" onclick="verArchivo(API+\'/api/servicios/\'+this.dataset.id+\'/orden\', token, \'Orden médica\')">📄 Orden</button></div>' : '') + '</td>' +
         '<td><div style="display:flex;gap:6px;flex-wrap:wrap">' + (['en_camino','en_curso'].indexOf(s.estado) >= 0 ? '<button class="btn btn-sm btn-teal" onclick="cerrarConNota(\'' + s.id + '\')">Nota y completar</button>' : '') +
         (['completado','cancelado'].indexOf(s.estado) < 0 ? '<button class="btn btn-sm btn-reject" onclick="cancelarServicioAdmin(\'' + s.id + '\')">Cancelar</button>' : '') + '</div></td></tr>';
     }).join('');
@@ -928,6 +986,9 @@ async function loadCuentas(pagina) {
   var yo = currentUser && currentUser.id;
   tb.innerHTML = d.items.map(function(u){
     var perfil = PERFILES[u.rol] || u.rol;
+    if (u.rol === 'admin') perfil = (u.email === d.superadmin || !u.rolIps || u.rolIps === 'superadmin') ? 'Superadministrador'
+      : '<select aria-label="Perfil en la IPS" style="padding:5px;border:1px solid var(--border);border-radius:6px;font:inherit;background:#fff" onchange="cambiarPerfilIps(\'' + u.id + '\', this)">' +
+        ['coordinador', 'tesoreria'].map(function(k){ return '<option value="' + k + '"' + (u.rolIps === k ? ' selected' : '') + '>' + PERFIL_IPS_NOMBRE[k] + '</option>'; }).join('') + '</select>';
     if (u.profesional) perfil += '<div class="profile-email">' + esc(u.profesional.especialidad || '') + ' · ' + esc(u.profesional.estadoVerificacion) + '</div>';
     var clave = u.claveCreada ? '<span class="badge badge-green">Creada</span>' : '<span class="badge badge-amber">Sin crear</span>';
     var est = u.estado === 'activo' ? '<span class="badge badge-green">Activa</span>' : '<span class="badge badge-red">Bloqueada</span>';
@@ -1008,7 +1069,8 @@ async function loadProfesionales(pagina) {
         '<div><div class="profile-name">' + esc(p.usuario ? p.usuario.nombreCompleto : '—') + '</div>' +
         '<div class="profile-email">' + esc(p.usuario ? p.usuario.email : '') + (p.usuario && p.usuario.telefono ? ' · ' + esc(p.usuario.telefono) : '') + '</div>' +
         (p.registroProfesional ? '<div class="profile-email">Registro: ' + esc(p.registroProfesional) + '</div>' : '') + '</div></div></td>' +
-        '<td>' + esc(p.especialidad || '—') + '</td>' +
+        '<td>' + selectorPerfil(p) + (p._count && p._count.documentos ? '<div><span class="badge badge-amber">' + p._count.documentos + (p._count.documentos === 1 ? ' documento por revisar' : ' documentos por revisar') + '</span></div>' : '') +
+          '<div style="margin-top:6px"><button class="btn btn-sm" onclick="verDocumentosProf(\'' + p.id + '\', this.dataset.n)" data-n="' + esc(p.usuario ? p.usuario.nombreCompleto : '') + '">📁 Documentos</button></div></td>' +
         '<td>' + verificacionBadge(p.estadoVerificacion) + (p.disponible && p.disponibleDesde && Date.now() - new Date(p.disponibleDesde).getTime() < 12 * 3600 * 1000 ? ' <span class="badge badge-green">En turno</span>' : '') + '</td>' +
         '<td>' + (p.calificacionPromedio ? '⭐ ' + Number(p.calificacionPromedio).toFixed(1) : '—') +
           (p._count && p._count.quejas ? '<div><span class="badge badge-red">' + p._count.quejas + (p._count.quejas === 1 ? ' queja' : ' quejas') + '</span></div>' : '') +
@@ -1147,8 +1209,7 @@ function verificacionBadge(estado) {
 }
 
 function tipoLabel(tipo) {
-  var map = {curacion:'🩹 Curación',medicacion:'💊 Medicación',inyeccion:'💉 Inyección',control:'🩺 Control',cuidado_basico:'🛁 Cuidado básico',urgencia:'🚨 Atención prioritaria'};
-  return map[tipo] || tipo;
+  return (ICONOS_SERVICIO[tipo] || '') + ' ' + esc((CATALOGO[tipo] && CATALOGO[tipo].nombre) || NOMBRES_SERVICIO[tipo] || tipo);
 }
 
 function formatDate(dateStr) {
@@ -1159,6 +1220,113 @@ function formatDate(dateStr) {
 function initials(name) {
   if (!name) return '?';
   return esc(name.split(' ').map(function(w){return w[0]||'';}).join('').slice(0,2).toUpperCase());
+}
+
+// ── Perfil y documentos de los profesionales ──
+function selectorPerfil(p) {
+  var ops = '<option value="">— Sin perfil —</option>' + Object.keys(PERFILES_PROF).map(function(k){ return '<option value="' + k + '"' + (p.perfil === k ? ' selected' : '') + '>' + esc(PERFILES_PROF[k]) + '</option>'; }).join('');
+  return '<select aria-label="Perfil profesional" style="max-width:100%;padding:6px 8px;border:1px solid var(--border);border-radius:6px;font:inherit;background:#fff" onchange="cambiarPerfilProf(\'' + p.id + '\', this)">' + ops + '</select>';
+}
+async function cambiarPerfilProf(id, sel) {
+  if (!sel.value) return;
+  var ok = await confirmar('El perfil define qué servicios puede atender. Confírmelo con su título y su registro en RETHUS.', { titulo: '¿Asignar perfil "' + PERFILES_PROF[sel.value] + '"?', si: 'Sí, asignar' });
+  if (!ok) { loadProfesionales(paginaProf); return; }
+  var r = await apiFetch('/api/admin/profesionales/' + id + '/perfil', { method: 'PUT', body: JSON.stringify({ perfil: sel.value }) });
+  if (r && r.ok) aviso('Perfil asignado'); else aviso((r && r.error) || 'No se pudo asignar el perfil', 'error');
+  loadProfesionales(paginaProf);
+}
+var ESTADO_DOC_P = { pendiente: ['Por revisar', 'badge-amber'], aprobado: ['Aprobado', 'badge-green'], rechazado: ['Rechazado', 'badge-red'] };
+async function verDocumentosProf(id, nombre) {
+  var d = await apiFetch('/api/admin/profesionales/' + id + '/documentos');
+  if (!d || !d.items) { aviso((d && d.error) || 'No se pudieron cargar los documentos', 'error'); return; }
+  var ultimo = {}; d.items.forEach(function(x){ if (!ultimo[x.tipo]) ultimo[x.tipo] = x; });
+  var fondo = document.createElement('div');
+  fondo.className = 'sec-modal-fondo';
+  var filas = d.requeridos.map(function(req){
+    var x = ultimo[req.tipo];
+    var e = x ? ESTADO_DOC_P[x.estado] || [x.estado, 'badge-gray'] : ['No lo ha subido', 'badge-red'];
+    return '<div style="border-top:1px solid #DCE5EE;padding:10px 0">' +
+      '<div style="display:flex;justify-content:space-between;gap:8px;align-items:center"><b>' + esc(req.nombre) + (req.obligatorio ? '' : ' (opcional)') + '</b><span class="badge ' + e[1] + '">' + e[0] + '</span></div>' +
+      (x ? '<div style="font-size:12px;color:#5D6B78">Subido ' + formatDate(x.createdAt) + (x.vence ? ' · vence ' + formatDate(x.vence) : '') + (x.nota ? ' · ' + esc(x.nota) : '') + '</div>' +
+        '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px">' +
+        (x.archivoId ? '<button class="btn btn-sm" data-id="' + x.id + '" data-n="' + esc(req.nombre) + '" onclick="verArchivo(API+\'/api/profesionales/documentos/\'+this.dataset.id+\'/archivo\', token, this.dataset.n)">Ver</button>' : '') +
+        (x.estado !== 'aprobado' ? (req.vence ? '<input type="date" id="dv-' + x.id + '" aria-label="Vence" value="' + (x.vence ? String(x.vence).slice(0, 10) : '') + '" style="padding:5px;border:1px solid #DCE5EE;border-radius:6px;background:#fff">' : '') +
+          '<button class="btn btn-sm btn-approve" data-id="' + x.id + '" onclick="revisarDocumento(this.dataset.id,\'aprobado\',this)">✓ Aprobar</button>' : '') +
+        (x.estado !== 'rechazado' ? '<button class="btn btn-sm btn-reject" data-id="' + x.id + '" onclick="revisarDocumento(this.dataset.id,\'rechazado\',this)">✗ Rechazar</button>' : '') +
+        '</div>' : '') + '</div>';
+  }).join('');
+  var al = d.alDia || {};
+  fondo.innerHTML = '<div class="sec-modal" role="dialog" aria-modal="true" style="max-width:560px"><h3>Documentos</h3><p style="margin-bottom:6px"></p>' +
+    '<div class="alert ' + (al.ok ? 'alert-ok' : 'alert-warn') + '" style="display:block;margin:0 0 6px">' + (al.ok ? 'Documentos obligatorios aprobados y vigentes.' : 'Aún no se puede aprobar: ' + esc([].concat(al.faltan || [], al.porRevisar || [], al.vencidos || []).join(', '))) + '</div>' +
+    filas + '<div class="sec-modal-botones" style="margin-top:12px"><button class="sec-btn-si" type="button">Cerrar</button></div></div>';
+  fondo.querySelector('p').textContent = nombre || '';
+  fondo.__cerrar = function(){ fondo.remove(); loadProfesionales(paginaProf); };
+  fondo.querySelector('.sec-btn-si').onclick = fondo.__cerrar;
+  fondo.dataset.prof = id; fondo.dataset.nombre = nombre || '';
+  document.body.appendChild(fondo);
+}
+async function revisarDocumento(id, estado, btn) {
+  var cuerpo = { estado: estado };
+  if (estado === 'rechazado') {
+    var nota = await pedirTexto('¿Por qué se rechaza? El profesional verá este motivo.', 'Rechazar documento');
+    if (!nota) return;
+    cuerpo.nota = nota;
+  } else {
+    var v = document.getElementById('dv-' + id);
+    if (v && !v.value) { aviso('Escriba la fecha de vencimiento que aparece en el documento', 'aviso'); v.focus(); return; }
+    if (v) cuerpo.vence = v.value;
+  }
+  btn.disabled = true;
+  var r = await apiFetch('/api/admin/documentos/' + id, { method: 'PUT', body: JSON.stringify(cuerpo) });
+  if (r && r.ok) {
+    aviso(estado === 'aprobado' ? 'Documento aprobado' : 'Documento rechazado; el profesional verá el motivo');
+    var f = btn.closest('.sec-modal-fondo'); var pid = f.dataset.prof, n = f.dataset.nombre; f.remove(); verDocumentosProf(pid, n);
+  } else { btn.disabled = false; aviso((r && r.error) || 'No se pudo guardar', 'error'); }
+}
+// Pide un texto corto en una ventana (motivos)
+function pedirTexto(texto, titulo) {
+  return new Promise(function(ok){
+    var f = document.createElement('div');
+    f.className = 'sec-modal-fondo';
+    f.innerHTML = '<div class="sec-modal" role="dialog" aria-modal="true"><h3></h3><p style="margin-bottom:8px"></p><textarea maxlength="300" style="width:100%;height:80px;padding:10px;border:1px solid #DCE5EE;border-radius:8px;font:inherit;box-sizing:border-box"></textarea><div class="sec-modal-botones" style="margin-top:12px"><button class="sec-btn-no" type="button">Cancelar</button><button class="sec-btn-si" type="button">Guardar</button></div></div>';
+    f.querySelector('h3').textContent = titulo; f.querySelector('p').textContent = texto;
+    var fin = function(v){ f.remove(); ok(v); };
+    f.__cerrar = function(){ fin(''); };
+    f.querySelector('.sec-btn-no').onclick = function(){ fin(''); };
+    f.querySelector('.sec-btn-si').onclick = function(){ var v = f.querySelector('textarea').value.trim(); if (v.length < 5) { aviso('Escriba el motivo (mínimo 5 letras)', 'aviso'); return; } fin(v); };
+    document.body.appendChild(f); f.querySelector('textarea').focus();
+  });
+}
+
+// ── Cuentas de la IPS (coordinación y tesorería) ──
+function crearCuentaIps() {
+  var f = document.createElement('div');
+  f.className = 'sec-modal-fondo';
+  f.innerHTML = '<div class="sec-modal" role="dialog" aria-modal="true"><h3>Crear cuenta de la IPS</h3><p style="margin-bottom:8px">La persona recibe en su correo un enlace para crear su contraseña. Cada perfil ve solo lo suyo: <b>Coordinación</b> aprueba profesionales, revisa documentos, servicios, pacientes y quejas; <b>Tesorería</b> ve pagos y marca transferencias y devoluciones. Las tarifas y las cuentas solo las maneja el Superadministrador.</p>' +
+    '<input id="ci-nombre" placeholder="Nombre completo" maxlength="200" style="width:100%;padding:9px;border:1px solid #DCE5EE;border-radius:8px;font:inherit;box-sizing:border-box;margin-bottom:8px">' +
+    '<input id="ci-correo" type="email" placeholder="correo@ejemplo.com" maxlength="150" style="width:100%;padding:9px;border:1px solid #DCE5EE;border-radius:8px;font:inherit;box-sizing:border-box;margin-bottom:8px">' +
+    '<div class="chips" id="ci-perfil">' + chip('coordinador', 'Coordinación de servicios', true) + chip('tesoreria', 'Tesorería', false) + '</div>' +
+    '<div class="sec-modal-botones" style="margin-top:14px"><button class="sec-btn-no" type="button">Cancelar</button><button class="sec-btn-si" type="button">Crear y enviar enlace</button></div></div>';
+  f.querySelectorAll('#ci-perfil .chip-sel').forEach(function(c){ c.onclick = function(){ f.querySelectorAll('#ci-perfil .chip-sel').forEach(function(o){ o.classList.toggle('on', o === c); o.setAttribute('aria-pressed', o === c); }); }; });
+  f.__cerrar = function(){ f.remove(); };
+  f.querySelector('.sec-btn-no').onclick = f.__cerrar;
+  f.querySelector('.sec-btn-si').onclick = async function(){
+    var n = document.getElementById('ci-nombre').value.trim(), c = document.getElementById('ci-correo').value.trim();
+    var rol = (f.querySelector('#ci-perfil .chip-sel.on') || {}).dataset;
+    if (n.length < 3 || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(c) || !rol) { aviso('Escriba nombre y correo válidos y elija el perfil', 'aviso'); return; }
+    var b = this; if (b.disabled) return; b.disabled = true; b.textContent = 'Creando...';
+    var r = await apiFetch('/api/admin/cuentas/ips', { method: 'POST', body: JSON.stringify({ nombreCompleto: n, email: c, rolIps: rol.id }) });
+    if (r && r.ok) { f.remove(); aviso('Cuenta creada. Enlace enviado a ' + r.para); loadCuentas(); }
+    else { aviso((r && r.error) || 'No se pudo crear la cuenta', 'error'); b.disabled = false; b.textContent = 'Crear y enviar enlace'; }
+  };
+  document.body.appendChild(f);
+}
+async function cambiarPerfilIps(id, sel) {
+  var ok = await confirmar('Se cerrarán sus sesiones abiertas y entrará con el perfil nuevo.', { titulo: '¿Cambiar a "' + PERFIL_IPS_NOMBRE[sel.value] + '"?', si: 'Sí, cambiar' });
+  if (!ok) { loadCuentas(paginaCuentas); return; }
+  var r = await apiFetch('/api/admin/cuentas/' + id + '/perfil-ips', { method: 'PUT', body: JSON.stringify({ rolIps: sel.value }) });
+  if (r && r.ok) aviso('Perfil cambiado'); else aviso((r && r.error) || 'No se pudo cambiar', 'error');
+  loadCuentas(paginaCuentas);
 }
 </script>
 </body>

@@ -227,28 +227,16 @@
         <label>Profesión o especialidad *</label>
         <select id="reg-especialidad">
           <option value="">Seleccione...</option>
-          <optgroup label="Enfermería">
-            <option>Enfermería general</option>
-            <option>Auxiliar de enfermería</option>
-            <option>Enfermería: heridas y ostomías</option>
-          </optgroup>
-          <optgroup label="Medicina">
-            <option>Medicina general</option>
-            <option>Pediatría</option>
-            <option>Neurología / neurodesarrollo</option>
-            <option>Psiquiatría</option>
-            <option>Otra especialidad médica</option>
-          </optgroup>
-          <optgroup label="Terapias y salud mental">
-            <option>Psicología</option>
-            <option>Neuropsicología</option>
-            <option>Fisioterapia</option>
-            <option>Terapia ocupacional</option>
-            <option>Terapia de integración sensorial</option>
-            <option>Terapia conductual</option>
-            <option>Fonoaudiología</option>
-          </optgroup>
+          <option value="enfermero_profesional">Enfermero(a) profesional</option>
+          <option value="auxiliar_enfermeria">Auxiliar de enfermería</option>
+          <option value="medico">Médico(a) general</option>
+          <option value="fisioterapeuta">Fisioterapeuta</option>
+          <option value="terapeuta_ocupacional">Terapeuta ocupacional</option>
+          <option value="terapeuta_respiratorio">Terapeuta respiratorio</option>
+          <option value="psicologo">Psicólogo(a)</option>
+          <option value="terapeuta_conductual">Terapeuta conductual (ABA)</option>
         </select>
+        <div class="field-hint">Define qué servicios puede atender. La IPS lo confirma con su título y su registro en RETHUS.</div>
       </div>
       <div class="form-group">
         <label>Contraseña *</label>
@@ -359,6 +347,13 @@
       <div class="info-row"><span class="info-label">Especialidad</span><span class="info-value" id="perfil-especialidad">—</span></div>
       <div class="info-row"><span class="info-label">Servicios totales</span><span class="info-value" id="perfil-servicios">0</span></div>
       <div class="info-row"><span class="info-label">Calificación</span><span class="info-value" id="perfil-cal">—</span></div>
+    </div>
+    <div class="info-card" id="mis-documentos">
+      <div style="font-size:12px;color:var(--muted);font-weight:600;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px">Mis documentos</div>
+      <div class="sec-origen">La IPS revisa cada documento antes de aprobar su cuenta. Sin los obligatorios aprobados y vigentes no puede iniciar turno. Le avisamos 15 días antes de que venza la póliza.</div>
+      <div id="docs-estado" style="font-size:13px;margin-bottom:8px"></div>
+      <div id="docs-lista" style="font-size:13px;color:var(--muted)">Cargando...</div>
+      <input type="file" id="doc-archivo" accept="image/*,application/pdf" hidden onchange="subirDocumento(this)">
     </div>
     <div class="info-card">
       <div style="font-size:12px;color:var(--muted);font-weight:600;letter-spacing:1px;text-transform:uppercase;margin-bottom:12px">Soporte</div>
@@ -480,7 +475,7 @@ async function doRegistro() {
   showLoading('Creando cuenta...');
   try {
     const res = await fetch(API+'/api/auth/register',{method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({nombreCompleto:nombre,email,telefono,password,rol:'profesional',especialidad:especialidad||undefined,aceptaTerminos:true})});
+      body:JSON.stringify({nombreCompleto:nombre,email,telefono,password,rol:'profesional',perfil:especialidad||undefined,aceptaTerminos:true})});
     const data = await res.json();
     hideLoading();
     if (!res.ok) {
@@ -652,7 +647,7 @@ async function loadSolicitudes() {
 }
 
 function solicitudCard(s) {
-  const iconos={curacion:'🩹',medicacion:'💊',inyeccion:'💉',control:'🩺',cuidado_basico:'🛁',urgencia:'🚨'};
+  const iconos=ICONOS_SERVICIO;
   const urgente = s.tipo==='urgencia';
   const pacNombre = (s.paciente&&s.paciente.nombreCompleto)?s.paciente.nombreCompleto:((s.paciente&&s.paciente.usuario)?s.paciente.usuario.nombreCompleto:'Paciente');
   return '<div class="solicitud-card '+(urgente?'urgente':'normal')+'">' +
@@ -660,6 +655,7 @@ function solicitudCard(s) {
     '<div><div class="sol-name">'+tipoLabel(s.tipo)+'</div><div class="sol-sub">'+esc(pacNombre)+'</div></div></div>' +
     '<span class="badge '+(urgente?'badge-red':'badge-teal')+'">'+(urgente?'PRIORITARIA':'INMEDIATA')+'</span></div>' +
     '<div class="sol-info"><div class="sol-info-row">📍 <span>'+esc(s.direccion||'Sin dirección')+'</span></div>' +
+    (s.conOrden?'<div class="sol-info-row">📄 <span>Con orden médica (la verá si el paciente lo elige)</span></div>':'') +
     '<div class="sol-info-row">🕐 <span>'+formatDate(s.createdAt||s.fechaSolicitud)+'</span></div>' +
     (s.monto?'<div class="sol-info-row">💵 <span>Tarifa $'+Number(s.monto).toLocaleString('es-CO')+'</span></div>':'') +
     (s.descripcion?'<div class="sol-info-row">📝 <span>'+esc(s.descripcion)+'</span></div>':'') + '</div>' +
@@ -702,7 +698,8 @@ function mostrarServicioActivo(s) {
     window.__plazoPago = setTimeout(function(){ marcarSegundoPlano(); loadInicio(); }, resta > 0 ? resta + 5000 : 25000);
   }
   if (faltaPago) html='<div class="nota-ok" style="display:block;background:#E8F1FA;color:#0B4F8A;margin-bottom:8px">⏳ Esperando el pago del paciente'+(s.buscandoHasta ? ' (tiene hasta las '+new Date(s.buscandoHasta).toLocaleTimeString('es-CO',{hour:'2-digit',minute:'2-digit',timeZone:'America/Bogota'})+')' : '')+'. Le avisaremos cuando pague para que salga; si no paga a tiempo, usted queda libre.</div><button class="btn-estado btn-desistir" onclick="desistirServicio(\''+s.id+'\')">No puedo atenderlo</button>';
-  else if (s.estado==='asignado') html='<button class="btn-estado btn-en-camino" onclick="cambiarEstado(\''+s.id+'\',\'en_camino\')">🚗 Voy en camino</button><button class="btn-estado btn-desistir" onclick="desistirServicio(\''+s.id+'\')">No puedo atenderlo</button>';
+  else if (s.estado==='asignado' && s.ordenArchivoId && !s.ordenRevisada) html='<div class="nota-ok" style="display:block;background:#FFF4D9;color:#5A3E00;margin-bottom:8px">📄 Este servicio tiene orden médica. Revísela (medicamento, dosis y vía) antes de salir.</div><button class="btn-estado btn-en-camino" onclick="verOrdenMedica(\''+s.id+'\',true)">📄 Ver orden médica</button><button class="btn-estado btn-desistir" onclick="desistirServicio(\''+s.id+'\')">No puedo atenderlo</button>';
+  else if (s.estado==='asignado') html='<button class="btn-estado btn-en-camino" onclick="cambiarEstado(\''+s.id+'\',\'en_camino\')">🚗 Voy en camino</button>'+(s.ordenArchivoId?'<button class="btn-estado" style="background:#fff;color:#0B4F8A" onclick="verOrdenMedica(\''+s.id+'\')">📄 Ver orden médica</button>':'')+'<button class="btn-estado btn-desistir" onclick="desistirServicio(\''+s.id+'\')">No puedo atenderlo</button>';
   else if (s.estado==='en_camino') html='<button class="btn-estado btn-en-curso" onclick="cambiarEstado(\''+s.id+'\',\'en_curso\')">▶️ Iniciar servicio</button><button class="btn-estado btn-desistir" onclick="desistirServicio(\''+s.id+'\')">No puedo atenderlo</button>';
   else if (s.estado==='en_curso') {
     if (document.getElementById('evolucion-form').style.display !== 'block') recuperarBorrador(s.id);
@@ -908,7 +905,7 @@ async function toggleDisponible() {
     if (nuevo) { pidiendoAvisos = true; await iniciarNotificacionesPush(); pidiendoAvisos = false; }
     const res = await fetch(API+'/api/profesionales/'+miPerfilId+'/disponibilidad',{method:'PUT',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},body:JSON.stringify({disponible:nuevo})});
     const d = await res.json().catch(function(){ return {}; });
-    if (!res.ok) { if (d.faltanAvisos) { mostrarAyudaAvisos(); return; } throw new Error(d.error); }
+    if (!res.ok) { if (d.faltanAvisos) { mostrarAyudaAvisos(); return; } if (d.faltanDocumentos) { aviso(d.error, 'aviso', 14000); showPage('perfil', document.querySelector('.nav-btn[data-pag="perfil"]')); loadPerfil(); setTimeout(function(){ var m=document.getElementById('mis-documentos'); if (m) m.scrollIntoView({behavior:'smooth'}); }, 600); return; } throw new Error(d.error); }
     if (d.accessToken) { token = d.accessToken; try { localStorage.setItem('re_e_token', token); } catch(e) {} }
     disponible = nuevo; disponibleDesde = d.disponibleDesde || null; pintarDisponible();
     aviso(disponible ? (avisosActivos ? 'Turno iniciado. Puede guardar el celular: le avisaremos cada solicitud.' : 'Turno iniciado. Mantenga la app abierta para ver las solicitudes.') : 'Turno terminado. Ya no le llegarán solicitudes.');
@@ -937,7 +934,7 @@ async function loadHistorial(mas) {
     const data = await res.json();
     const items = (data.items||[]).filter(function(s){return['completado','cancelado'].includes(s.estado);});
     if (!items.length) { el.innerHTML='<div class="empty"><div class="empty-icon">📋</div><div class="empty-text">Sin historial aún</div></div>'; return; }
-    const iconos={curacion:'🩹',medicacion:'💊',inyeccion:'💉',control:'🩺',cuidado_basico:'🛁',urgencia:'🚨'};
+    const iconos=ICONOS_SERVICIO;
     el.innerHTML = items.map(function(s){
       return '<div class="historial-item"><div class="hist-icon" style="background:'+(s.estado==='completado'?'var(--teal-dim)':'var(--red-dim)')+'">'+( iconos[s.tipo]||'🏥')+'</div>' +
         '<div class="hist-info"><div class="hist-tipo">'+tipoLabel(s.tipo)+'</div><div class="hist-fecha">'+esc((s.paciente&&(s.paciente.nombreCompleto||(s.paciente.usuario&&s.paciente.usuario.nombreCompleto)))||'')+' · '+formatDate(s.createdAt)+'</div></div>' +
@@ -972,6 +969,58 @@ async function loadPerfil() {
       cargarOpiniones(miPerfil.id);
     }
   } catch(e) {}
+  cargarDocumentos();
+}
+
+// ── Mis documentos ──
+var docTipoSubiendo = '';
+var ESTADO_DOC = { pendiente: ['En revisión', 'badge-amber'], aprobado: ['Aprobado', 'badge-teal'], rechazado: ['Rechazado', 'badge-red'] };
+async function cargarDocumentos() {
+  const el = document.getElementById('docs-lista'), est = document.getElementById('docs-estado');
+  try {
+    const r = await fetch(API + '/api/profesionales/mis-documentos', { headers: { 'Authorization': 'Bearer ' + token } });
+    const d = await r.json().catch(function(){ return {}; });
+    if (!r.ok) throw new Error(d.error || 'No se pudieron cargar sus documentos');
+    const ultimo = {};
+    (d.items || []).forEach(function(x){ if (!ultimo[x.tipo]) ultimo[x.tipo] = x; });
+    est.innerHTML = d.alDia && d.alDia.ok ? '<span class="badge badge-teal">✅ Documentos al día</span>' : '<span class="badge badge-amber">⚠️ Documentos pendientes</span>' +
+      (d.transicionHasta ? '<div class="field-hint" style="margin-top:6px">Puede seguir tomando turnos mientras tanto, hasta el ' + fechaCO(d.transicionHasta) + '. Después de esa fecha solo podrá iniciar turno con los documentos aprobados.</div>' : '');
+    el.innerHTML = (d.requeridos || []).map(function(req){
+      const x = ultimo[req.tipo];
+      const e = x ? ESTADO_DOC[x.estado] || [x.estado, 'badge-amber'] : ['Falta', 'badge-red'];
+      const vence = x && x.vence ? ' · vence ' + fechaCO(x.vence) : '';
+      return '<div style="border-top:1px solid var(--border);padding:10px 0">' +
+        '<div style="display:flex;justify-content:space-between;gap:8px;align-items:center"><b style="color:var(--text)">' + esc(req.nombre) + (req.obligatorio ? '' : ' <span style="font-weight:400">(opcional)</span>') + '</b><span class="badge ' + e[1] + '">' + e[0] + '</span></div>' +
+        '<div style="font-size:12px">' + esc(req.ayuda) + vence + '</div>' +
+        (x && x.estado === 'rechazado' && x.nota ? '<div style="font-size:12px;color:#B4412F">Motivo: ' + esc(x.nota) + '</div>' : '') +
+        (req.vence ? '<label style="font-size:12px;display:block;margin-top:6px">Fecha de vencimiento <input type="date" id="vence-' + req.tipo + '" style="padding:6px;border:1px solid var(--border);border-radius:8px;background:#fff"></label>' : '') +
+        '<div style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap">' +
+        '<button class="btn-estado" style="margin:0;padding:8px 12px;width:auto" data-t="' + req.tipo + '" onclick="elegirDocumento(this.dataset.t)">' + (x ? '↻ Cambiar' : '⬆ Subir') + '</button>' +
+        (x && x.archivoId ? '<button class="btn-estado" style="margin:0;padding:8px 12px;width:auto;background:#fff;color:#0B4F8A;border:1px solid var(--border)" data-id="' + x.id + '" data-n="' + esc(req.nombre) + '" onclick="verArchivo(API+\'/api/profesionales/documentos/\'+this.dataset.id+\'/archivo\', token, this.dataset.n)">Ver</button>' : '') +
+        '</div></div>';
+    }).join('');
+  } catch (e) { el.textContent = mensajeRed(e); }
+}
+function elegirDocumento(tipo) {
+  const v = document.getElementById('vence-' + tipo);
+  if (v && !v.value) { aviso('Primero escriba la fecha de vencimiento del documento', 'aviso'); v.focus(); return; }
+  docTipoSubiendo = tipo;
+  document.getElementById('doc-archivo').click();
+}
+async function subirDocumento(inp) {
+  const f = inp.files && inp.files[0]; inp.value = '';
+  if (!f || !docTipoSubiendo) return;
+  showLoading('Subiendo documento...');
+  try {
+    const archivo = f.type === 'application/pdf' ? await leerPdf(f) : await comprimirImagen(f, 650 * 1024);
+    const v = document.getElementById('vence-' + docTipoSubiendo);
+    const r = await fetch(API + '/api/profesionales/mis-documentos', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token }, body: JSON.stringify({ tipo: docTipoSubiendo, archivo: archivo, vence: v && v.value ? v.value : undefined }) });
+    const d = await r.json().catch(function(){ return {}; });
+    hideLoading();
+    if (!r.ok) throw new Error(d.error || 'No se pudo subir el documento');
+    aviso(d.mensaje || 'Documento recibido');
+    cargarDocumentos();
+  } catch (e) { hideLoading(); aviso(mensajeRed(e), 'error'); }
 }
 
 async function cargarOpiniones(id) {
@@ -990,8 +1039,7 @@ function showLoading(text) { document.getElementById('loading-text').textContent
 function hideLoading() { document.getElementById('loading-overlay').classList.remove('active'); }
 function showError(el,msg) { el.textContent=msg; el.style.display='block'; }
 function tipoLabel(tipo) {
-  const map={curacion:'Curación',medicacion:'Medicación',inyeccion:'Inyección',control:'Control',cuidado_basico:'Cuidado básico',urgencia:'Atención prioritaria'};
-  return map[tipo]||tipo;
+  return NOMBRES_SERVICIO[tipo]||tipo;
 }
 function formatDate(d) {
   if (!d) return '—';
@@ -1047,6 +1095,20 @@ function urlBase64ToUint8Array(base64String) {
     outputArray[i] = rawData.charCodeAt(i);
   }
   return outputArray;
+}
+
+// Orden médica del servicio: verla es requisito para salir hacia el domicilio
+async function verOrdenMedica(id, marcar) {
+  const ok = await verArchivo(API + '/api/servicios/' + id + '/orden', token, 'Orden médica del paciente');
+  if (!ok || !marcar) return;
+  const conf = await confirmar('¿Revisó la orden? Debe tener nombre del paciente, medicamento, dosis, vía y firma del médico. Si algo no está claro, llame al paciente o a la IPS antes de salir.', { titulo: 'Confirmar revisión de la orden', si: 'Sí, la revisé', no: 'Volver a verla' });
+  if (!conf) return;
+  try {
+    const r = await fetch(API + '/api/servicios/' + id + '/orden-revisada', { method: 'POST', headers: { 'Authorization': 'Bearer ' + token } });
+    if (!r.ok) { const d = await r.json().catch(function(){ return {}; }); throw new Error(d.error || 'No se pudo guardar'); }
+    aviso('Orden revisada. Ya puede salir hacia el domicilio.');
+    loadInicio();
+  } catch (e) { aviso(mensajeRed(e), 'error'); }
 }
 </script>
 </body>

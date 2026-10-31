@@ -282,6 +282,66 @@
     });
   };
 
+  // Íconos y nombres cortos de los servicios (el nombre oficial y el precio vienen del catálogo de la IPS)
+  window.ICONOS_SERVICIO = { curacion: '\u{1FA79}', medicacion: '\u{1F48A}', inyeccion: '\u{1F489}', control: '\u{1FA7A}', cuidado_basico: '\u{1F6C1}', urgencia: '\u{1F6A8}',
+    consulta_medica: '\u{1F468}\u200D\u2695\uFE0F', terapia_fisica: '\u{1F9BF}', terapia_ocupacional: '\u{1F9E9}', terapia_respiratoria: '\u{1FAC1}', terapia_conductual: '\u{1F9E0}', psicologia: '\u{1F4AC}' };
+  window.NOMBRES_SERVICIO = { curacion: 'Curación', medicacion: 'Medicación', inyeccion: 'Inyección', control: 'Control', cuidado_basico: 'Cuidado básico', urgencia: 'Atención prioritaria',
+    consulta_medica: 'Consulta médica', terapia_fisica: 'Terapia física', terapia_ocupacional: 'Terapia ocupacional', terapia_respiratoria: 'Terapia respiratoria', terapia_conductual: 'Terapia conductual', psicologia: 'Psicología' };
+
+  // Foto tomada con el celular → JPEG liviano (lado mayor 1600 px y, si hace falta, menos calidad) para no llenar la base
+  window.comprimirImagen = function (archivo, maxBytes) {
+    maxBytes = maxBytes || 650 * 1024;
+    return new Promise(function (ok, mal) {
+      if (!archivo || !/^image\//.test(archivo.type)) return mal(new Error('Elija una foto (JPG o PNG).'));
+      var lector = new FileReader();
+      lector.onerror = function () { mal(new Error('No se pudo leer la foto.')); };
+      lector.onload = function () {
+        var img = new Image();
+        img.onerror = function () { mal(new Error('No se pudo abrir la foto. Intente con otra.')); };
+        img.onload = function () {
+          var lado = 1600, calidad = 0.72, intento = 0, url = '';
+          do {
+            var esc = Math.min(1, lado / Math.max(img.width, img.height));
+            var c = document.createElement('canvas'); c.width = Math.round(img.width * esc); c.height = Math.round(img.height * esc);
+            var g = c.getContext('2d'); g.fillStyle = '#fff'; g.fillRect(0, 0, c.width, c.height); g.drawImage(img, 0, 0, c.width, c.height);
+            url = c.toDataURL('image/jpeg', calidad);
+            lado = Math.round(lado * 0.8); calidad = Math.max(0.45, calidad - 0.08); intento++;
+          } while (url.length * 0.75 > maxBytes && intento < 8);
+          if (url.length * 0.75 > maxBytes) return mal(new Error('La foto quedó muy pesada. Tómela de nuevo más cerca del papel.'));
+          ok(url);
+        };
+        img.src = lector.result;
+      };
+      lector.readAsDataURL(archivo);
+    });
+  };
+  // PDF tal cual (máximo 1,5 MB)
+  window.leerPdf = function (archivo) {
+    return new Promise(function (ok, mal) {
+      if (!archivo || archivo.type !== 'application/pdf') return mal(new Error('Elija un PDF.'));
+      if (archivo.size > 1536 * 1024) return mal(new Error('El PDF pesa más de 1,5 MB. Tome mejor una foto del documento.'));
+      var l = new FileReader(); l.onload = function () { ok(l.result); }; l.onerror = function () { mal(new Error('No se pudo leer el PDF.')); }; l.readAsDataURL(archivo);
+    });
+  };
+  // Muestra un archivo protegido (orden médica, documento) en una ventana; los PDF se abren aparte
+  window.verArchivo = async function (url, token, titulo) {
+    try {
+      var r = await fetch(url, { headers: { 'Authorization': 'Bearer ' + token } });
+      if (!r.ok) { var e = await r.json().catch(function () { return {}; }); throw new Error(e.error || 'No se pudo abrir el archivo'); }
+      var b = await r.blob(), u = URL.createObjectURL(b);
+      if (b.type === 'application/pdf') { window.open(u, '_blank', 'noopener'); setTimeout(function () { URL.revokeObjectURL(u); }, 60000); return true; }
+      var fondo = document.createElement('div');
+      fondo.className = 'sec-modal-fondo';
+      fondo.innerHTML = '<div class="sec-modal" role="dialog" aria-modal="true" style="max-width:640px"><h3></h3><img alt="" style="width:100%;border:1px solid #DCE5EE;border-radius:10px;margin:6px 0 14px"><div class="sec-modal-botones"><button class="sec-btn-si" type="button">Cerrar</button></div></div>';
+      fondo.querySelector('h3').textContent = titulo || 'Archivo';
+      fondo.querySelector('img').src = u; fondo.querySelector('img').alt = titulo || 'Archivo';
+      var cerrar = function () { fondo.remove(); URL.revokeObjectURL(u); };
+      fondo.__cerrar = cerrar; fondo.querySelector('.sec-btn-si').onclick = cerrar;
+      document.body.appendChild(fondo);
+      return true;
+    } catch (e) { window.aviso(window.mensajeRed ? window.mensajeRed(e) : e.message, 'error'); return false; }
+  };
+
   document.addEventListener('DOMContentLoaded', function () {
     ponerOjos();
     new MutationObserver(function () { ponerOjos(); }).observe(document.body, { childList: true, subtree: true });
