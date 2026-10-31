@@ -13,9 +13,13 @@ export const DUENO_CORREO = process.env.DUENO_CORREO || 'rikardolondono@gmail.co
 const sha256 = (t: string) => crypto.createHash('sha256').update(t).digest('hex')
 const URL_RESTABLECER = `${APP_URL}/restablecer.html`
 
-// A dónde llega el enlace: las cuentas de la IPS (administradores) van directo al Gmail del dueño
-export function destinoClave(u: { email: string; rol: string }) {
-  return u.rol === 'admin' ? DUENO_CORREO : u.email
+// A dónde llega el enlace: las cuentas del dueño (Superadministrador y administración antigua sin perfil) van directo a su Gmail;
+// las de coordinación y tesorería, al correo de cada persona.
+export function esCuentaDelDueno(u: { rol: string; rolIps?: string | null }) {
+  return u.rol === 'admin' && (!u.rolIps || u.rolIps === 'superadmin')
+}
+export function destinoClave(u: { email: string; rol: string; rolIps?: string | null }) {
+  return esCuentaDelDueno(u) ? DUENO_CORREO : u.email
 }
 
 // Al arrancar: deja lista la cuenta superadmin.saludencasa@ y quita el acceso del correo compartido viejo
@@ -24,7 +28,7 @@ export async function asegurarSuperadmin(log: { info: (o: any, m?: string) => vo
   const viejo = await prisma.usuario.findUnique({ where: { email: CORREO_VIEJO } })
   if (!nuevo && viejo && viejo.rol === 'admin') {
     // Se conserva la misma contraseña: solo cambia el correo con que se entra
-    await prisma.usuario.update({ where: { id: viejo.id }, data: { email: SUPERADMIN_CORREO, estado: 'activo' } })
+    await prisma.usuario.update({ where: { id: viejo.id }, data: { email: SUPERADMIN_CORREO, estado: 'activo', rolIps: 'superadmin' } })
     log.info({ id: viejo.id }, 'Superadministrador: el correo compartido pasó a ' + SUPERADMIN_CORREO)
     return
   }
@@ -32,11 +36,11 @@ export async function asegurarSuperadmin(log: { info: (o: any, m?: string) => vo
     // Sin contraseña usable: el dueño la crea con "¿Olvidó su contraseña?" (el enlace llega a su Gmail)
     const azar = await bcrypt.hash(crypto.randomBytes(32).toString('hex'), 12)
     await prisma.usuario.create({
-      data: { email: SUPERADMIN_CORREO, rol: 'admin', nombreCompleto: 'Superadministrador Salud en Casa', passwordHash: azar, claveCreada: false, estado: 'activo' },
+      data: { email: SUPERADMIN_CORREO, rol: 'admin', rolIps: 'superadmin', nombreCompleto: 'Superadministrador Salud en Casa', passwordHash: azar, claveCreada: false, estado: 'activo' },
     })
     log.info({}, 'Superadministrador creado: ' + SUPERADMIN_CORREO + ' (crear la contraseña con "¿Olvidó su contraseña?")')
-  } else if (nuevo.rol !== 'admin' || nuevo.estado !== 'activo') {
-    await prisma.usuario.update({ where: { id: nuevo.id }, data: { rol: 'admin', estado: 'activo' } })
+  } else if (nuevo.rol !== 'admin' || nuevo.estado !== 'activo' || nuevo.rolIps !== 'superadmin') {
+    await prisma.usuario.update({ where: { id: nuevo.id }, data: { rol: 'admin', estado: 'activo', rolIps: 'superadmin' } })
   }
   // El correo compartido viejo ya no entra a esta app
   if (viejo && viejo.estado === 'activo') {
@@ -47,7 +51,7 @@ export async function asegurarSuperadmin(log: { info: (o: any, m?: string) => vo
 }
 
 // Crea un enlace de 1 hora (invalida los anteriores) y lo envía. Devuelve a qué correo salió.
-export async function enviarEnlaceClave(usuario: { id: string; email: string; rol: string; nombreCompleto: string }, motivo: 'olvido' | 'ips') {
+export async function enviarEnlaceClave(usuario: { id: string; email: string; rol: string; rolIps?: string | null; nombreCompleto: string }, motivo: 'olvido' | 'ips') {
   await prisma.recuperacionClave.deleteMany({ where: { createdAt: { lt: new Date(Date.now() - 7 * 24 * 3600 * 1000) } } })
   await prisma.recuperacionClave.updateMany({ where: { usuarioId: usuario.id, usadoEn: null }, data: { usadoEn: new Date() } })
   const token = crypto.randomBytes(32).toString('hex')

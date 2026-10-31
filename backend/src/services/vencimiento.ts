@@ -2,6 +2,7 @@ import { prisma } from '../utils/prisma'
 import { marcarCambio } from '../utils/cambios'
 import { marcarReembolso, PAGO_OBLIGATORIO } from './liquidacion'
 import { cerrarTurnosVencidos } from './presencia'
+import { revisarVencimientos } from './catalogo'
 
 // El paciente necesita atención pronto: si en 10 minutos no eligió a ningún profesional
 // (porque nadie se ofreció), la solicitud se cierra sola y se le avisa de inmediato.
@@ -41,6 +42,7 @@ export async function vencerPendientesAntiguas(forzar = false): Promise<void> {
   ultimaRevision = Date.now()
   await limpiarSesiones()
   await cerrarTurnosVencidos().catch(() => {})
+  await revisarVencimientos().catch((e) => console.error('No se pudieron revisar los vencimientos de documentos', e))
   try {
     const ahora = new Date()
     const viejos = await prisma.servicio.findMany({
