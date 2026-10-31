@@ -230,6 +230,12 @@ model Servicio {
   calificadoEn           DateTime?      @map("calificado_en")
   resenaOculta           Boolean        @default(false) @map("resena_oculta") // la IPS puede ocultar un comentario inapropiado
   buscandoHasta          DateTime?      @map("buscando_hasta") // fin de la búsqueda de profesional (10 min) o del plazo de pago
+  programadoPara         DateTime?      @map("programado_para") // cita programada (null = servicio urgente, ahora)
+  dirigidoA              String?        @map("dirigido_a") // profesional al que el paciente le pidió repetir la visita
+  codigoLlegada          String?        @map("codigo_llegada") @db.VarChar(6) // el paciente se lo dice al profesional al abrir la puerta
+  asignadoEn             DateTime?      @map("asignado_en") // cuándo quedó con el profesional actual (el chat empieza ahí para él)
+  recordadoEn            DateTime?      @map("recordado_en") // recordatorio de la cita enviado
+  atrasoAvisadoEn        DateTime?      @map("atraso_avisado_en") // la IPS ya recibió el aviso de cita sin iniciar
   createdAt              DateTime       @default(now()) @map("created_at")
   updatedAt              DateTime       @updatedAt @map("updated_at")
   paciente               Paciente?      @relation(fields: [pacienteId], references: [id], onDelete: Restrict)
@@ -240,7 +246,9 @@ model Servicio {
   ofertas                Oferta[]
   quejas                 Queja[]
   recibido               Recibido?
+  mensajes               Mensaje[]
   @@index([estado, createdAt])
+  @@index([estado, programadoPara])
   @@index([estado, buscandoHasta])
   @@index([profesionalId, calificacion])
   @@index([estado, fechaSolicitud])
@@ -430,4 +438,17 @@ model Archivo {
   subidoPor String   @map("subido_por")
   createdAt DateTime @default(now()) @map("created_at")
   @@map("archivos")
+}
+
+// Chat del servicio entre el paciente y el profesional elegido (la IPS puede leerlo)
+model Mensaje {
+  id         String   @id @default(uuid())
+  servicioId String   @map("servicio_id")
+  autorId    String   @map("autor_id")
+  rol        String   @db.VarChar(20) // paciente | profesional
+  texto      String   @db.VarChar(500)
+  createdAt  DateTime @default(now()) @map("created_at")
+  servicio   Servicio @relation(fields: [servicioId], references: [id], onDelete: Cascade)
+  @@index([servicioId, createdAt])
+  @@map("mensajes")
 }
