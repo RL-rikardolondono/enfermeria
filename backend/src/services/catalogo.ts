@@ -69,6 +69,7 @@ export function puedeAtender(perfil: string | null | undefined, perfilesDelServi
 
 // ── Documentos que la IPS exige a cada profesional ─────────────────────────────
 export const DOCUMENTOS: { tipo: string; nombre: string; vence: boolean; obligatorio: boolean; ayuda: string }[] = [
+  { tipo: 'foto', nombre: 'Foto de perfil', vence: false, obligatorio: true, ayuda: 'Foto reciente de su rostro, de frente y con uniforme. El paciente la ve para reconocerle cuando llegue' },
   { tipo: 'cedula', nombre: 'Cédula de ciudadanía', vence: false, obligatorio: true, ayuda: 'Foto de ambos lados' },
   { tipo: 'titulo', nombre: 'Tarjeta profesional o certificado de auxiliar', vence: false, obligatorio: true, ayuda: 'Según su profesión' },
   { tipo: 'rethus', nombre: 'Registro en RETHUS', vence: false, obligatorio: true, ayuda: 'Consulta del Registro Único Nacional del Talento Humano en Salud' },

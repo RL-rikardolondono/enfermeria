@@ -11,6 +11,8 @@ export const MINUTOS_BUSQUEDA = 10
 export const MINUTOS_EXTRA_OFERTA = 3
 export const MOTIVO_SIN_PROFESIONAL = 'Ningún profesional pudo atenderle en este momento. No se le cobró nada; si ya había pagado, se le devuelve el 100 %.'
 
+export const MOTIVO_CITA_SIN_PROFESIONAL = 'Ningún profesional aceptó esta cita a tiempo. No se le cobró nada; si ya había pagado, se le devuelve el 100 %. Puede programarla para otra hora o escribirnos por WhatsApp.'
+
 export const finBusqueda = () => new Date(Date.now() + MINUTOS_BUSQUEDA * 60 * 1000)
 
 // Solicitudes que siguen buscando profesional
@@ -43,6 +45,7 @@ export async function vencerPendientesAntiguas(forzar = false): Promise<void> {
   await limpiarSesiones()
   await cerrarTurnosVencidos().catch(() => {})
   await revisarVencimientos().catch((e) => console.error('No se pudieron revisar los vencimientos de documentos', e))
+  await import('./agenda').then((m) => m.revisarCitas()).catch((e) => console.error('No se pudieron revisar las citas', e))
   try {
     const ahora = new Date()
     const viejos = await prisma.servicio.findMany({
@@ -53,7 +56,7 @@ export async function vencerPendientesAntiguas(forzar = false): Promise<void> {
           { buscandoHasta: null, fechaSolicitud: { lte: new Date(ahora.getTime() - MINUTOS_BUSQUEDA * 60 * 1000) } },
         ],
       },
-      select: { id: true },
+      select: { id: true, programadoPara: true },
       take: 500,
     })
     // Con pagos activos: si el paciente eligió pero no pagó en 15 minutos, el profesional queda libre
@@ -82,7 +85,7 @@ export async function vencerPendientesAntiguas(forzar = false): Promise<void> {
         await tx.$queryRaw`SELECT pg_advisory_xact_lock(hashtext(${'pago:' + s.id}))::text`
         const r = await tx.servicio.updateMany({
           where: { id: s.id, estado: 'pendiente' },
-          data: { estado: 'cancelado', notas: MOTIVO_SIN_PROFESIONAL, buscandoHasta: null },
+          data: { estado: 'cancelado', notas: s.programadoPara ? MOTIVO_CITA_SIN_PROFESIONAL : MOTIVO_SIN_PROFESIONAL, buscandoHasta: null },
         })
         if (r.count) {
           await tx.oferta.updateMany({ where: { servicioId: s.id, estado: 'activa' }, data: { estado: 'vencida' } })

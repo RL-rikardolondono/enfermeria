@@ -1,18 +1,19 @@
 import { prisma } from '../utils/prisma'
 import { marcarCambio } from '../utils/cambios'
 import { finBusqueda } from './vencimiento'
+import { finBusquedaProgramada } from './agenda'
 
 // Cuando un profesional deja de estar aprobado o se suspende su cuenta, sus servicios aún no iniciados
 // vuelven a buscar profesional (10 minutos nuevos) y sus ofertas se retiran.
 export async function liberarServiciosDe(profesionalId: string) {
   await prisma.profesional.update({ where: { id: profesionalId }, data: { disponible: false, ignoradas: 0 } })
-  const reabiertos = await prisma.servicio.findMany({ where: { profesionalId, estado: { in: ['asignado', 'en_camino'] } }, select: { id: true } })
+  const reabiertos = await prisma.servicio.findMany({ where: { profesionalId, estado: { in: ['asignado', 'en_camino'] } }, select: { id: true, programadoPara: true } })
   for (const s of reabiertos) {
     await prisma.$transaction(async (tx: any) => {
       await tx.$queryRaw`SELECT pg_advisory_xact_lock(hashtext(${'pago:' + s.id}))::text`
       await tx.servicio.updateMany({
         where: { id: s.id, profesionalId, estado: { in: ['asignado', 'en_camino'] } },
-        data: { estado: 'pendiente', profesionalId: null, fechaSolicitud: new Date(), buscandoHasta: finBusqueda() },
+        data: { estado: 'pendiente', profesionalId: null, fechaSolicitud: new Date(), buscandoHasta: s.programadoPara ? finBusquedaProgramada(s.programadoPara) : finBusqueda(), codigoLlegada: null, dirigidoA: null, recordadoEn: null, asignadoEn: null },
       })
     })
   }
