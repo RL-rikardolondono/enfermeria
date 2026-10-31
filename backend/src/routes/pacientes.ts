@@ -1,7 +1,7 @@
 import { FastifyInstance } from 'fastify'
 import { z } from 'zod'
 import { prisma } from '../utils/prisma'
-import { autenticar } from '../middleware/auth'
+import { autenticar, tienePermiso } from '../middleware/auth'
 
 // Datos clínicos y de contacto que el titular puede registrar para cada paciente
 const datosPaciente = {
@@ -30,8 +30,9 @@ const datosPaciente = {
 
 // ¿Puede este usuario ver al paciente? Titular de la cuenta, administrador,
 // o profesional que tenga o haya tenido un servicio asignado con él.
-async function puedeVer(usuario: { id: string; rol: string }, pacienteId: string, usuarioIdTitular: string) {
-  if (usuario.rol === 'admin' || usuario.id === usuarioIdTitular) return true
+async function puedeVer(usuario: { id: string; rol: string; rolIps?: string | null }, pacienteId: string, usuarioIdTitular: string) {
+  if (usuario.id === usuarioIdTitular) return true
+  if (usuario.rol === 'admin') return tienePermiso(usuario, 'pacientes')
   if (usuario.rol !== 'profesional') return false
   const asignado = await prisma.servicio.findFirst({
     where: {
@@ -127,7 +128,7 @@ export async function pacientesRoutes(app: FastifyInstance) {
     if (!paciente || !(await puedeVer(request.usuario, id, paciente.usuarioId))) {
       return reply.status(404).send({ error: 'Paciente no encontrado' })
     }
-    const verCorreo = request.usuario.rol === 'admin' || paciente.usuarioId === request.usuario.id
+    const verCorreo = (request.usuario.rol === 'admin' && tienePermiso(request.usuario, 'pacientes')) || paciente.usuarioId === request.usuario.id
     return { ...paciente, nombreCompleto: paciente.nombreCompleto || paciente.usuario.nombreCompleto, usuario: { ...paciente.usuario, email: verCorreo ? paciente.usuario.email : undefined } }
   })
 
@@ -141,7 +142,7 @@ export async function pacientesRoutes(app: FastifyInstance) {
     }).parse(request.body)
 
     const paciente = await prisma.paciente.findUnique({ where: { id }, select: { usuarioId: true } })
-    if (!paciente || (request.usuario.rol !== 'admin' && paciente.usuarioId !== request.usuario.id)) {
+    if (!paciente || (!(paciente.usuarioId === request.usuario.id || (request.usuario.rol === 'admin' && tienePermiso(request.usuario, 'pacientes'))))) {
       return reply.status(404).send({ error: 'Paciente no encontrado' })
     }
 

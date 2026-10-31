@@ -1,7 +1,7 @@
 import { FastifyInstance } from 'fastify'
 import { z } from 'zod'
 import { prisma } from '../utils/prisma'
-import { autenticar, requerirRol } from '../middleware/auth'
+import { autenticar, requerirRol, requerirPermiso } from '../middleware/auth'
 import { APP_URL } from '../utils/config'
 
 // Claves de los avisos al celular (VAPID). Si no están en Render, el servidor las crea una sola vez y las
@@ -111,7 +111,7 @@ export async function pushRoutes(app: FastifyInstance) {
 
   // POST /api/push/notificar-profesionales — enviar push a todos los profesionales aprobados
   // Se llama internamente cuando se crea un servicio
-  app.post('/notificar-profesionales', { preHandler: requerirRol('admin') }, async (request, reply) => {
+  app.post('/notificar-profesionales', { preHandler: requerirPermiso('profesionales') }, async (request, reply) => {
     const { titulo, cuerpo, url } = z.object({
       titulo: z.string().default('Nueva solicitud'),
       cuerpo: z.string().default('Hay una nueva solicitud de servicio disponible'),

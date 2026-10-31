@@ -1,7 +1,8 @@
 import { FastifyInstance, FastifyRequest } from 'fastify'
 import { z } from 'zod'
 import { prisma } from '../utils/prisma'
-import { autenticar, requerirRol } from '../middleware/auth'
+import { autenticar, requerirRol, requerirPermiso, tienePermiso } from '../middleware/auth'
+import { documentosAlDia, textoDocumentos, DOCUMENTOS, TIPOS_DOC, leerDataUrl, guardarArchivo, PERFILES, enTransicion, DIAS_TRANSICION } from '../services/catalogo'
 import { liberarServiciosDe } from '../services/profesionalBaja'
 import { marcarCambio } from '../utils/cambios'
 import { profesionalRespondio } from '../services/presencia'
@@ -15,13 +16,13 @@ const paginacion = z.object({
 
 // Solo el propio profesional o la IPS pueden ver o cambiar su perfil
 async function esDuenoOAdmin(request: FastifyRequest, profesionalId: string) {
-  if (request.usuario.rol === 'admin') return true
+  if (request.usuario.rol === 'admin') return tienePermiso(request.usuario, 'profesionales')
   const prof = await prisma.profesional.findUnique({ where: { id: profesionalId }, select: { usuarioId: true } })
   return !!prof && prof.usuarioId === request.usuario.id
 }
 
 const PERFIL_SELECT = {
-  id: true, especialidad: true, registroProfesional: true, estadoVerificacion: true, disponible: true, disponibleDesde: true,
+  id: true, especialidad: true, perfil: true, registroProfesional: true, estadoVerificacion: true, disponible: true, disponibleDesde: true,
   calificacionPromedio: true, totalServicios: true, anosExperiencia: true, fotoUrl: true,
   banco: true, cuentaBancaria: true, tipoCuenta: true, activo: true, createdAt: true,
   usuario: { select: { nombreCompleto: true, email: true, telefono: true, fotoUrl: true } },
@@ -47,7 +48,7 @@ export async function profesionalesRoutes(app: FastifyInstance) {
   })
 
   // GET /api/profesionales — listado (solo la IPS)
-  app.get('/', { preHandler: requerirRol('admin') }, async (request) => {
+  app.get('/', { preHandler: requerirPermiso('profesionales') }, async (request) => {
     const { page, limit } = paginacion.parse(request.query)
     const [total, items] = await prisma.$transaction([
       prisma.profesional.count({ where: { activo: true } }),
@@ -89,6 +90,11 @@ export async function profesionalesRoutes(app: FastifyInstance) {
       // Encender el turno solo por /disponibilidad (revisa avisos y marca la hora); aquí solo se puede apagar
       disponible: z.literal(false).optional(),
     }).parse(request.body)
+    // Separación de funciones: la cuenta bancaria la cambia el propio profesional (o el Superadministrador), nunca Coordinación
+    if (request.usuario.rol === 'admin' && !tienePermiso(request.usuario, 'cuentas') &&
+      (body.banco !== undefined || body.cuentaBancaria !== undefined || body.tipoCuenta !== undefined)) {
+      return reply.status(403).send({ error: 'La cuenta bancaria solo la cambia el profesional desde su app (o el Superadministrador).' })
+    }
 
     // Si el propio profesional cambia su profesión o registro, la IPS debe verificarlo de nuevo
     const cambiaCredencial = request.usuario.rol !== 'admin' &&
@@ -122,8 +128,14 @@ export async function profesionalesRoutes(app: FastifyInstance) {
     }).parse(request.body)
 
     if (disponible) {
-      const pr = await prisma.profesional.findUnique({ where: { id }, select: { estadoVerificacion: true, activo: true } })
+      const pr = await prisma.profesional.findUnique({ where: { id }, select: { estadoVerificacion: true, activo: true, perfil: true, createdAt: true } })
       if (!pr || pr.estadoVerificacion !== 'aprobado' || !pr.activo) return reply.status(409).send({ error: 'Su cuenta aún no está aprobada por la IPS.' })
+      // Profesionales aprobados antes de este cambio: 30 días de transición para completar perfil y documentos
+      const transicion = await enTransicion(pr)
+      if (!pr.perfil && !transicion) return reply.status(409).send({ error: 'La IPS aún no le asigna su perfil profesional. Escríbale por WhatsApp.' })
+      // Documentos obligatorios aprobados y vigentes (póliza al día)
+      const docs = await documentosAlDia(id)
+      if (!docs.ok && !transicion) return reply.status(409).send({ error: 'Para iniciar turno debe tener sus documentos al día. ' + textoDocumentos(docs) + ' Revíselos en Perfil → Mis documentos.', faltanDocumentos: true })
     }
     // Para estar en turno debe poder recibir avisos en el celular (si los avisos están configurados en el servidor)
     if (disponible && pushConfigurado()) {
@@ -156,25 +168,8 @@ export async function profesionalesRoutes(app: FastifyInstance) {
     return { id: r.id, disponible: r.disponible, disponibleDesde: r.disponibleDesde, accessToken }
   })
 
-  // PUT /api/profesionales/:id/verificar — la IPS aprueba o rechaza
-  app.put('/:id/verificar', { preHandler: requerirRol('admin') }, async (request) => {
-    const { id } = z.object({ id: z.string().uuid() }).parse(request.params)
-    const { estado } = z.object({
-      estado: z.enum(['aprobado', 'rechazado', 'pendiente']),
-    }).parse(request.body)
-
-    const r = await prisma.profesional.update({
-      where: { id },
-      data: { estadoVerificacion: estado, verificadoPor: request.usuario.id, verificadoEn: new Date() },
-      select: { id: true, estadoVerificacion: true },
-    })
-    if (estado !== 'aprobado') await liberarServiciosDe(id)
-    else marcarCambio()
-    return r
-  })
-
   // GET /api/profesionales/:id/servicios — el propio profesional o la IPS
-  app.get('/:id/servicios', { preHandler: requerirRol('admin') }, async (request, reply) => {
+  app.get('/:id/servicios', { preHandler: requerirPermiso('profesionales') }, async (request, reply) => {
     const { id } = z.object({ id: z.string().uuid() }).parse(request.params)
     const { page, limit } = paginacion.parse(request.query)
 
@@ -191,5 +186,69 @@ export async function profesionalesRoutes(app: FastifyInstance) {
       }),
     ])
     return { total, page, limit, items }
+  })
+
+  // ── Documentos del profesional (cédula, título, RETHUS, póliza, vacunas) ──
+  // GET /api/profesionales/mis-documentos
+  app.get('/mis-documentos', { preHandler: requerirRol('profesional') }, async (request, reply) => {
+    const p = await prisma.profesional.findUnique({ where: { usuarioId: request.usuario.id }, select: { id: true, perfil: true, createdAt: true } })
+    if (!p) return reply.status(404).send({ error: 'Perfil no encontrado' })
+    let transicionHasta: string | null = null
+    if (await enTransicion(p)) {
+      const a = await prisma.ajuste.findUnique({ where: { clave: 'catalogo_v5' } })
+      if (a) transicionHasta = new Date(new Date(a.valor).getTime() + DIAS_TRANSICION * 24 * 3600 * 1000).toISOString()
+    }
+    const items = await prisma.documentoProfesional.findMany({
+      where: { profesionalId: p.id }, orderBy: [{ createdAt: 'desc' }, { id: 'desc' }], take: 40,
+      select: { id: true, tipo: true, estado: true, vence: true, nota: true, archivoId: true, createdAt: true },
+    })
+    return { items, requeridos: DOCUMENTOS, alDia: await documentosAlDia(p.id), perfil: p.perfil ? PERFILES[p.perfil] || p.perfil : null, transicionHasta }
+  })
+
+  // POST /api/profesionales/mis-documentos — sube (o reemplaza) un documento; queda "en revisión" de la IPS
+  app.post('/mis-documentos', { preHandler: requerirRol('profesional'), bodyLimit: 2560 * 1024, config: { rateLimit: { max: 20, timeWindow: '15 minutes' } } }, async (request, reply) => {
+    const body = z.object({
+      tipo: z.enum(TIPOS_DOC),
+      archivo: z.string().max(2200000),
+      vence: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+    }).parse(request.body)
+    const p = await prisma.profesional.findUnique({ where: { usuarioId: request.usuario.id }, select: { id: true } })
+    if (!p) return reply.status(404).send({ error: 'Perfil no encontrado' })
+    const def = DOCUMENTOS.find((d) => d.tipo === body.tipo)!
+    const a = leerDataUrl(body.archivo, body.archivo.startsWith('data:application/pdf') ? 1536 * 1024 : 700 * 1024)
+    let vence: Date | null = null
+    if (def.vence) {
+      if (!body.vence) return reply.status(400).send({ error: 'Indique la fecha de vencimiento de ' + def.nombre.toLowerCase() + '.' })
+      vence = new Date(body.vence + 'T23:59:59-05:00')
+      if (vence.getTime() < Date.now()) return reply.status(400).send({ error: 'Ese documento ya está vencido. Suba el vigente.' })
+    }
+    // Un documento nuevo por tipo: los anteriores sin revisar se reemplazan (no se acumulan archivos)
+    const doc = await prisma.$transaction(async (tx: any) => {
+      const viejos = await tx.documentoProfesional.findMany({ where: { profesionalId: p.id, tipo: body.tipo, estado: 'pendiente' }, select: { id: true, archivoId: true } })
+      for (const v of viejos) {
+        await tx.documentoProfesional.delete({ where: { id: v.id } })
+        if (v.archivoId) await tx.archivo.delete({ where: { id: v.archivoId } }).catch(() => {})
+      }
+      const arch = await guardarArchivo(tx, 'documento', a, request.usuario.id)
+      return tx.documentoProfesional.create({
+        data: { profesionalId: p.id, tipo: body.tipo, url: 'archivo:' + arch.id, archivoId: arch.id, estado: 'pendiente', vence },
+        select: { id: true, tipo: true, estado: true, vence: true, createdAt: true },
+      })
+    })
+    marcarCambio()
+    return reply.status(201).send({ ok: true, documento: doc, mensaje: 'Documento recibido. La IPS lo revisará.' })
+  })
+
+  // GET /api/profesionales/documentos/:id/archivo — el propio profesional o la IPS (coordinación)
+  app.get('/documentos/:id/archivo', { preHandler: autenticar }, async (request, reply) => {
+    const { id } = z.object({ id: z.string().uuid() }).parse(request.params)
+    const d = await prisma.documentoProfesional.findUnique({ where: { id }, select: { archivoId: true, profesional: { select: { usuarioId: true } } } })
+    const u = request.usuario
+    const permitido = !!d && (d.profesional.usuarioId === u.id || (u.rol === 'admin' && tienePermiso(u, 'profesionales')))
+    if (!d || !permitido || !d.archivoId) return reply.status(404).send({ error: 'Documento no encontrado' })
+    const a = await prisma.archivo.findUnique({ where: { id: d.archivoId }, select: { mime: true, datos: true } })
+    if (!a) return reply.status(404).send({ error: 'Documento no encontrado' })
+    reply.header('Cache-Control', 'private, no-store').header('Content-Type', a.mime)
+    return reply.send(Buffer.from(a.datos))
   })
 }

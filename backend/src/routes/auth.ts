@@ -2,10 +2,11 @@ import { FastifyInstance } from 'fastify'
 import bcrypt from 'bcryptjs'
 import { z } from 'zod'
 import { prisma } from '../utils/prisma'
-import { autenticar, olvidarSesion, olvidarSesionesDe, SESION_MAX_MS } from '../middleware/auth'
+import { autenticar, olvidarSesion, olvidarSesionesDe, SESION_MAX_MS, permisosDe } from '../middleware/auth'
 import crypto from 'crypto'
 import { APP_URL } from '../utils/config'
 import { enviarEnlaceClave } from '../services/cuentas'
+import { PERFIL_IDS, PERFILES } from '../services/catalogo'
 
 const sha256 = (t: string) => crypto.createHash('sha256').update(t).digest('hex')
  
@@ -16,6 +17,7 @@ const registerSchema = z.object({
   email: z.string().email().max(150),
   password: z.string().min(10, 'La contraseña debe tener mínimo 10 caracteres').max(100),
   especialidad: z.string().max(100).optional(),
+  perfil: z.enum(PERFIL_IDS).optional(),
   aceptaTerminos: z.literal(true, { errorMap: () => ({ message: 'Debe aceptar los términos y la política de datos' }) }),
 })
  
@@ -56,8 +58,8 @@ export async function authRoutes(app: FastifyInstance) {
     const refreshToken = app.jwt.sign({ sub: usuario.id, rol: usuario.rol, sid: sesion.id, type: 'refresh' }, { expiresIn: '12h' })
     return { accessToken, refreshToken }
   }
-  const datosPublicos = (u: { id: string; rol: string; nombreCompleto: string; email: string; telefono: string | null }) =>
-    ({ id: u.id, rol: u.rol, nombreCompleto: u.nombreCompleto, email: u.email, telefono: u.telefono })
+  const datosPublicos = (u: { id: string; rol: string; rolIps?: string | null; nombreCompleto: string; email: string; telefono: string | null }) =>
+    ({ id: u.id, rol: u.rol, rolIps: u.rol === 'admin' ? (u.rolIps || 'superadmin') : undefined, permisos: permisosDe(u), nombreCompleto: u.nombreCompleto, email: u.email, telefono: u.telefono })
 
   // POST /api/auth/register
   app.post('/register', { config: { rateLimit: { max: 10, timeWindow: '15 minutes' } } }, async (request, reply) => {
@@ -98,7 +100,8 @@ export async function authRoutes(app: FastifyInstance) {
         await tx.profesional.create({
           data: {
             usuarioId: u.id,
-            especialidad: body.especialidad || null,
+            especialidad: (body.perfil ? PERFILES[body.perfil] : body.especialidad) || null,
+            perfil: body.perfil || null,
             estadoVerificacion: 'pendiente',
             disponible: false,
             totalServicios: 0,
@@ -241,11 +244,13 @@ export async function authRoutes(app: FastifyInstance) {
     const usuario = await prisma.usuario.findUnique({
       where: { id: request.usuario.id },
       select: {
-        id: true, rol: true, nombreCompleto: true,
+        id: true, rol: true, rolIps: true, nombreCompleto: true,
         email: true, telefono: true, fotoUrl: true, estado: true,
       },
     })
-    return usuario
+    if (!usuario) return usuario
+    const { rolIps, ...resto } = usuario
+    return { ...resto, rolIps: usuario.rol === 'admin' ? (rolIps || 'superadmin') : undefined, permisos: permisosDe(usuario) }
   })
 }
  

@@ -12,8 +12,9 @@ import { enTurno, profesionalRespondio, MAX_IGNORADAS } from '../services/presen
 import { notificarUsuario as avisarA, pushConfigurado } from './push'
 import { opinionesDe, recalcularPromedio } from '../services/opiniones'
 import { crearQueja } from '../services/quejas'
+import { TIPOS, puedeAtender, perfilEfectivo, leerDataUrl, guardarArchivo } from '../services/catalogo'
+import { requerirPermiso, tienePermiso } from '../middleware/auth'
 
-const TIPOS = ['curacion', 'medicacion', 'inyeccion', 'control', 'cuidado_basico', 'urgencia'] as const
 const ESTADOS = ['pendiente', 'asignado', 'en_camino', 'en_curso', 'completado', 'cancelado'] as const
 const ACTIVOS = ['asignado', 'en_camino', 'en_curso'] as const
 
@@ -36,24 +37,37 @@ const SIGUIENTE: Record<string, string[]> = { asignado: ['en_camino'], en_camino
 async function perfilProfesional(usuarioId: string) {
   return prisma.profesional.findUnique({
     where: { usuarioId },
-    select: { id: true, estadoVerificacion: true, disponible: true, activo: true },
+    select: { id: true, estadoVerificacion: true, disponible: true, activo: true, perfil: true },
   })
+}
+
+// Perfiles que pueden atender un tipo de servicio (vacío = cualquiera)
+async function perfilesDe(tipo: string): Promise<string[]> {
+  const t = await prisma.tarifa.findUnique({ where: { tipo: tipo as any }, select: { perfiles: true } })
+  return t?.perfiles || []
+}
+// Tipos de servicio que puede atender un perfil
+async function tiposPara(perfil: string | null | undefined): Promise<string[]> {
+  const ts = await prisma.tarifa.findMany({ select: { tipo: true, perfiles: true } })
+  return ts.filter((t: { perfiles: string[] }) => puedeAtender(perfil, t.perfiles)).map((t: { tipo: string }) => t.tipo)
 }
 
 // Profesionales que pueden atender a ESTE paciente ahora mismo:
 // en turno ("Disponible", con avisos en el celular), aprobados, sin un servicio en curso y que el paciente no haya bloqueado.
-async function profesionalesLibresPara(usuarioPacienteId: string): Promise<string[]> {
+async function profesionalesLibresPara(usuarioPacienteId: string, tipo?: string): Promise<string[]> {
+  const perfiles = tipo ? await perfilesDe(tipo) : []
   const [ocupados, bloqueados, validos] = await prisma.$transaction([
     prisma.servicio.findMany({ where: { profesionalId: { not: null }, estado: { in: [...ACTIVOS] } }, select: { profesionalId: true } }),
     prisma.bloqueo.findMany({ where: { usuarioId: usuarioPacienteId }, select: { profesionalId: true } }),
     // Quien ya dejó pasar 3 solicitudes seguidas no cuenta como disponible
-    prisma.profesional.findMany({ where: { ...enTurno(), ignoradas: { lt: MAX_IGNORADAS } }, select: { id: true } }),
+    prisma.profesional.findMany({ where: { ...enTurno(), ignoradas: { lt: MAX_IGNORADAS } }, select: { id: true, perfil: true } }),
   ])
   const fuera = new Set<string>([
     ...ocupados.map((o: { profesionalId: string | null }) => o.profesionalId as string),
     ...bloqueados.map((b: { profesionalId: string }) => b.profesionalId),
   ])
-  return validos.map((v: { id: string }) => v.id).filter((id: string) => !fuera.has(id))
+  // Solo quien tiene el perfil para ESTE servicio (un auxiliar no atiende una consulta médica)
+  return validos.filter((v: { id: string; perfil: string | null }) => !fuera.has(v.id) && puedeAtender(v.perfil, perfiles)).map((v: { id: string }) => v.id)
 }
 
 // Bloqueo corto en la base para que dos solicitudes simultáneas no se pisen (por persona o por profesional)
@@ -72,15 +86,14 @@ function zonaAproximada(direccion: string | null, barrio?: string | null) {
 // Avisar a los profesionales disponibles cuando una solicitud vuelve a buscar profesional
 export async function avisarBusquedaReabierta(servicioId: string, excluir: string[] = []) {
   const s = await prisma.servicio.findUnique({ where: { id: servicioId }, select: { tipo: true, paciente: { select: { usuarioId: true } } } })
-  if (!s) return
-  const bloqueados = s.paciente
-    ? (await prisma.bloqueo.findMany({ where: { usuarioId: s.paciente.usuarioId }, select: { profesionalId: true } })).map((b: { profesionalId: string }) => b.profesionalId)
-    : []
+  if (!s || !s.paciente) return
+  const pueden = (await profesionalesLibresPara(s.paciente.usuarioId, s.tipo)).filter((id) => !excluir.includes(id))
+  if (!pueden.length) return
   await notificarProfesionalesDisponibles({
+    solo: pueden,
     titulo: 'Solicitud disponible de nuevo',
     cuerpo: 'Una solicitud de ' + s.tipo.replace('_', ' ') + ' necesita profesional. Ofrézcase si puede ir ya.',
     url: `${APP_URL}/app-enfermero.html`,
-    excluir: [...bloqueados, ...excluir],
   }).catch(() => {})
 }
 
@@ -89,13 +102,15 @@ export async function serviciosRoutes(app: FastifyInstance) {
   // GET /api/servicios/disponibles — ¿hay profesionales para atenderme ahora? (antes de pedir o pagar)
   app.get('/disponibles', { preHandler: requerirRol('paciente') }, async (request) => {
     await vencerPendientesAntiguas()
-    const libres = await profesionalesLibresPara(request.usuario.id)
+    const { tipo } = z.object({ tipo: z.enum(TIPOS).optional() }).parse(request.query)
+    const libres = await profesionalesLibresPara(request.usuario.id, tipo)
     return { disponibles: libres.length }
   })
 
   // POST /api/servicios — crear solicitud (solo cuentas de paciente)
-  app.post('/', { preHandler: requerirRol('paciente') }, async (request, reply) => {
+  app.post('/', { preHandler: requerirRol('paciente'), bodyLimit: 1536 * 1024, config: { rateLimit: { max: 15, timeWindow: '1 hour' } } }, async (request, reply) => {
     const body = z.object({
+      orden: z.string().max(1100000).optional(), // foto de la orden médica (JPEG comprimido en el celular)
       tipo: z.enum(TIPOS),
       descripcion: z.string().trim().min(5).max(500),
       direccion: z.string().trim().min(5).max(500),
@@ -121,8 +136,16 @@ export async function serviciosRoutes(app: FastifyInstance) {
     const abierta = await prisma.servicio.findFirst({ where: { ...buscandoVigente(), paciente: { usuarioId: request.usuario.id } }, select: { id: true } })
     if (abierta) return reply.status(409).send({ error: 'Ya tiene una solicitud buscando profesional. Le mostramos los profesionales que se ofrecen.', buscandoId: abierta.id })
 
+    // Medicamentos e inyectables: la enfermería solo los administra con orden o fórmula médica
+    const tarifaTipo = await prisma.tarifa.findUnique({ where: { tipo: body.tipo as any }, select: { requiereOrden: true } })
+    const orden = body.orden ? leerDataUrl(body.orden, 700 * 1024) : null
+    if (tarifaTipo?.requiereOrden && !orden) {
+      return reply.status(400).send({ error: 'Este servicio necesita la foto de la orden o fórmula médica. Sin ella no podemos administrar el medicamento.', faltaOrden: true })
+    }
+    if (orden && orden.mime === 'application/pdf') return reply.status(400).send({ error: 'Envíe la orden médica como foto.' })
+
     // No se recibe la solicitud (ni se cobra) si nadie puede atenderla ahora
-    const libres = await profesionalesLibresPara(request.usuario.id)
+    const libres = await profesionalesLibresPara(request.usuario.id, body.tipo)
     if (!libres.length) {
       return reply.status(409).send({
         error: 'En este momento no hay profesionales disponibles. Intente de nuevo en unos minutos o escríbanos por WhatsApp.',
@@ -136,6 +159,7 @@ export async function serviciosRoutes(app: FastifyInstance) {
       await bloquearClave(tx, 'solicitud:' + request.usuario.id)
       const enBusqueda = await tx.servicio.findFirst({ where: { ...buscandoVigente(), paciente: { usuarioId: request.usuario.id } }, select: { id: true } })
       if (enBusqueda) return { yaBuscando: enBusqueda.id }
+      const archivo = orden ? await guardarArchivo(tx, 'orden', orden, request.usuario.id) : null
       return tx.servicio.create({
         data: {
           pacienteId: paciente.id,
@@ -143,6 +167,7 @@ export async function serviciosRoutes(app: FastifyInstance) {
           descripcion: body.descripcion,
           direccion: body.direccion,
           barrio: body.barrio || null,
+          ordenArchivoId: archivo ? archivo.id : null,
           lat: body.lat,
           lng: body.lng,
           monto,
@@ -158,7 +183,7 @@ export async function serviciosRoutes(app: FastifyInstance) {
     // Quien ya dejó pasar 3 solicitudes seguidas sin responder sale del turno y se le avisa.
     setImmediate(async () => {
       try {
-        const avisar = await profesionalesLibresPara(request.usuario.id)
+        const avisar = await profesionalesLibresPara(request.usuario.id, body.tipo)
         if (!avisar.length) return
         // Solo cuenta como "dejó pasar" a quien sí recibe avisos y no está esperando respuesta de otra oferta suya
         if (pushConfigurado()) {
@@ -227,7 +252,7 @@ export async function serviciosRoutes(app: FastifyInstance) {
       const profesional = await perfilProfesional(usuario.id)
       if (!profesional) return { total: 0, page, limit, items: [] }
       where = { profesionalId: profesional.id }
-    } else if (usuario.rol === 'admin') {
+    } else if (usuario.rol === 'admin' && tienePermiso(usuario, 'servicios')) {
       where = {}
     } else {
       return { total: 0, page, limit, items: [] }
@@ -276,6 +301,8 @@ export async function serviciosRoutes(app: FastifyInstance) {
   // GET /api/servicios/pendientes — solicitudes buscando profesional (solo profesionales APROBADOS)
   app.get('/pendientes', { preHandler: requerirRol('profesional', 'admin') }, async (request, reply) => {
     let profesionalId: string | null = null
+    let tiposPermitidos: string[] | null = null
+    if (request.usuario.rol === 'admin' && !tienePermiso(request.usuario, 'servicios')) return reply.status(403).send({ error: 'Acceso no autorizado' })
     if (request.usuario.rol === 'profesional') {
       const profesional = await perfilProfesional(request.usuario.id)
       if (!profesional || profesional.estadoVerificacion !== 'aprobado') {
@@ -290,6 +317,7 @@ export async function serviciosRoutes(app: FastifyInstance) {
       if (request.headers['x-segundo-plano'] !== '1') await profesionalRespondio(profesional.id)
       const ocupado = await prisma.servicio.count({ where: { profesionalId: profesional.id, estado: { in: [...ACTIVOS] } } })
       if (ocupado) return { total: 0, page: 1, limit: 0, items: [], motivo: 'ocupado' }
+      tiposPermitidos = await tiposPara(profesional.perfil)
     }
     const { page, limit } = paginacion(50, 20).parse(request.query)
     await vencerPendientesAntiguas()
@@ -300,6 +328,7 @@ export async function serviciosRoutes(app: FastifyInstance) {
       const bloqueadores = (await prisma.bloqueo.findMany({ where: { profesionalId }, select: { usuarioId: true } }))
         .map((b: { usuarioId: string }) => b.usuarioId)
       if (bloqueadores.length) where.paciente = { usuarioId: { notIn: bloqueadores } }
+      where.tipo = { in: tiposPermitidos || [] }
     }
 
     const [total, items] = await prisma.$transaction([
@@ -311,7 +340,7 @@ export async function serviciosRoutes(app: FastifyInstance) {
         take: limit,
         select: {
           id: true, tipo: true, estado: true, descripcion: true, direccion: true, barrio: true, prioridad: true,
-          fechaSolicitud: true, createdAt: true, monto: true, buscandoHasta: true,
+          fechaSolicitud: true, createdAt: true, monto: true, buscandoHasta: true, ordenArchivoId: true,
           paciente: { select: { id: true, nombreCompleto: true, usuario: { select: { nombreCompleto: true } } } },
           ofertas: { where: { profesionalId: profesionalId || '-', estado: 'activa' }, select: { id: true } },
           _count: { select: { ofertas: { where: { estado: 'activa' } } } },
@@ -322,10 +351,11 @@ export async function serviciosRoutes(app: FastifyInstance) {
     return {
       total, page, limit, ahora: new Date(),
       items: items.map((s: (typeof items)[number]) => {
-        const { ofertas, _count, direccion, barrio, paciente, ...resto } = s
+        const { ofertas, _count, direccion, barrio, paciente, ordenArchivoId, ...resto } = s
         const nombre = paciente?.nombreCompleto || paciente?.usuario?.nombreCompleto || 'Paciente'
         return {
           ...resto,
+          conOrden: !!ordenArchivoId,
           direccion: profesionalId ? zonaAproximada(direccion, barrio) : direccion,
           paciente: profesionalId ? { nombreCompleto: nombre.split(' ')[0] } : paciente,
           miOferta: ofertas.length > 0, totalOfertas: _count.ofertas,
@@ -349,9 +379,10 @@ export async function serviciosRoutes(app: FastifyInstance) {
 
     const servicio = await prisma.servicio.findFirst({
       where: { id, ...buscandoVigente() },
-      select: { id: true, buscandoHasta: true, paciente: { select: { usuarioId: true } } },
+      select: { id: true, tipo: true, buscandoHasta: true, paciente: { select: { usuarioId: true } } },
     })
     if (!servicio) return reply.status(409).send({ error: 'Esta solicitud ya no está disponible.' })
+    if (!puedeAtender(profesional.perfil, await perfilesDe(servicio.tipo))) return reply.status(403).send({ error: 'Este servicio lo atiende otro perfil profesional.' })
     if (servicio.paciente) {
       const bloqueado = await prisma.bloqueo.count({ where: { usuarioId: servicio.paciente.usuarioId, profesionalId: profesional.id } })
       if (bloqueado) return reply.status(409).send({ error: 'Esta solicitud ya no está disponible.' })
@@ -516,7 +547,7 @@ export async function serviciosRoutes(app: FastifyInstance) {
     if (!servicio) return reply.status(404).send({ error: 'Servicio no encontrado' })
 
     const { rol, id: usuarioId } = request.usuario
-    let permitido = rol === 'admin'
+    let permitido = rol === 'admin' && tienePermiso(request.usuario, 'servicios')
     if (rol === 'paciente') permitido = servicio.paciente?.usuarioId === usuarioId
     // El profesional ve sus servicios solo desde la lista (con los datos limitados por la Ley 1581)
     if (!permitido) return reply.status(404).send({ error: 'Servicio no encontrado' })
@@ -524,6 +555,37 @@ export async function serviciosRoutes(app: FastifyInstance) {
   })
 
   // PUT /api/servicios/:id/estado
+  // GET /api/servicios/:id/orden — la foto de la orden médica: el paciente dueño, el profesional ELEGIDO y la IPS
+  app.get('/:id/orden', { preHandler: autenticar }, async (request, reply) => {
+    const { id } = z.object({ id: z.string().uuid() }).parse(request.params)
+    const s = await prisma.servicio.findUnique({ where: { id }, select: { ordenArchivoId: true, profesionalId: true, estado: true, fechaFin: true, paciente: { select: { usuarioId: true } } } })
+    if (!s || !s.ordenArchivoId) return reply.status(404).send({ error: 'Este servicio no tiene orden médica' })
+    const u = request.usuario
+    let permitido = u.rol === 'admin' ? tienePermiso(u, 'servicios') : u.rol === 'paciente' && s.paciente?.usuarioId === u.id
+    if (u.rol === 'profesional') {
+      const p = await perfilProfesional(u.id)
+      // Completado: solo durante 30 días (Ley 1581), igual que el resto de datos clínicos
+      permitido = !!p && s.profesionalId === p.id && (['asignado', 'en_camino', 'en_curso'].includes(s.estado) ||
+        (s.estado === 'completado' && !!s.fechaFin && s.fechaFin.getTime() > Date.now() - 30 * 24 * 3600 * 1000))
+    }
+    if (!permitido) return reply.status(404).send({ error: 'Este servicio no tiene orden médica' })
+    const a = await prisma.archivo.findUnique({ where: { id: s.ordenArchivoId }, select: { mime: true, datos: true } })
+    if (!a) return reply.status(404).send({ error: 'No se encontró la orden médica' })
+    reply.header('Cache-Control', 'private, no-store').header('Content-Type', a.mime)
+    return reply.send(Buffer.from(a.datos))
+  })
+
+  // POST /api/servicios/:id/orden-revisada — el profesional elegido confirma que revisó la orden (requisito para salir)
+  app.post('/:id/orden-revisada', { preHandler: requerirRol('profesional') }, async (request, reply) => {
+    const { id } = z.object({ id: z.string().uuid() }).parse(request.params)
+    const p = await perfilProfesional(request.usuario.id)
+    if (!p) return reply.status(403).send({ error: 'Acceso no autorizado' })
+    const r = await prisma.servicio.updateMany({ where: { id, profesionalId: p.id, ordenArchivoId: { not: null }, estado: { in: ['asignado', 'en_camino', 'en_curso'] } }, data: { ordenRevisada: true } })
+    if (!r.count) return reply.status(404).send({ error: 'Servicio no encontrado' })
+    marcarCambio()
+    return { ok: true }
+  })
+
   app.put('/:id/estado', { preHandler: autenticar }, async (request, reply) => {
     const { id } = z.object({ id: z.string().uuid() }).parse(request.params)
     const { estado, firma } = z.object({
@@ -590,6 +652,9 @@ export async function serviciosRoutes(app: FastifyInstance) {
         return reply.status(400).send({ error: 'Cambio de estado no permitido' })
       }
       // Con pagos en línea activos, el profesional sale solo cuando el paciente ya pagó
+      if (estado === 'en_camino' && servicio.ordenArchivoId && !servicio.ordenRevisada) {
+        return reply.status(409).send({ error: 'Antes de salir, abra y revise la orden médica del paciente (botón "Ver orden médica").', faltaRevisarOrden: true })
+      }
       if (estado === 'en_camino' && PAGO_OBLIGATORIO && servicio.pago?.estado !== 'aprobado') {
         return reply.status(409).send({ error: 'El paciente aún no ha pagado este servicio. Espere el aviso de pago.' })
       }
@@ -612,8 +677,9 @@ export async function serviciosRoutes(app: FastifyInstance) {
       }
     }
 
-    // ── IPS: solo cancela o cierra ──
+    // ── IPS: solo cancela o cierra (perfil con permiso de servicios) ──
     if (rol === 'admin') {
+      if (!tienePermiso(request.usuario, 'servicios')) return reply.status(403).send({ error: 'Su perfil en la IPS no tiene permiso para esto.' })
       if (!['cancelado', 'completado'].includes(estado)) return reply.status(400).send({ error: 'Cambio no permitido' })
       if (estado === 'completado' && servicio._count.evoluciones === 0) {
         return reply.status(400).send({ error: 'El servicio no tiene nota clínica registrada' })
@@ -688,6 +754,7 @@ export async function serviciosRoutes(app: FastifyInstance) {
     }
 
     let profesionalId: string | undefined
+    if (request.usuario.rol === 'admin' && !tienePermiso(request.usuario, 'servicios')) return reply.status(403).send({ error: 'Su perfil en la IPS no tiene permiso para esto.' })
     if (request.usuario.rol === 'profesional') {
       const profesional = await perfilProfesional(request.usuario.id)
       if (!profesional || profesional.estadoVerificacion !== 'aprobado' || servicio.profesionalId !== profesional.id) {
@@ -711,7 +778,7 @@ export async function serviciosRoutes(app: FastifyInstance) {
   })
 
   // GET /api/servicios/admin/todos
-  app.get('/admin/todos', { preHandler: requerirRol('admin') }, async (request) => {
+  app.get('/admin/todos', { preHandler: requerirPermiso('servicios') }, async (request) => {
     const { page, limit } = paginacion(100, 20).parse(request.query)
     const { estado } = z.object({ estado: z.enum(ESTADOS).optional() }).parse(request.query)
     const where: any = estado ? { estado } : {}

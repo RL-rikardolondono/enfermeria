@@ -1,7 +1,7 @@
 import { FastifyInstance } from 'fastify'
 import { z } from 'zod'
 import { prisma } from '../utils/prisma'
-import { autenticar, requerirRol } from '../middleware/auth'
+import { autenticar, requerirRol, requerirPermiso } from '../middleware/auth'
 import { calcularReparto, PAGO_OBLIGATORIO, marcarReembolso } from '../services/liquidacion'
 import { avisarQueja } from '../services/quejas'
 import { marcarCambio } from '../utils/cambios'
@@ -155,7 +155,7 @@ export async function pagosRoutes(app: FastifyInstance) {
   })
 
   // POST /api/pagos/bold/prueba — pago de prueba de $1.000 del administrador (comprueba el circuito completo)
-  app.post('/bold/prueba', { preHandler: requerirRol('admin') }, async () => {
+  app.post('/bold/prueba', { preHandler: requerirPermiso('pagos') }, async () => {
     const params = new URLSearchParams({ plan: APP_BOLD + ':prueba', empresa: 'prueba', meses: '1', volver: APP_URL.replace(/\/$/, '') + '/panel.html' })
     return { url: FIRMADOR + '?' + params.toString(), valor: 1000 }
   })
@@ -208,7 +208,7 @@ export async function pagosRoutes(app: FastifyInstance) {
   // ── Liquidaciones a profesionales (solo administrador) ──────────────
 
   // GET /api/pagos/liquidaciones?estado=liberado
-  app.get('/liquidaciones', { preHandler: requerirRol('admin') }, async (request) => {
+  app.get('/liquidaciones', { preHandler: requerirPermiso('pagos') }, async (request) => {
     const { estado } = z.object({
       estado: z.enum(['retenido', 'liberado', 'transferido', 'reembolso', 'revisar', 'reembolsado']).optional(),
     }).parse(request.query)
@@ -251,7 +251,7 @@ export async function pagosRoutes(app: FastifyInstance) {
   })
 
   // PUT /api/pagos/liquidaciones/:id/transferido — la IPS ya pagó al profesional
-  app.put('/liquidaciones/:id/transferido', { preHandler: requerirRol('admin') }, async (request, reply) => {
+  app.put('/liquidaciones/:id/transferido', { preHandler: requerirPermiso('pagos') }, async (request, reply) => {
     const { id } = z.object({ id: z.string().uuid() }).parse(request.params)
     const r = await prisma.pago.updateMany({
       where: { id, estadoLiquidacion: 'liberado' },
@@ -262,7 +262,7 @@ export async function pagosRoutes(app: FastifyInstance) {
   })
 
   // PUT /api/pagos/liquidaciones/:id/reembolsado — la IPS devolvió el dinero al paciente
-  app.put('/liquidaciones/:id/reembolsado', { preHandler: requerirRol('admin') }, async (request, reply) => {
+  app.put('/liquidaciones/:id/reembolsado', { preHandler: requerirPermiso('pagos') }, async (request, reply) => {
     const { id } = z.object({ id: z.string().uuid() }).parse(request.params)
     // También los pagos "para revisar" (no alcanzaron la tarifa) se pueden devolver
     const r = await prisma.pago.updateMany({
