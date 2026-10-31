@@ -162,7 +162,7 @@ export async function profesionalesRoutes(app: FastifyInstance) {
     })
     if (!disponible) {
       // Al dejar de estar disponible, retira sus ofertas pendientes
-      await prisma.oferta.updateMany({ where: { profesionalId: id, estado: 'activa' }, data: { estado: 'retirada' } })
+      await prisma.oferta.updateMany({ where: { profesionalId: id, estado: 'activa', servicio: { programadoPara: null } }, data: { estado: 'retirada' } })
     }
     marcarCambio()
     return { id: r.id, disponible: r.disponible, disponibleDesde: r.disponibleDesde, accessToken }
@@ -216,6 +216,7 @@ export async function profesionalesRoutes(app: FastifyInstance) {
     if (!p) return reply.status(404).send({ error: 'Perfil no encontrado' })
     const def = DOCUMENTOS.find((d) => d.tipo === body.tipo)!
     const a = leerDataUrl(body.archivo, body.archivo.startsWith('data:application/pdf') ? 1536 * 1024 : 700 * 1024)
+    if (body.tipo === 'foto' && a.mime === 'application/pdf') return reply.status(400).send({ error: 'La foto de perfil debe ser una foto (no un PDF).' })
     let vence: Date | null = null
     if (def.vence) {
       if (!body.vence) return reply.status(400).send({ error: 'Indique la fecha de vencimiento de ' + def.nombre.toLowerCase() + '.' })
@@ -237,6 +238,27 @@ export async function profesionalesRoutes(app: FastifyInstance) {
     })
     marcarCambio()
     return reply.status(201).send({ ok: true, documento: doc, mensaje: 'Documento recibido. La IPS lo revisará.' })
+  })
+
+  // GET /api/profesionales/:id/foto — la foto de perfil APROBADA por la IPS. La ven: el propio profesional, la IPS y
+  // los pacientes a quienes ese profesional se ofreció o atiende (para reconocerle al llegar)
+  app.get('/:id/foto', { preHandler: autenticar }, async (request, reply) => {
+    const { id } = z.object({ id: z.string().uuid() }).parse(request.params)
+    const u = request.usuario
+    let permitido = false
+    if (u.rol === 'admin') permitido = tienePermiso(u, 'profesionales') || tienePermiso(u, 'servicios')
+    else if (u.rol === 'profesional') permitido = !!(await prisma.profesional.count({ where: { id, usuarioId: u.id } }))
+    else if (u.rol === 'paciente') {
+      permitido = !!(await prisma.servicio.count({
+        where: { paciente: { usuarioId: u.id }, OR: [{ profesionalId: id }, { ofertas: { some: { profesionalId: id, estado: { in: ['activa', 'elegida'] } } } }] },
+      }))
+    }
+    if (!permitido) return reply.status(404).send({ error: 'Foto no disponible' })
+    const d = await prisma.documentoProfesional.findFirst({ where: { profesionalId: id, tipo: 'foto', estado: 'aprobado', archivoId: { not: null } }, orderBy: { revisadoEn: 'desc' }, select: { archivoId: true } })
+    const a = d?.archivoId ? await prisma.archivo.findUnique({ where: { id: d.archivoId }, select: { mime: true, datos: true } }) : null
+    if (!a) return reply.status(404).send({ error: 'Foto no disponible' })
+    reply.header('Cache-Control', 'private, max-age=3600').header('Content-Type', a.mime)
+    return reply.send(Buffer.from(a.datos))
   })
 
   // GET /api/profesionales/documentos/:id/archivo — el propio profesional o la IPS (coordinación)

@@ -64,8 +64,8 @@ export async function pushRoutes(app: FastifyInstance) {
     return { publicKey: VAPID_PUBLIC_KEY }
   })
 
-  // POST /api/push/suscribir — guardar suscripción del profesional
-  app.post('/suscribir', { preHandler: requerirRol('profesional') }, async (request, reply) => {
+  // POST /api/push/suscribir — guardar la suscripción del celular (profesional o paciente)
+  app.post('/suscribir', { preHandler: requerirRol('profesional', 'paciente') }, async (request, reply) => {
     const body = z.object({
       endpoint: z.string().url().max(1000),
       keys: z.object({
@@ -130,12 +130,13 @@ export async function notificarProfesionalesDisponibles(payload: {
   url?: string
   excluir?: string[] // profesionales bloqueados por ese paciente
   solo?: string[]    // si se indica, solo a estos profesionales
+  fueraDeTurno?: boolean // citas programadas: también a quien no está en turno ahora
 }) {
   if (!VAPID_PUBLIC_KEY || !VAPID_PRIVATE_KEY) return // avisos push no configurados
   try {
     // Buscar profesionales aprobados y disponibles con suscripción push
     const profesionalesAprobados = await prisma.profesional.findMany({
-      where: { estadoVerificacion: 'aprobado', activo: true, disponible: true, usuario: { estado: 'activo' }, ...(payload.solo ? { id: { in: payload.solo } } : {}), ...(payload.excluir?.length ? { id: { notIn: payload.excluir } } : {}) },
+      where: { estadoVerificacion: 'aprobado', activo: true, ...(payload.fueraDeTurno ? {} : { disponible: true }), usuario: { estado: 'activo' }, ...(payload.solo ? { id: { in: payload.solo } } : {}), ...(payload.excluir?.length ? { id: { notIn: payload.excluir } } : {}) },
       select: { usuarioId: true },
     })
 

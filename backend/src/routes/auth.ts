@@ -233,7 +233,7 @@ export async function authRoutes(app: FastifyInstance) {
       const p = await prisma.profesional.findUnique({ where: { usuarioId: request.usuario.id }, select: { id: true } })
       if (p) {
         await prisma.profesional.update({ where: { id: p.id }, data: { disponible: false, ignoradas: 0 } })
-        await prisma.oferta.updateMany({ where: { profesionalId: p.id, estado: 'activa' }, data: { estado: 'retirada' } })
+        await prisma.oferta.updateMany({ where: { profesionalId: p.id, estado: 'activa', servicio: { programadoPara: null } }, data: { estado: 'retirada' } })
       }
     }
     return { message: 'Sesión cerrada' }
