@@ -36,6 +36,12 @@ enum TipoServicio {
   control
   cuidado_basico
   urgencia
+  consulta_medica
+  terapia_fisica
+  terapia_ocupacional
+  terapia_respiratoria
+  terapia_conductual
+  psicologia
 }
 
 enum EstadoVerificacion {
@@ -62,6 +68,7 @@ model Usuario {
   fotoUrl        String?       @map("foto_url") @db.VarChar(500)
   aceptoTerminosEn DateTime?   @map("acepto_terminos_en")
   claveCreada    Boolean       @default(true) @map("clave_creada")
+  rolIps         String?       @map("rol_ips") @db.VarChar(20) // superadmin | coordinador | tesoreria (solo cuentas de la IPS)
   ultimoIngreso  DateTime?     @map("ultimo_ingreso")
   createdAt      DateTime      @default(now()) @map("created_at")
   updatedAt      DateTime      @updatedAt @map("updated_at")
@@ -144,6 +151,7 @@ model Profesional {
   id                   String             @id @default(uuid())
   usuarioId            String             @unique @map("usuario_id")
   especialidad         String?            @db.VarChar(100)
+  perfil               String?            @db.VarChar(40) // enfermero_profesional, auxiliar_enfermeria, medico, fisioterapeuta…
   registroProfesional  String?            @map("registro_profesional") @db.VarChar(100)
   estadoVerificacion   EstadoVerificacion @default(pendiente) @map("estado_verificacion")
   disponible           Boolean            @default(false)
@@ -184,8 +192,16 @@ model DocumentoProfesional {
   profesionalId String      @map("profesional_id")
   tipo          String      @db.VarChar(100)
   url           String      @db.VarChar(500)
+  estado        String      @default("pendiente") @db.VarChar(20) // pendiente | aprobado | rechazado
+  vence         DateTime?
+  archivoId     String?     @map("archivo_id")
+  nota          String?     @db.VarChar(300)
+  revisadoPor   String?     @map("revisado_por")
+  revisadoEn    DateTime?   @map("revisado_en")
+  avisadoEn     DateTime?   @map("avisado_en") // último aviso de vencimiento
   createdAt     DateTime    @default(now()) @map("created_at")
   profesional   Profesional @relation(fields: [profesionalId], references: [id], onDelete: Cascade)
+  @@index([profesionalId, tipo])
   @@map("documentos_profesional")
 }
 
@@ -198,6 +214,8 @@ model Servicio {
   descripcion            String?
   direccion              String?        @db.VarChar(500)
   barrio                 String?        @db.VarChar(100)
+  ordenArchivoId         String?        @map("orden_archivo_id")
+  ordenRevisada          Boolean        @default(false) @map("orden_revisada")
   lat                    Decimal?       @db.Decimal(10, 8)
   lng                    Decimal?       @db.Decimal(11, 8)
   notas                  String?
@@ -304,6 +322,9 @@ model Tarifa {
   descripcion String?      @db.VarChar(200)
   precio      Int
   activo      Boolean      @default(true)
+  perfiles    String[]     @default([]) // perfiles de profesional que pueden atenderlo (vacío = cualquiera)
+  requiereOrden Boolean    @default(false) @map("requiere_orden") // exige foto de la orden médica
+  orden       Int          @default(0)
   updatedAt   DateTime     @updatedAt @map("updated_at")
   @@map("tarifas")
 }
@@ -397,4 +418,16 @@ model Bitacora {
   createdAt DateTime @default(now()) @map("created_at")
   @@index([usuarioId, createdAt])
   @@map("bitacora")
+}
+
+// Archivos pequeños (documentos de los profesionales, órdenes médicas), comprimidos y guardados en la base
+model Archivo {
+  id        String   @id @default(uuid())
+  categoria String   @db.VarChar(20) // documento | orden
+  mime      String   @db.VarChar(60)
+  bytes     Int
+  datos     Bytes
+  subidoPor String   @map("subido_por")
+  createdAt DateTime @default(now()) @map("created_at")
+  @@map("archivos")
 }
