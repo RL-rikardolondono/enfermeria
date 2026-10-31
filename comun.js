@@ -342,6 +342,153 @@
     } catch (e) { window.aviso(window.mensajeRed ? window.mensajeRed(e) : e.message, 'error'); return false; }
   };
 
+  // ── Ubicación aproximada (para la seguridad de la visita). Si la persona no la da, sigue sin ella ──
+  window.ubicacionActual = function (ms) {
+    return new Promise(function (ok) {
+      if (!navigator.geolocation) return ok(null);
+      var listo = false, t = setTimeout(function () { if (!listo) { listo = true; ok(null); } }, ms || 6000);
+      navigator.geolocation.getCurrentPosition(function (p) { if (listo) return; listo = true; clearTimeout(t); ok({ lat: Math.round(p.coords.latitude * 1e6) / 1e6, lng: Math.round(p.coords.longitude * 1e6) / 1e6 }); },
+        function () { if (listo) return; listo = true; clearTimeout(t); ok(null); }, { enableHighAccuracy: true, timeout: ms || 6000, maximumAge: 60000 });
+    });
+  };
+
+  // ── Foto del profesional (aprobada por la IPS). Se pide con la sesión y se muestra en <img data-foto-prof="id"> ──
+  var fotosCache = {};
+  window.cargarFotosProfesionales = function (api, token, raiz) {
+    (raiz || document).querySelectorAll('img[data-foto-prof]').forEach(function (img) {
+      var id = img.getAttribute('data-foto-prof');
+      if (!id || img.__cargada) return;
+      img.__cargada = true;
+      var poner = function (u) { if (u) { img.src = u; img.hidden = false; } };
+      if (fotosCache[id] !== undefined) return poner(fotosCache[id]);
+      fetch(api + '/api/profesionales/' + id + '/foto', { headers: { 'Authorization': 'Bearer ' + token } })
+        .then(function (r) { return r.ok ? r.blob() : null; })
+        .then(function (b) { fotosCache[id] = b ? URL.createObjectURL(b) : null; poner(fotosCache[id]); })
+        .catch(function () {});
+    });
+  };
+
+  // ── Pedir un dato corto en una ventana (código de llegada, fecha…) ──
+  window.pedirDato = function (op) {
+    return new Promise(function (resolve) {
+      var f = document.createElement('div');
+      f.className = 'sec-modal-fondo';
+      f.innerHTML = '<div class="sec-modal" role="dialog" aria-modal="true"><h3></h3><p></p><input style="width:100%;box-sizing:border-box;padding:12px;border:1px solid #DCE5EE;border-radius:10px;font:700 20px \'Public Sans\',sans-serif;margin-bottom:14px"><div class="sec-modal-botones"><button class="sec-btn-no" type="button">Cancelar</button><button class="sec-btn-si" type="button"></button></div></div>';
+      f.querySelector('h3').textContent = op.titulo || '';
+      f.querySelector('p').textContent = op.texto || '';
+      var inp = f.querySelector('input');
+      inp.type = op.tipo || 'text';
+      if (op.inputmode) inp.setAttribute('inputmode', op.inputmode);
+      if (op.maxlength) inp.maxLength = op.maxlength;
+      if (op.min) inp.min = op.min;
+      if (op.max) inp.max = op.max;
+      if (op.valor) inp.value = op.valor;
+      if (op.tipo === 'text' || !op.tipo) inp.style.letterSpacing = op.espaciado || 'normal';
+      f.querySelector('.sec-btn-si').textContent = op.si || 'Aceptar';
+      var fin = function (v) { f.remove(); resolve(v); };
+      f.__cerrar = function () { fin(null); };
+      f.querySelector('.sec-btn-no').onclick = function () { fin(null); };
+      f.querySelector('.sec-btn-si').onclick = function () { var v = inp.value.trim(); if (op.validar && !op.validar(v)) { window.aviso(op.error || 'Revise el dato', 'aviso'); return; } fin(v); };
+      inp.addEventListener('keydown', function (e) { if (e.key === 'Enter') f.querySelector('.sec-btn-si').click(); });
+      document.body.appendChild(f);
+      setTimeout(function () { inp.focus(); }, 50);
+    });
+  };
+
+  // ── Chat del servicio (paciente ↔ profesional). Se actualiza cada 5 segundos mientras está abierto ──
+  window.abrirChat = function (api, token, servicioId, titulo) {
+    var f = document.createElement('div');
+    f.className = 'sec-modal-fondo';
+    f.innerHTML = '<div class="sec-modal" role="dialog" aria-modal="true" style="max-width:480px;display:flex;flex-direction:column;max-height:88vh">' +
+      '<h3></h3><div class="chat-aviso" style="font-size:12px;color:#5D6B78;margin-bottom:8px">Solo para coordinar la visita. No comparta datos de tarjetas ni claves. La IPS puede leer este chat.</div>' +
+      '<div class="chat-lista" style="flex:1;overflow-y:auto;min-height:180px;max-height:50vh;background:#F4F8FB;border:1px solid #DCE5EE;border-radius:10px;padding:10px;display:flex;flex-direction:column;gap:6px"></div>' +
+      '<div class="chat-escribir" style="display:flex;gap:8px;margin-top:10px"><input maxlength="500" placeholder="Escriba un mensaje" style="flex:1;min-width:0;padding:11px;border:1px solid #DCE5EE;border-radius:10px;font:inherit"><button type="button" class="chat-enviar" style="padding:0 16px;border:0;border-radius:10px;background:#14A38B;color:#fff;font-weight:700;cursor:pointer">Enviar</button></div>' +
+      '<div class="sec-modal-botones" style="margin-top:10px"><button class="sec-btn-no" type="button">Cerrar</button></div></div>';
+    f.querySelector('h3').textContent = titulo || 'Mensajes';
+    var lista = f.querySelector('.chat-lista'), inp = f.querySelector('input'), btn = f.querySelector('.chat-enviar');
+    var timer = null, ultimo = '';
+    function cerrar() { clearInterval(timer); f.remove(); }
+    f.__cerrar = cerrar;
+    f.querySelector('.sec-btn-no').onclick = cerrar;
+    async function cargar(fondo) {
+      try {
+        var h = { 'Authorization': 'Bearer ' + token };
+        if (fondo) h['x-segundo-plano'] = '1'; // las revisiones automáticas no cuentan como uso
+        var r = await fetch(api + '/api/servicios/' + servicioId + '/mensajes', { headers: h });
+        var d = await r.json().catch(function () { return {}; });
+        if (!r.ok) { lista.innerHTML = ''; var e = document.createElement('div'); e.textContent = d.error || 'Chat no disponible'; lista.appendChild(e); f.querySelector('.chat-escribir').hidden = true; clearInterval(timer); return; }
+        f.querySelector('.chat-escribir').hidden = !d.puedeEscribir;
+        var firma = (d.items || []).map(function (m) { return m.id; }).join(',');
+        if (firma === ultimo) return;
+        ultimo = firma;
+        lista.innerHTML = '';
+        if (!(d.items || []).length) { var v = document.createElement('div'); v.style.cssText = 'color:#5D6B78;font-size:13px;text-align:center;margin:auto'; v.textContent = 'Aún no hay mensajes.'; lista.appendChild(v); }
+        (d.items || []).forEach(function (m) {
+          var mio = m.rol === d.yo, b = document.createElement('div');
+          b.style.cssText = 'max-width:80%;padding:8px 11px;border-radius:12px;font-size:14px;white-space:pre-wrap;word-break:break-word;' + (mio ? 'align-self:flex-end;background:#0B4F8A;color:#fff' : 'align-self:flex-start;background:#fff;border:1px solid #DCE5EE');
+          b.textContent = m.texto;
+          var h = document.createElement('div');
+          h.style.cssText = 'font-size:11px;opacity:.75;margin-top:2px';
+          h.textContent = (d.yo === 'admin' ? (m.rol === 'paciente' ? 'Paciente · ' : 'Profesional · ') : '') + new Date(m.createdAt).toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Bogota' });
+          b.appendChild(h);
+          lista.appendChild(b);
+        });
+        lista.scrollTop = lista.scrollHeight;
+      } catch (e) {}
+    }
+    async function enviar() {
+      var t = inp.value.trim();
+      if (!t || btn.disabled) return;
+      btn.disabled = true;
+      try {
+        var r = await fetch(api + '/api/servicios/' + servicioId + '/mensajes', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token }, body: JSON.stringify({ texto: t }) });
+        var d = await r.json().catch(function () { return {}; });
+        if (!r.ok) throw new Error(d.error || 'No se pudo enviar el mensaje');
+        inp.value = '';
+        await cargar();
+      } catch (e) { window.aviso(window.mensajeRed(e), 'error'); }
+      btn.disabled = false;
+      inp.focus();
+    }
+    btn.onclick = enviar;
+    inp.addEventListener('keydown', function (e) { if (e.key === 'Enter') enviar(); });
+    document.body.appendChild(f);
+    cargar();
+    timer = setInterval(function () { if (!document.body.contains(f)) { clearInterval(timer); return; } cargar(true); }, 5000);
+  };
+
+  // ── Botón de emergencia durante el servicio ──
+  window.botonEmergencia = function (api, token, servicioId) {
+    var f = document.createElement('div');
+    f.className = 'sec-modal-fondo';
+    f.innerHTML = '<div class="sec-modal" role="dialog" aria-modal="true"><h3 style="color:#B4412F">🆘 Emergencia</h3>' +
+      '<p>Si hay riesgo para la vida (accidente, agresión, paciente grave), llame primero al 123. Luego avise a la IPS: le llamaremos de inmediato.</p>' +
+      '<a href="tel:123" style="display:block;text-align:center;background:#B4412F;color:#fff;padding:13px;border-radius:10px;font-weight:800;text-decoration:none;margin-bottom:8px">📞 Llamar al 123 (emergencias)</a>' +
+      '<button type="button" class="em-ips" style="width:100%;padding:13px;border:0;border-radius:10px;background:#0B4F8A;color:#fff;font:800 15px \'Public Sans\',sans-serif;margin-bottom:8px;cursor:pointer">🚨 Avisar a la IPS ahora (con mi ubicación)</button>' +
+      '<a href="tel:3128886611" style="display:block;text-align:center;background:#E8F1FA;color:#0B4F8A;padding:12px;border-radius:10px;font-weight:700;text-decoration:none;margin-bottom:12px">Llamar a la IPS · 312 888 6611</a>' +
+      '<div class="sec-modal-botones"><button class="sec-btn-no" type="button">Cerrar</button></div></div>';
+    var cerrar = function () { f.remove(); };
+    f.__cerrar = cerrar;
+    f.querySelector('.sec-btn-no').onclick = cerrar;
+    f.querySelector('.em-ips').onclick = async function () {
+      var b = this; if (b.disabled) return; b.disabled = true; b.textContent = 'Enviando alerta...';
+      var pos = await window.ubicacionActual(5000);
+      try {
+        var r = await fetch(api + '/api/servicios/' + servicioId + '/alerta', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token }, body: JSON.stringify(pos || {}) });
+        var d = await r.json().catch(function () { return {}; });
+        if (!r.ok) throw new Error(d.error || 'No se pudo enviar la alerta. Llame a la IPS.');
+        b.textContent = '✔ Alerta enviada a la IPS';
+        window.aviso(d.mensaje || 'La IPS recibió su alerta.', '', 12000);
+      } catch (e) { b.disabled = false; b.textContent = '🚨 Avisar a la IPS ahora (con mi ubicación)'; window.aviso(window.mensajeRed(e), 'error'); }
+    };
+    document.body.appendChild(f);
+  };
+
+  // Fecha y hora de una cita, en palabras ("sábado 7 de noviembre, 3:00 p. m.")
+  window.fechaCita = function (d) {
+    return new Date(d).toLocaleString('es-CO', { weekday: 'long', day: 'numeric', month: 'long', hour: 'numeric', minute: '2-digit', timeZone: 'America/Bogota' });
+  };
+
   document.addEventListener('DOMContentLoaded', function () {
     ponerOjos();
     new MutationObserver(function () { ponerOjos(); }).observe(document.body, { childList: true, subtree: true });

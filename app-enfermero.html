@@ -319,11 +319,17 @@
       </div>
       <div class="divider"></div>
     </div>
+    <div id="citas-container" style="display:none">
+      <div class="section-header"><div class="section-title">📅 Próximas citas</div><span class="badge badge-teal" id="badge-citas">0</span></div>
+      <div class="sec-origen">Citas que usted aceptó. Se activan 2 horas antes: ahí podrá marcar "Voy en camino".</div>
+      <div id="citas-list"></div>
+      <div class="divider"></div>
+    </div>
     <div class="section-header">
       <div class="section-title">Solicitudes pendientes</div>
       <span class="badge badge-amber" id="badge-pendientes">0</span>
     </div>
-    <div class="sec-origen">Aquí aparecen las solicitudes de pacientes que necesitan atención ahora, mientras usted está "Disponible". Al pulsar "Ofrecerme", el paciente ve su perfil y decide; si lo elige, el servicio pasa arriba como servicio activo.</div>
+    <div class="sec-origen">Las solicitudes para <b>ahora</b> aparecen mientras usted está "Disponible". Las <b>citas programadas</b> (📅) las ve siempre y puede ofrecerse aunque no esté en turno. Al pulsar "Ofrecerme", el paciente ve su perfil y decide.</div>
     <div id="solicitudes-list">
       <div class="empty"><div class="empty-icon">📭</div><div class="empty-text">Sin solicitudes por ahora</div></div>
     </div>
@@ -618,8 +624,9 @@ async function loadSolicitudes() {
       const vacio = dataPend.motivo === 'no_disponible' ? ['🔕','Póngase en "Disponible" (botón de arriba) para ver solicitudes y ofrecerse.']
         : dataPend.motivo === 'ocupado' ? ['🩺','Termine su servicio activo para ver nuevas solicitudes.']
         : ['📭','Sin solicitudes pendientes'];
+      var nota = items.length && dataPend.motivo ? '<div class="field-hint" style="margin-bottom:8px">'+(dataPend.motivo === 'no_disponible' ? '🔕 Para ver urgencias póngase en "Disponible". Abajo están las citas programadas.' : '🩺 Mientras atiende su servicio activo solo ve citas programadas.')+'</div>' : '';
       el.innerHTML = items.length
-        ? items.map(function(s){return solicitudCard(s);}).join('')
+        ? nota + items.map(function(s){return solicitudCard(s);}).join('')
         : '<div class="empty"><div class="empty-icon">'+vacio[0]+'</div><div class="empty-text">'+vacio[1]+'</div></div>';
     }
     // Cargar servicio activo del profesional
@@ -627,7 +634,9 @@ async function loadSolicitudes() {
     if (resMios.ok) {
       const dataMios = await resMios.json();
       pagosEnLinea = !!dataMios.pagosEnLinea;
-      const activos = (dataMios.items||[]).filter(function(s){return['asignado','en_camino','en_curso'].includes(s.estado);});
+      const orden = {en_curso:0, en_camino:1, asignado:2};
+      const activos = (dataMios.items||[]).filter(function(s){return['asignado','en_camino','en_curso'].includes(s.estado);})
+        .sort(function(a,b){ return (orden[a.estado]-orden[b.estado]) || ((a.programadoPara?1:0)-(b.programadoPara?1:0)); });
       if (activos.length>0) {
         if (yaCargo && !servicioActivoId && activos[0].estado === 'asignado') { window.aviso('¡El paciente lo eligió! Revise la dirección y salga cuando esté listo.'); try { navigator.vibrate && navigator.vibrate([200,100,200]); } catch(e) {} }
         mostrarServicioActivo(activos[0]);
@@ -640,21 +649,42 @@ async function loadSolicitudes() {
         document.getElementById('servicio-activo-container').style.display='none'; document.getElementById('evolucion-form').style.display='none'; servicioActivoId=null;
       }
     }
+    cargarCitas();
     yaCargo = true;
   } catch(e) {
     el.innerHTML = '<div class="empty"><div class="empty-icon">📶</div><div class="empty-text">Sin conexión. Revise su internet; la lista se actualiza sola al volver.</div></div>';
   }
 }
 
+async function cargarCitas() {
+  try {
+    const r = await fetch(API+'/api/servicios?programados=1&limit=20',{headers:{'Authorization':'Bearer '+token}});
+    if (!r.ok) return;
+    const d = await r.json();
+    const items = d.items || [];
+    document.getElementById('citas-container').style.display = items.length ? 'block' : 'none';
+    document.getElementById('badge-citas').textContent = items.length;
+    document.getElementById('citas-list').innerHTML = items.map(function(s){
+      var pac = s.paciente || {}; var nombre = pac.nombreCompleto || (pac.usuario && pac.usuario.nombreCompleto) || 'Paciente';
+      var pagado = !pagosEnLinea || (s.pago && s.pago.estado === 'aprobado');
+      return '<div class="solicitud-card normal"><div class="sol-header"><div class="sol-tipo"><div class="sol-icon">'+(ICONOS_SERVICIO[s.tipo]||'🏥')+'</div><div><div class="sol-name">'+tipoLabel(s.tipo)+'</div><div class="sol-sub">'+esc(nombre)+'</div></div></div><span class="badge badge-teal">CITA</span></div>' +
+        '<div class="sol-info"><div class="sol-info-row">📅 <span><b>'+esc(fechaCita(s.programadoPara))+'</b></span></div><div class="sol-info-row">📍 <span>'+esc(s.direccion||'')+'</span></div>' +
+        (s.descripcion?'<div class="sol-info-row">📝 <span>'+esc(s.descripcion)+'</span></div>':'') +
+        (pagado?'':'<div class="sol-info-row">⏳ <span>Esperando el pago del paciente</span></div>') + '</div>' +
+        '<div class="sol-actions"><button class="btn-reject" style="flex:1" data-id="'+s.id+'" data-n="'+esc(nombre)+'" onclick="abrirChat(API, token, this.dataset.id, \'Mensajes con \' + this.dataset.n)">💬 Mensajes</button><button class="btn-reject" style="flex:1" onclick="desistirServicio(\''+s.id+'\')">No podré ir</button></div></div>';
+    }).join('');
+  } catch (e) {}
+}
+
 function solicitudCard(s) {
   const iconos=ICONOS_SERVICIO;
-  const urgente = s.tipo==='urgencia';
+  const urgente = s.tipo==='urgencia' && !s.programadoPara;
   const pacNombre = (s.paciente&&s.paciente.nombreCompleto)?s.paciente.nombreCompleto:((s.paciente&&s.paciente.usuario)?s.paciente.usuario.nombreCompleto:'Paciente');
   return '<div class="solicitud-card '+(urgente?'urgente':'normal')+'">' +
     '<div class="sol-header"><div class="sol-tipo"><div class="sol-icon '+(urgente?'urgente':'')+'">'+(iconos[s.tipo]||'🏥')+'</div>' +
     '<div><div class="sol-name">'+tipoLabel(s.tipo)+'</div><div class="sol-sub">'+esc(pacNombre)+'</div></div></div>' +
-    '<span class="badge '+(urgente?'badge-red':'badge-teal')+'">'+(urgente?'PRIORITARIA':'INMEDIATA')+'</span></div>' +
-    '<div class="sol-info"><div class="sol-info-row">📍 <span>'+esc(s.direccion||'Sin dirección')+'</span></div>' +
+    '<span class="badge '+(urgente?'badge-red':'badge-teal')+'">'+(s.paraUsted?'PARA USTED':s.programadoPara?'CITA':urgente?'PRIORITARIA':'INMEDIATA')+'</span></div>' +
+    '<div class="sol-info">' + (s.programadoPara?'<div class="sol-info-row">📅 <span><b>'+esc(fechaCita(s.programadoPara))+'</b></span></div>':'') + (s.paraUsted?'<div class="sol-info-row">⭐ <span>Un paciente que usted atendió le pide otra visita</span></div>':'') + '<div class="sol-info-row">📍 <span>'+esc(s.direccion||'Sin dirección')+'</span></div>' +
     (s.conOrden?'<div class="sol-info-row">📄 <span>Con orden médica (la verá si el paciente lo elige)</span></div>':'') +
     '<div class="sol-info-row">🕐 <span>'+formatDate(s.createdAt||s.fechaSolicitud)+'</span></div>' +
     (s.monto?'<div class="sol-info-row">💵 <span>Tarifa $'+Number(s.monto).toLocaleString('es-CO')+'</span></div>':'') +
@@ -662,7 +692,7 @@ function solicitudCard(s) {
     '<div class="sol-ofertas">' + (s.totalOfertas ? s.totalOfertas + (s.totalOfertas === 1 ? ' profesional ofrecido' : ' profesionales ofrecidos') + ' · ' : '') + 'el paciente elige</div>' +
     '<div class="sol-actions">' + (s.miOferta
       ? '<div class="oferta-hecha">✔ Se ofreció · esperando que el paciente elija</div><button class="btn-reject" onclick="retirarOferta(\''+s.id+'\')">Retirar</button>'
-      : '<button class="btn-accept" onclick="ofrecerse(\''+s.id+'\')">🙋 Ofrecerme</button><button class="btn-reject" onclick="rechazarServicio(\''+s.id+'\')">✕</button>') +
+      : '<button class="btn-accept" onclick="ofrecerse(\''+s.id+'\','+(s.programadoPara?'true':'false')+')">'+(s.paraUsted?'✅ Aceptar visita':'🙋 Ofrecerme')+'</button>'+(s.paraUsted?'<button class="btn-reject" onclick="noPuedoVisita(\''+s.id+'\')">No puedo</button>':'<button class="btn-reject" onclick="rechazarServicio(\''+s.id+'\')">✕</button>')) +
     '</div></div>';
 }
 
@@ -678,6 +708,7 @@ function mostrarServicioActivo(s) {
   var nombre = pac.nombreCompleto || (pac.usuario && pac.usuario.nombreCompleto) || 'Paciente';
   var tel = pac.usuario && pac.usuario.telefono;
   var det = '<div><b>'+esc(nombre)+'</b>'+(pac.parentesco && pac.parentesco!=='Titular' ? ' · '+esc(pac.parentesco)+' de '+esc(pac.usuario && pac.usuario.nombreCompleto) : '')+'</div>';
+  if (s.programadoPara) det += '<div>📅 Cita: <b>'+esc(fechaCita(s.programadoPara))+'</b></div>';
   if (s.descripcion) det += '<div>📝 '+esc(s.descripcion)+'</div>';
   if (pac.alergias && pac.alergias === pac.antecedentes) det += '<div>⚠️ Alergias y antecedentes: '+esc(pac.alergias)+'</div>';
   else {
@@ -687,6 +718,8 @@ function mostrarServicioActivo(s) {
   var acc = '';
   if (tel) acc += '<a class="activo-link" href="tel:'+esc(tel)+'">📞 Llamar</a>';
   if (s.direccion) acc += '<a class="activo-link" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(s.direccion)+'">🗺️ Cómo llegar</a>';
+  acc += '<a class="activo-link" href="#" data-id="'+s.id+'" data-n="'+esc(nombre)+'" onclick="event.preventDefault();abrirChat(API, token, this.dataset.id, \'Mensajes con \' + this.dataset.n)">💬 Mensajes</a>';
+  acc += '<a class="activo-link" href="#" style="background:#B4412F;color:#fff" data-id="'+s.id+'" onclick="event.preventDefault();botonEmergencia(API, token, this.dataset.id)">🆘 Emergencia</a>';
   document.getElementById('activo-detalle').innerHTML = det + (acc ? '<div class="activo-links">'+acc+'</div>' : '');
   if (s.estado !== 'en_curso') document.getElementById('evolucion-form').style.display='none';
   const btns = document.getElementById('estado-btns');
@@ -700,7 +733,7 @@ function mostrarServicioActivo(s) {
   if (faltaPago) html='<div class="nota-ok" style="display:block;background:#E8F1FA;color:#0B4F8A;margin-bottom:8px">⏳ Esperando el pago del paciente'+(s.buscandoHasta ? ' (tiene hasta las '+new Date(s.buscandoHasta).toLocaleTimeString('es-CO',{hour:'2-digit',minute:'2-digit',timeZone:'America/Bogota'})+')' : '')+'. Le avisaremos cuando pague para que salga; si no paga a tiempo, usted queda libre.</div><button class="btn-estado btn-desistir" onclick="desistirServicio(\''+s.id+'\')">No puedo atenderlo</button>';
   else if (s.estado==='asignado' && s.ordenArchivoId && !s.ordenRevisada) html='<div class="nota-ok" style="display:block;background:#FFF4D9;color:#5A3E00;margin-bottom:8px">📄 Este servicio tiene orden médica. Revísela (medicamento, dosis y vía) antes de salir.</div><button class="btn-estado btn-en-camino" onclick="verOrdenMedica(\''+s.id+'\',true)">📄 Ver orden médica</button><button class="btn-estado btn-desistir" onclick="desistirServicio(\''+s.id+'\')">No puedo atenderlo</button>';
   else if (s.estado==='asignado') html='<button class="btn-estado btn-en-camino" onclick="cambiarEstado(\''+s.id+'\',\'en_camino\')">🚗 Voy en camino</button>'+(s.ordenArchivoId?'<button class="btn-estado" style="background:#fff;color:#0B4F8A" onclick="verOrdenMedica(\''+s.id+'\')">📄 Ver orden médica</button>':'')+'<button class="btn-estado btn-desistir" onclick="desistirServicio(\''+s.id+'\')">No puedo atenderlo</button>';
-  else if (s.estado==='en_camino') html='<button class="btn-estado btn-en-curso" onclick="cambiarEstado(\''+s.id+'\',\'en_curso\')">▶️ Iniciar servicio</button><button class="btn-estado btn-desistir" onclick="desistirServicio(\''+s.id+'\')">No puedo atenderlo</button>';
+  else if (s.estado==='en_camino') html='<button class="btn-estado btn-en-curso" onclick="iniciarConCodigo(\''+s.id+'\')">▶️ Llegué: iniciar servicio</button><button class="btn-estado btn-desistir" onclick="desistirServicio(\''+s.id+'\')">No puedo atenderlo</button>';
   else if (s.estado==='en_curso') {
     if (document.getElementById('evolucion-form').style.display !== 'block') recuperarBorrador(s.id);
     document.getElementById('evolucion-form').style.display='block';
@@ -709,8 +742,8 @@ function mostrarServicioActivo(s) {
   btns.innerHTML=html;
 }
 
-async function ofrecerse(id) {
-  if (!disponible) { aviso('Póngase en "Disponible" (botón de arriba) para ofrecerse.', 'aviso'); return; }
+async function ofrecerse(id, esCita) {
+  if (!disponible && !esCita) { aviso('Póngase en "Disponible" (botón de arriba) para ofrecerse.', 'aviso'); return; }
   showLoading('Enviando su oferta...');
   try {
     const res = await fetch(API+'/api/servicios/'+id+'/ofertas',{method:'POST',headers:{'Authorization':'Bearer '+token}});
@@ -739,23 +772,47 @@ async function rechazarServicio(id) {
   await loadSolicitudes();
 }
 
+// "Otra visita" que el paciente le pidió y no puede: se le avisa al paciente
+async function noPuedoVisita(id) {
+  if (!(await confirmar('Le avisaremos al paciente para que pida la visita otro día o con otro profesional.', {titulo:'¿No puede ir en esa fecha?', si:'Sí, avisar', peligro:true}))) return;
+  try {
+    const r = await fetch(API+'/api/servicios/'+id+'/estado',{method:'PUT',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},body:JSON.stringify({estado:'cancelado'})});
+    const d = await r.json().catch(function(){ return {}; });
+    if (!r.ok) throw new Error(d.error || 'No se pudo responder');
+    aviso(d.mensaje || 'Listo');
+  } catch (e) { aviso(mensajeRed(e), 'error'); }
+  await loadSolicitudes();
+}
+
 async function desistirServicio(id) {
   if (!(await confirmar('El servicio volverá a quedar disponible para otro profesional. Avise a la IPS si es posible.', {titulo:'¿No puede atender este servicio?', si:'Sí, liberarlo', peligro:true}))) return;
   if (await cambiarEstado(id,'cancelado')) aviso('Servicio liberado para otro profesional');
 }
 
-async function cambiarEstado(id,estado,firma) {
+async function cambiarEstado(id,estado,firma,codigo) {
   showLoading('Actualizando...');
   try {
-    const res = await fetch(API+'/api/servicios/'+id+'/estado',{method:'PUT',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},body:JSON.stringify(firma ? {estado, firma} : {estado})});
+    const cuerpo = {estado: estado};
+    if (firma) cuerpo.firma = firma;
+    if (codigo) cuerpo.codigo = codigo;
+    // Ubicación al salir, llegar y terminar (seguridad de la visita; si no la da, sigue sin ella)
+    if (['en_camino','en_curso','completado'].indexOf(estado) >= 0) { const pos = await ubicacionActual(4000); if (pos) { cuerpo.lat = pos.lat; cuerpo.lng = pos.lng; } }
+    const res = await fetch(API+'/api/servicios/'+id+'/estado',{method:'PUT',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},body:JSON.stringify(cuerpo)});
     const data = await res.json().catch(function(){ return {}; });
     hideLoading();
     if (!res.ok) throw new Error(data.error || 'Error al actualizar el estado. Intente de nuevo.');
     // Cerrado desde este celular: no es una cancelación del paciente; la nota queda lista para el siguiente
-    if (estado === 'completado' || estado === 'cancelado') { servicioActivoId = null; limpiarNota(); document.getElementById('servicio-activo-container').style.display='none'; document.getElementById('evolucion-form').style.display='none'; }
+    if ((estado === 'completado' || estado === 'cancelado') && id === servicioActivoId) { servicioActivoId = null; limpiarNota(); document.getElementById('servicio-activo-container').style.display='none'; document.getElementById('evolucion-form').style.display='none'; }
     await loadInicio();
     return true;
   } catch(e) { hideLoading(); aviso(mensajeRed(e), 'error'); return false; }
+}
+
+// Al llegar, el paciente le dice el código de 4 números que ve en su app: así ambos confirman que es la persona correcta
+async function iniciarConCodigo(id) {
+  const codigo = await pedirDato({ titulo: 'Código de llegada', texto: 'Pídale al paciente o a su acompañante el código de 4 números que aparece en su app de Salud en Casa.', tipo: 'text', inputmode: 'numeric', maxlength: 4, espaciado: '8px', si: 'Iniciar servicio', validar: function(v){ return /^\d{4}$/.test(v); }, error: 'Escriba los 4 números del código' });
+  if (!codigo) return;
+  await cambiarEstado(id, 'en_curso', null, codigo);
 }
 
 async function completarServicio(id) {

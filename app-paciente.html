@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="apple-mobile-web-app-capable" content="yes">
+<link rel="manifest" href="manifest-paciente.webmanifest">
+<link rel="apple-touch-icon" href="icon-192.png">
 <meta name="theme-color" content="#0B4F8A">
 <title>Salud en Casa · Pacientes</title>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Public+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -107,6 +109,10 @@ body{font-family:'Public Sans',sans-serif;background:var(--cream);color:var(--in
 .topbar-rol{font-size:12px;color:#0E8571;font-weight:700;margin-top:2px}
 .nota-sec{margin-top:10px}.nota-sec b{display:block;color:#0B4F8A;font-size:13px;margin-bottom:2px}
 .recibido{margin-top:12px;border-top:1px solid #DCE5EE;padding-top:10px;font-size:13px}.recibido img{display:block;max-width:240px;width:100%;border:1px solid #DCE5EE;border-radius:8px;background:#fff;margin-top:6px}
+.cuando-opciones{display:flex;gap:8px}.cuando-op{flex:1;padding:12px;border-radius:12px;border:1.5px solid var(--border);background:#fff;font:700 15px 'Public Sans',sans-serif;color:var(--ink);cursor:pointer}.cuando-op.on{border-color:#14A38B;background:#E3F6F2;color:#0E8571}
+.codigo-llegada{margin-top:8px;padding:10px 12px;border-radius:12px;background:#E8F1FA;color:#0B4F8A;font-size:13px}.codigo-llegada b{display:block;font:800 30px 'Barlow Condensed',sans-serif;letter-spacing:8px;color:#0B4F8A}
+.prof-foto{width:56px;height:56px;border-radius:50%;object-fit:cover;border:2px solid #E3F6F2;float:right;margin-left:10px}
+.srv-acc{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}.srv-acc .btn-pago{flex:1;margin-top:0}
 </style>
 <script src="comun.js?v=20261022c" data-rol="paciente"></script>
 </head>
@@ -154,6 +160,7 @@ body{font-family:'Public Sans',sans-serif;background:var(--cream);color:var(--in
   <div class="topbar"><div><div class="topbar-greeting">Buenos días,</div><div class="topbar-name" id="app-nombre">Paciente</div><div class="topbar-rol" id="app-rol">Cuenta de paciente</div></div><div class="topbar-avatar" id="app-avatar">P</div></div>
   <div class="page active" id="page-home">
     <div class="hero-card"><h2>¿Necesita atención en casa?</h2><p>Profesionales verificados listos para atenderle</p><button class="btn-hero" onclick="showPage('solicitar');resetSolicitud()">&#x2795; Solicitar servicio</button></div>
+    <div class="info-card" id="avisos-card" style="display:none;gap:10px;align-items:center"><div style="flex:1;font-size:13px"><b>Active los avisos</b><br>Le avisamos cuando un profesional se ofrezca, salga hacia su casa o le escriba.</div><button class="btn-pago" style="margin:0;width:auto;padding:10px 14px" onclick="activarAvisos()">&#x1F514; Activar</button></div>
     <div class="section-title">Tipos de servicio</div>
     <div class="service-grid" id="inicio-grid"><div class="field-hint">Cargando servicios…</div></div>
     </div>
@@ -193,6 +200,10 @@ body{font-family:'Public Sans',sans-serif;background:var(--cream);color:var(--in
       <div class="form-group"><label>Barrio</label><input type="text" id="sol-barrio" maxlength="80" placeholder="Ej: El Prado"><div class="field-hint">Los profesionales en turno ven solo el barrio y la ciudad para saber si pueden llegar rápido.</div></div>
       <div class="form-group"><label>Ciudad</label><input type="text" id="sol-ciudad" value="Santa Marta" placeholder="Santa Marta"></div>
       <div class="form-group"><label>Descripción del servicio <span style="color:var(--red)">*</span></label><textarea id="sol-descripcion" maxlength="500" placeholder="Mínimo 5 caracteres. Ej: Curación de herida en pierna..."></textarea><div class="field-hint">Mínimo 5 caracteres. Los profesionales en turno leen esta descripción para decidir si pueden ir; la dirección exacta y su teléfono solo los ve el profesional que usted elija.</div></div>
+      <div class="form-group"><label>¿Cuándo?</label>
+        <div class="cuando-opciones"><button type="button" class="cuando-op on" id="cuando-ahora" onclick="elegirCuando(false)">&#x26A1; Ahora</button><button type="button" class="cuando-op" id="cuando-cita" onclick="elegirCuando(true)">&#x1F4C5; Programar cita</button></div>
+        <div id="cuando-fecha" hidden style="margin-top:10px"><input type="datetime-local" id="sol-fecha" aria-label="Fecha y hora de la cita"><div class="field-hint">Con al menos 3 horas de anticipación y hasta 30 días. Los profesionales se ofrecen y usted elige, igual que para ahora.</div></div>
+      </div>
       <div style="display:flex;gap:10px"><button class="sec-volver" style="flex:0 0 auto" onclick="irPaso(1)">&#x2190; Volver</button><button class="btn-main" onclick="irPaso(3)" style="flex:1">Continuar &#x2192;</button></div>
     </div>
     <div id="paso-3" style="display:none">
@@ -200,6 +211,7 @@ body{font-family:'Public Sans',sans-serif;background:var(--cream);color:var(--in
       <div class="info-card">
         <div class="info-row"><span class="info-label">Paciente</span><span class="info-value" id="confirm-paciente">-</span></div>
         <div class="info-row"><span class="info-label">Tipo de servicio</span><span class="info-value" id="confirm-tipo">-</span></div>
+        <div class="info-row"><span class="info-label">Cuándo</span><span class="info-value" id="confirm-cuando">Ahora</span></div>
         <div class="info-row"><span class="info-label">Dirección</span><span class="info-value" id="confirm-direccion">-</span></div>
         <div class="info-row"><span class="info-label">Ciudad</span><span class="info-value" id="confirm-ciudad">-</span></div>
         <div class="info-row"><span class="info-label">Descripción</span><span class="info-value" id="confirm-desc">-</span></div>
@@ -227,7 +239,7 @@ body{font-family:'Public Sans',sans-serif;background:var(--cream);color:var(--in
     <div class="info-card"><div style="font-size:14px;font-weight:700;margin-bottom:6px">Profesionales bloqueados</div><div style="font-size:12px;color:var(--muted);margin-bottom:8px">No verán sus solicitudes ni podrán ofrecerse para atenderle.</div><div id="bloqueos-list" style="font-size:13px">Cargando...</div></div>
     <div class="info-card"><div style="font-size:14px;font-weight:700;margin-bottom:6px">Contacto con la IPS</div><div style="font-size:13px;color:var(--muted);font-weight:600">Clínica Reina Elizabeth IPS · Santa Marta</div><div style="font-size:13px;color:var(--ink-light);margin-top:6px">Ante una emergencia con riesgo para la vida llame primero al <b>123</b>.</div><a class="btn-wa-grande" target="_blank" rel="noopener" href="https://wa.me/573128886611?text=Hola%2C%20soy%20paciente%20de%20Salud%20en%20Casa%20y%20necesito%20ayuda">WhatsApp de la IPS · 312 888 6611</a><a class="btn-wa-grande" style="background:#B4412F" href="tel:3128886611">Llamar a urgencias 24 h</a></div>
     <div style="text-align:center;margin:6px 0 10px;font-size:13px"><a href="legal.html" target="_blank" rel="noopener" style="color:var(--muted)">Términos, datos personales y derechos del paciente</a></div>
-    <button class="btn-outline-red" onclick="doLogout()">Cerrar sesión</button>
+    <button class="btn-outline-red" onclick="doLogout(true)">Cerrar sesión</button>
     <div data-firma-skynet></div>
   </div>
   <nav class="bottom-nav">
@@ -350,7 +362,9 @@ async function doRegistro() {
   } catch(e) { hideLoading(); showError(document.getElementById('reg-error'), mensajeRed(e)); }
 }
 
-function doLogout() {
+function doLogout(manual) {
+  // Al cerrar sesión a mano, este celular deja de recibir avisos de esta cuenta (al cerrarse sola por inactividad, los sigue recibiendo)
+  if (manual === true && avisosPosibles()) { try { navigator.serviceWorker.getRegistration('./app-paciente.html').then(function(r){ return r && r.pushManager.getSubscription(); }).then(function(sub){ if (sub) sub.unsubscribe(); }).catch(function(){}); } catch (e) {} }
   if (notifInterval) notifInterval();
   if (guardia) guardia.detener();
   try { localStorage.removeItem('re_p_bold'); } catch (e) {}
@@ -376,6 +390,7 @@ function initApp() {
   try { history.replaceState({ pag: 'home', base: true }, ''); history.pushState({ pag: 'home' }, ''); } catch (e) {}
   revisarRegresoBold();
   loadServiciosRecientes();
+  prepararAvisos();
   if (notifInterval) notifInterval();
   // Revisa cambios cada 8 s; mientras hay una búsqueda en curso no se detiene aunque no toque la pantalla
   notifInterval = vigilarCambios(API, function(){
@@ -438,13 +453,14 @@ async function loadServiciosRecientes() {
       if (antes && antes !== s.estado && msgs[s.estado]) mostrarNotif(s.estado === 'asignado' && pagosEnLinea && !(s.pago && s.pago.estado === 'aprobado') ? 'Profesional confirmado. Pague para que salga hacia su domicilio.' : msgs[s.estado][0], msgs[s.estado][1]);
       // El profesional elegido no pudo ir: la solicitud vuelve a buscar y el paciente elige otro
       if ((antes === 'asignado' || antes === 'en_camino') && s.estado === 'pendiente') {
-        aviso('El profesional que eligió no pudo ir. Elija otro en los próximos 10 minutos.' + (s.pago && s.pago.estado === 'aprobado' ? ' Su pago sigue guardado: no tiene que pagar de nuevo.' : ''), 'aviso');
+        aviso('El profesional que eligió no pudo ir. ' + (s.programadoPara ? 'Su cita vuelve a recibir ofertas: elija otro profesional.' : 'Elija otro en los próximos 10 minutos.') + (s.pago && s.pago.estado === 'aprobado' ? ' Su pago sigue guardado: no tiene que pagar de nuevo.' : ''), 'aviso');
         if (busquedaId !== s.id) abrirBusqueda(s.id);
       }
       lastEstados[s.id] = s.estado;
     });
     vigilarPlazos(items);
     el.innerHTML = items.map(servicioItem).join('');
+    cargarFotosProfesionales(API, token, el);
   } catch(e) { el.innerHTML = '<div class="empty"><div class="empty-icon">&#x1F4F6;</div><div class="empty-text">No se pudieron cargar sus servicios. Revise su conexión.</div></div>'; }
 }
 
@@ -464,15 +480,28 @@ async function loadMisServicios(mantener, masPaginas) {
     el.innerHTML = items.map(servicioItem).join('') +
       ((data.total || 0) > items.length && items.length < 100 ? '<button class="btn-main btn-sec" style="margin-top:6px" onclick="loadMisServicios(false,true)">Ver servicios anteriores</button>' : '') +
       ((data.total || 0) > 100 && items.length >= 100 ? '<div class="field-hint" style="text-align:center;margin-top:8px">Para servicios más antiguos, pídalos a la IPS por WhatsApp.</div>' : '');
+    cargarFotosProfesionales(API, token, el);
   } catch(e) { el.innerHTML = '<div class="empty"><div class="empty-icon">&#x1F4CB;</div><div class="empty-text">No se pudieron cargar sus servicios. Revise su conexión.</div></div>'; }
 }
 
+var serviciosVistos = {};
 function servicioItem(s) {
+  serviciosVistos[s.id] = s;
   var iconos = ICONOS_SERVICIO;
   var badge = estadoBadge(s.estado);
   var extra = '';
+  var activo = ['asignado','en_camino','en_curso'].indexOf(s.estado) >= 0;
+  if (s.programadoPara && ['pendiente','asignado','en_camino','en_curso'].indexOf(s.estado) >= 0) extra += '<div class="srv-prof" style="color:#0B4F8A">&#x1F4C5; Cita: <b>'+escapeHtml(fechaCita(s.programadoPara))+'</b></div>';
   if (s.profesional && s.profesional.usuario && ['asignado','en_camino','en_curso','completado'].indexOf(s.estado) >= 0) {
-    extra += '<div class="srv-prof">Profesional: <b>'+escapeHtml(s.profesional.usuario.nombreCompleto)+'</b>'+(s.profesional.especialidad?' · '+escapeHtml(s.profesional.especialidad):'')+'</div>';
+    extra += '<div class="srv-prof">'+(activo ? '<img class="prof-foto" hidden alt="Foto del profesional" data-foto-prof="'+s.profesional.id+'">' : '')+'Profesional: <b>'+escapeHtml(s.profesional.usuario.nombreCompleto)+'</b>'+(s.profesional.especialidad?' · '+escapeHtml(s.profesional.especialidad):'')+'</div>';
+  }
+  // Código de llegada: el paciente se lo dice al profesional en la puerta (así sabe que es la persona correcta)
+  if (s.codigoLlegada && (s.estado === 'asignado' || s.estado === 'en_camino')) {
+    extra += '<div class="codigo-llegada">Código de llegada<b>'+escapeHtml(s.codigoLlegada)+'</b>Dígaselo al profesional cuando llegue a su puerta. Si la persona no es la de la foto o no le pide el código, no abra y llame a la IPS.</div>';
+  }
+  if (activo && s.profesional) {
+    extra += '<div class="srv-acc"><button class="btn-pago btn-sec" data-sid="'+s.id+'" onclick="abrirChat(API, token, this.dataset.sid, \'Mensajes con su profesional\')">&#x1F4AC; Mensajes</button>' +
+      '<button class="btn-pago" style="background:#B4412F;color:#fff" data-sid="'+s.id+'" onclick="botonEmergencia(API, token, this.dataset.sid)">&#x1F198; Emergencia</button></div>';
   }
   var pagado = s.pago && s.pago.estado === 'aprobado';
   if (s.monto) extra += '<div class="srv-prof">Valor: <b>$'+Number(s.monto).toLocaleString('es-CO')+'</b>'+(pagado ? ' · pagado':'')+'</div>';
@@ -487,6 +516,9 @@ function servicioItem(s) {
   }
   if (s.estado === 'completado') {
     extra += '<button class="btn-pago btn-sec" data-sid="'+s.id+'" onclick="verNotaClinica(this.dataset.sid)">&#x1F4CB; Ver nota clínica</button>';
+    if (s.profesional && s.profesional.usuario && tarifasIPS[s.tipo] && tarifasIPS[s.tipo].activo) {
+      extra += '<button class="btn-pago btn-sec" data-sid="'+s.id+'" onclick="otraVisita(this.dataset.sid)">&#x1F4C5; Agendar otra visita con '+escapeHtml(s.profesional.usuario.nombreCompleto.split(' ')[0])+'</button>';
+    }
     if (s.calificacion) {
       var stars = '';
       for(var i=0;i<s.calificacion;i++) stars += '&#x2605;';
@@ -510,6 +542,61 @@ function servicioItem(s) {
   }
   if (s.estado !== 'cancelado') extra += '<a class="wa-servicio" target="_blank" rel="noopener" href="'+whatsappServicio(s)+'">&#x1F4AC; Preguntar a la IPS por este servicio</a>';
   return '<div class="service-item"><div class="service-item-row"><div class="service-item-icon">'+(iconos[s.tipo]||'&#x1F3E5;')+'</div><div class="service-item-info"><div class="service-item-name">'+tipoLabel(s.tipo)+'</div><div class="service-item-date">'+(s.paciente&&(s.paciente.nombreCompleto||(s.paciente.usuario&&s.paciente.usuario.nombreCompleto))?escapeHtml(s.paciente.nombreCompleto||s.paciente.usuario.nombreCompleto)+' · ':'')+formatDate(s.createdAt||s.fechaSolicitud)+'</div></div>'+badge+'</div>'+extra+'</div>';
+}
+
+// "Otra visita con el mismo profesional": misma dirección y paciente; solo cambia la fecha (y la orden si la piden)
+async function otraVisita(id) {
+  var s = serviciosVistos[id]; if (!s || !s.profesional) return;
+  var local = function(ms){ return new Date(ms - 5 * 3600000).toISOString().slice(0,16); };
+  var sug = new Date(Math.ceil((Date.now() + 24 * 3600000) / 3600000) * 3600000);
+  var v = await pedirDato({ titulo: 'Otra visita con ' + s.profesional.usuario.nombreCompleto.split(' ')[0], texto: tipoLabel(s.tipo).replace(/<[^>]*>/g,'').trim() + ' en la misma dirección. Elija el día y la hora: le pediremos al profesional que la acepte.', tipo: 'datetime-local', valor: local(sug.getTime()), min: local(Date.now() + 3 * 3600000 + 5 * 60000), max: local(Date.now() + 30 * 24 * 3600000), si: 'Pedir la visita', validar: function(x){ var d = horaColombia(x); return !!d && d.getTime() > Date.now() + 3 * 3600000 && d.getTime() < Date.now() + 30 * 24 * 3600000; }, error: 'Elija una fecha con al menos 3 horas de anticipación y hasta 30 días' });
+  if (!v) return;
+  if (tarifasIPS[s.tipo] && tarifasIPS[s.tipo].requiereOrden) {
+    aviso('Este servicio necesita la orden médica vigente. Pida el servicio desde "Solicitar" con la foto de la orden.', 'aviso', 9000);
+    return;
+  }
+  showLoading('Enviando...');
+  try {
+    var r = await fetch(API + '/api/servicios', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token }, body: JSON.stringify({ tipo: s.tipo, pacienteId: s.paciente && s.paciente.id, descripcion: (s.descripcion || 'Visita de control con el mismo profesional').slice(0, 500), direccion: s.direccion, barrio: s.barrio || undefined, programadoPara: horaColombia(v).toISOString(), profesionalId: s.profesional.id }) });
+    var d = await r.json().catch(function(){ return {}; });
+    hideLoading();
+    if (!r.ok) throw new Error(d.error || 'No se pudo pedir la visita');
+    aviso(d.mensaje || 'Solicitud enviada al profesional');
+    loadServiciosRecientes();
+    abrirBusqueda(d.id);
+  } catch (e) { hideLoading(); aviso(mensajeRed(e), 'error'); }
+}
+
+// ── Avisos al celular del paciente ──
+var pidiendoAvisos = false;
+function avisosPosibles() { return 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window; }
+function prepararAvisos() {
+  var card = document.getElementById('avisos-card');
+  if (!avisosPosibles()) { card.style.display = 'none'; return; }
+  if (Notification.permission === 'granted') { card.style.display = 'none'; suscribirAvisos(); }
+  else card.style.display = Notification.permission === 'denied' ? 'none' : 'flex';
+}
+function activarAvisos() { pidiendoAvisos = true; suscribirAvisos().finally(function(){ pidiendoAvisos = false; prepararAvisos(); }); }
+async function suscribirAvisos() {
+  try {
+    if (!avisosPosibles()) return;
+    var reg = await navigator.serviceWorker.register('sw-paciente.js', { scope: './app-paciente.html' });
+    var sub = await reg.pushManager.getSubscription();
+    if (!sub) {
+      if (Notification.permission !== 'granted') {
+        if (!pidiendoAvisos) return;
+        var p = await Notification.requestPermission();
+        if (p !== 'granted') { aviso('No se activaron los avisos. Puede activarlos después en la configuración del navegador.', 'aviso'); return; }
+      }
+      var k = await (await fetch(API + '/api/push/vapid-public-key')).json();
+      if (!k.publicKey) return;
+      var pad = '='.repeat((4 - k.publicKey.length % 4) % 4), raw = atob((k.publicKey + pad).replace(/-/g, '+').replace(/_/g, '/'));
+      var arr = new Uint8Array(raw.length); for (var i = 0; i < raw.length; i++) arr[i] = raw.charCodeAt(i);
+      sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: arr });
+    }
+    var r = await fetch(API + '/api/push/suscribir', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token }, body: JSON.stringify(sub) });
+    if (r.ok && pidiendoAvisos) aviso('Avisos activados en este celular');
+  } catch (e) { if (pidiendoAvisos) aviso('Este celular no permitió los avisos. En iPhone, primero agregue la app a la pantalla de inicio.', 'aviso', 9000); }
 }
 
 async function cancelarServicio(id) {
@@ -752,6 +839,24 @@ async function guardarNuevoPaciente() {
   btn.disabled = false; btn.textContent = 'Guardar paciente';
 }
 
+var esCita = false;
+function elegirCuando(cita) {
+  esCita = !!cita;
+  document.getElementById('cuando-ahora').classList.toggle('on', !esCita);
+  document.getElementById('cuando-cita').classList.toggle('on', esCita);
+  document.getElementById('cuando-fecha').hidden = !esCita;
+  var f = document.getElementById('sol-fecha');
+  var local = function(ms){ return new Date(ms - 5 * 3600000).toISOString().slice(0,16); };
+  f.min = local(Date.now() + 3 * 3600000 + 5 * 60000); f.max = local(Date.now() + 30 * 24 * 3600000);
+  if (esCita && !f.value) f.value = local(Math.ceil((Date.now() + 24 * 3600000) / 3600000) * 3600000);
+}
+// La hora que escribe el paciente es hora de Colombia (aunque el celular esté en otro país)
+function horaColombia(v) { var d = new Date(v + (v.length === 16 ? ':00' : '') + '-05:00'); return isNaN(d.getTime()) ? null : d; }
+function fechaElegida() {
+  var v = document.getElementById('sol-fecha').value;
+  if (!esCita || !v) return null;
+  return horaColombia(v);
+}
 function irPaso(n) {
   if (n===2 && !tipoSeleccionado) return;
   if (n===2 && !misPacientes.length) cargarMisPacientes();
@@ -764,6 +869,13 @@ function irPaso(n) {
     if (dir.length < 5) { aviso('Por favor escriba la dirección completa', 'aviso'); return; }
     if (desc.length < 5) { aviso('Describa brevemente lo que necesita (mínimo 5 caracteres)', 'aviso'); return; }
     if (tarifasIPS[tipoSeleccionado] && tarifasIPS[tipoSeleccionado].requiereOrden && !ordenFoto) { aviso('Tome la foto de la orden médica para continuar', 'aviso'); document.getElementById('bloque-orden').scrollIntoView({behavior:'smooth'}); return; }
+    if (esCita) {
+      var fc = fechaElegida();
+      if (!fc) { aviso('Elija la fecha y la hora de la cita', 'aviso'); return; }
+      if (fc.getTime() < Date.now() + 3 * 3600000) { aviso('La cita debe ser con al menos 3 horas de anticipación. Si es urgente, elija "Ahora".', 'aviso'); return; }
+      if (fc.getTime() > Date.now() + 30 * 24 * 3600000) { aviso('Solo se pueden programar citas hasta 30 días adelante', 'aviso'); return; }
+    }
+    document.getElementById('confirm-cuando').textContent = esCita ? fechaCita(fechaElegida()) : 'Ahora';
     var selP = document.getElementById('sol-paciente');
     document.getElementById('confirm-paciente').textContent = selP.options[selP.selectedIndex].text;
     document.getElementById('confirm-tipo').innerHTML = tipoLabel(tipoSeleccionado);
@@ -801,6 +913,7 @@ function resetSolicitud() {
   document.querySelectorAll('#tipo-grid .service-card').forEach(function(c){ c.classList.remove('selected'); });
   document.getElementById('btn-paso1').disabled=true; document.getElementById('btn-paso1').style.opacity='0.5';
   document.getElementById('sol-direccion').value=''; document.getElementById('sol-barrio').value=''; document.getElementById('sol-descripcion').value='';
+  document.getElementById('sol-fecha').value=''; elegirCuando(false);
   for (var i=1;i<=3;i++) { document.getElementById('paso-'+i).style.display=i===1?'block':'none'; document.getElementById('step'+i).classList.toggle('active',i===1); }
 }
 
@@ -812,7 +925,7 @@ async function enviarSolicitud() {
     var ciudad = document.getElementById('sol-ciudad').value.trim()||'Santa Marta';
     var descripcion = document.getElementById('sol-descripcion').value.trim();
     // CORRECCIÓN: usar tipoSeleccionado en lugar de 'rutina'
-    var res = await fetch(API+'/api/servicios', {method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},body:JSON.stringify({tipo:tipoSeleccionado,pacienteId:document.getElementById('sol-paciente').value||undefined,descripcion:descripcion,direccion:direccion+', '+ciudad,barrio:document.getElementById('sol-barrio').value.trim()||undefined,orden:ordenFoto||undefined})});
+    var res = await fetch(API+'/api/servicios', {method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},body:JSON.stringify({tipo:tipoSeleccionado,pacienteId:document.getElementById('sol-paciente').value||undefined,descripcion:descripcion,direccion:direccion+', '+ciudad,barrio:document.getElementById('sol-barrio').value.trim()||undefined,orden:ordenFoto||undefined,programadoPara:esCita&&fechaElegida()?fechaElegida().toISOString():undefined})});
     var data = await res.json().catch(function(){ return {}; });
     if (!res.ok) {
       if (data.sinProfesionales) pintarDisponibles(0);
@@ -834,20 +947,24 @@ async function verificarDisponibles() {
   box.className = 'disp-box disp-esp'; box.textContent = 'Revisando qué profesionales están disponibles ahora...';
   btn.disabled = true; btn.style.opacity = '.5';
   try {
-    var r = await fetch(API + '/api/servicios/disponibles?tipo=' + encodeURIComponent(tipoSeleccionado), {headers:{'Authorization':'Bearer '+token}});
+    var r = await fetch(API + '/api/servicios/disponibles?tipo=' + encodeURIComponent(tipoSeleccionado) + (esCita ? '&programado=1' : ''), {headers:{'Authorization':'Bearer '+token}});
     var d = await r.json();
     pintarDisponibles(r.ok ? (d.disponibles || 0) : -1);
   } catch(e) { pintarDisponibles(-1); }
 }
 function pintarDisponibles(n) {
   var box = document.getElementById('disp-box'), btn = document.getElementById('btn-enviar');
-  if (n > 0) {
+  if (n > 0 && esCita) {
+    box.className = 'disp-box disp-ok';
+    box.innerHTML = '&#x2705; Hay ' + n + (n === 1 ? ' profesional habilitado' : ' profesionales habilitados') + ' para este servicio. Al confirmar, les avisamos de su cita; los que puedan ir se ofrecerán y <b>usted elige</b>. No se cobra nada hasta que elija.';
+    btn.disabled = false; btn.style.opacity = '1';
+  } else if (n > 0) {
     box.className = 'disp-box disp-ok';
     box.innerHTML = '&#x2705; Hay ' + n + (n === 1 ? ' profesional disponible' : ' profesionales disponibles') + ' ahora. Al confirmar, los que puedan ir se ofrecerán y <b>usted elige</b> según sus estrellas y opiniones. No se cobra nada hasta que elija.';
     btn.disabled = false; btn.style.opacity = '1';
   } else {
     box.className = 'disp-box disp-no';
-    box.innerHTML = (n === 0 ? '&#x26A0; En este momento no hay profesionales disponibles. No se le cobrará nada.' : 'No pudimos revisar la disponibilidad. Revise su conexión.') +
+    box.innerHTML = (n === 0 ? (esCita ? '&#x26A0; Por ahora no hay profesionales habilitados para este servicio. No se le cobrará nada.' : '&#x26A0; En este momento no hay profesionales disponibles. No se le cobrará nada. Puede <b>programar una cita</b> (paso anterior) para otra hora.') : 'No pudimos revisar la disponibilidad. Revise su conexión.') +
       '<div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap"><button class="btn-pago" style="margin:0;flex:1" onclick="verificarDisponibles()">Volver a revisar</button>' +
       '<a class="btn-pago" style="margin:0;flex:1;text-align:center;text-decoration:none;background:#1F8A4C;color:#fff" target="_blank" rel="noopener" href="' + enlaceWhatsApp('Hola, necesito un servicio de salud en casa y la app dice que no hay profesionales disponibles') + '">Escribir a la IPS</a></div>';
     btn.disabled = true; btn.style.opacity = '.5';
@@ -873,7 +990,9 @@ function abrirBusqueda(id) {
 }
 function pintarCuenta() {
   var falta = Math.max(0, Math.round((busqFin - (Date.now() + busqDesfase)) / 1000));
-  document.getElementById('busq-cuenta').textContent = Math.floor(falta / 60) + ':' + ('0' + (falta % 60)).slice(-2);
+  document.getElementById('busq-cuenta').textContent = falta >= 3600
+    ? Math.floor(falta / 3600) + ' h ' + ('0' + Math.floor((falta % 3600) / 60)).slice(-2) + ' min'
+    : Math.floor(falta / 60) + ':' + ('0' + (falta % 60)).slice(-2);
   if (falta <= 0 && !busqRevisando) { busqRevisando = true; setTimeout(function(){ busqRevisando = false; marcarSegundoPlano(); cargarOfertas(); }, 3000); }
 }
 function estrellas(n) { var t = ''; n = Math.round(n || 0); for (var i = 1; i <= 5; i++) t += i <= n ? '&#x2605;' : '&#x2606;'; return t; }
@@ -886,6 +1005,12 @@ async function cargarOfertas() {
     busqFallos = 0;
     var s = d.servicio;
     if (s.estado !== 'pendiente') return terminarBusqueda(s);
+    if (s.programadoPara) {
+      document.getElementById('busq-titulo').textContent = s.dirigido ? 'Esperando que su profesional acepte' : 'Cita del ' + fechaCita(s.programadoPara);
+      document.getElementById('busq-texto').textContent = s.dirigido
+        ? 'Le pedimos a su profesional la nueva visita del ' + fechaCita(s.programadoPara) + '. Le avisaremos cuando acepte. Si no acepta a tiempo, no se cobra nada.'
+        : 'Avisamos a los profesionales habilitados. Se irán ofreciendo en las próximas horas: puede cerrar la app, le avisaremos. Elija el que prefiera. No se cobra nada hasta que elija.';
+    }
     busqDesfase = new Date(d.ahora).getTime() - Date.now();
     busqFin = new Date(s.buscandoHasta || (new Date(s.fechaSolicitud).getTime() + 10 * 60000)).getTime();
     pintarCuenta(); if (!busqTimer) busqTimer = setInterval(pintarCuenta, 1000);
@@ -894,11 +1019,12 @@ async function cargarOfertas() {
     el.innerHTML = d.items.map(function(o){
       var p = o.profesional, op = p.opiniones || {};
       var ops = (op.items || []).map(function(x){ return '<div class="oferta-op"><span class="oferta-est" style="font-size:12px">' + estrellas(x.estrellas) + '</span> ' + escapeHtml(x.comentario || '') + '</div>'; }).join('');
-      return '<div class="oferta"><div class="oferta-nombre">' + escapeHtml(p.nombre) + '</div>' +
+      return '<div class="oferta">' + (p.tieneFoto ? '<img class="prof-foto" hidden alt="Foto de ' + escapeHtml(p.nombre) + '" data-foto-prof="' + p.id + '">' : '') + '<div class="oferta-nombre">' + escapeHtml(p.nombre) + '</div>' +
         '<div class="oferta-sub">' + escapeHtml(p.especialidad || 'Profesional de la salud') + (p.anosExperiencia ? ' · ' + p.anosExperiencia + ' años de experiencia' : '') + ' · ' + (p.totalServicios || 0) + ' servicios</div>' +
         (op.total ? '<div><span class="oferta-est">' + estrellas(op.promedio) + '</span> <b>' + op.promedio + '</b> <span style="font-size:12px;color:#5D6B78">(' + op.total + (op.total === 1 ? ' calificación' : ' calificaciones') + ')</span></div>' : '<div style="font-size:12px;color:#5D6B78">Aún sin calificaciones (nuevo en la app)</div>') +
         ops + '<button class="btn-main" style="margin-top:10px" data-oid="' + o.id + '" data-nom="' + escapeHtml(p.nombre) + '" onclick="elegirProfesional(this.dataset.oid,this.dataset.nom)">Elegir a ' + escapeHtml(p.nombre.split(' ')[0]) + '</button></div>';
     }).join('');
+    cargarFotosProfesionales(API, token, el);
   } catch(e) {
     busqFallos++;
     var el2 = document.getElementById('ofertas-list');
@@ -917,7 +1043,7 @@ function terminarBusqueda(s) {
   document.getElementById('ofertas-list').innerHTML = '';
   if (s.estado === 'cancelado') {
     head.style.borderColor = '#B4412F';
-    document.getElementById('busq-titulo').textContent = 'No fue posible atenderle ahora';
+    document.getElementById('busq-titulo').textContent = s.programadoPara ? 'La cita no se pudo confirmar' : 'No fue posible atenderle ahora';
     document.getElementById('busq-cuenta').innerHTML = '&#x1F6AB;';
     document.getElementById('busq-texto').textContent = s.notas || 'La solicitud se cerró.';
     document.getElementById('busq-acciones').innerHTML = '<button class="btn-main" onclick="busquedaId=null;irInicio();showPage(\'solicitar\');document.querySelectorAll(\'.nav-btn\')[1].classList.add(\'active\')">Intentar de nuevo</button>' +

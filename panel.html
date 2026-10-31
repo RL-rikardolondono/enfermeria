@@ -932,9 +932,10 @@ async function loadServicios(mantener, pagina) {
         '<td>' + tipoLabel(s.tipo) + '</td>' +
         '<td>' + estadoBadge(s.estado) + '</td>' +
         '<td>' + (s.profesional && s.profesional.usuario ? esc(s.profesional.usuario.nombreCompleto) : '<span style="color:var(--muted)">Sin asignar</span>') + '</td>' +
-        '<td style="font-size:12px;color:var(--muted)">' + formatDate(s.createdAt) + '</td>' +
+        '<td style="font-size:12px;color:var(--muted)">' + formatDate(s.createdAt) + (s.programadoPara ? '<div style="color:var(--teal);font-weight:700">📅 Cita: ' + esc(fechaCita(s.programadoPara)) + '</div>' : '') +
+          (s.codigoLlegada && ['asignado','en_camino'].indexOf(s.estado) >= 0 ? '<div title="Si el profesional no logra el código, confirme por teléfono con el paciente y díctelo">🔑 Código de llegada: <b>' + esc(s.codigoLlegada) + '</b></div>' : '') + '</td>' +
         '<td>' + (s.monto ? '$' + Number(s.monto).toLocaleString('es-CO') : '—') + (s.ordenArchivoId ? '<div><button class="btn btn-sm" data-id="' + s.id + '" onclick="verArchivo(API+\'/api/servicios/\'+this.dataset.id+\'/orden\', token, \'Orden médica\')">📄 Orden</button></div>' : '') + '</td>' +
-        '<td><div style="display:flex;gap:6px;flex-wrap:wrap">' + (['en_camino','en_curso'].indexOf(s.estado) >= 0 ? '<button class="btn btn-sm btn-teal" onclick="cerrarConNota(\'' + s.id + '\')">Nota y completar</button>' : '') +
+        '<td><div style="display:flex;gap:6px;flex-wrap:wrap">' + (s.profesionalId ? '<button class="btn btn-sm" data-id="' + s.id + '" onclick="abrirChat(API, token, this.dataset.id, \'Chat del servicio\')">💬 Chat</button>' : '') + (['en_camino','en_curso'].indexOf(s.estado) >= 0 ? '<button class="btn btn-sm btn-teal" onclick="cerrarConNota(\'' + s.id + '\')">Nota y completar</button>' : '') +
         (['completado','cancelado'].indexOf(s.estado) < 0 ? '<button class="btn btn-sm btn-reject" onclick="cancelarServicioAdmin(\'' + s.id + '\')">Cancelar</button>' : '') + '</div></td></tr>';
     }).join('');
     var pagS = Math.ceil((data.total || 0) / 50);
