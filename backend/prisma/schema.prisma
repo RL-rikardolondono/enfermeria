@@ -247,6 +247,7 @@ model Servicio {
   quejas                 Queja[]
   recibido               Recibido?
   mensajes               Mensaje[]
+  eventosSeguridad       EventoSeguridad[]
   @@index([estado, createdAt])
   @@index([estado, programadoPara])
   @@index([estado, buscandoHasta])
@@ -451,4 +452,28 @@ model Mensaje {
   servicio   Servicio @relation(fields: [servicioId], references: [id], onDelete: Cascade)
   @@index([servicioId, createdAt])
   @@map("mensajes")
+}
+
+// Programa de seguridad del paciente: incidentes y eventos adversos reportados durante la atención en casa
+model EventoSeguridad {
+  id             String    @id @default(uuid())
+  servicioId     String    @map("servicio_id")
+  reportadoPor   String    @map("reportado_por") // usuario que reporta (profesional, o la IPS)
+  rol            String    @db.VarChar(20)
+  tipo           String    @db.VarChar(40) // caida, medicacion, procedimiento, lesion_piel, reaccion, infeccion, agresion, otro
+  gravedad       String    @db.VarChar(20) // sin_dano, leve, moderado, grave, muerte
+  descripcion    String    @db.VarChar(3000)
+  accionInmediata String?  @map("accion_inmediata") @db.VarChar(2000)
+  estado         String    @default("reportado") @db.VarChar(20) // reportado, en_analisis, cerrado
+  clasificacion  String?   @db.VarChar(30) // incidente, evento_prevenible, evento_no_prevenible
+  analisis       String?   @db.VarChar(4000)
+  planMejora     String?   @map("plan_mejora") @db.VarChar(3000)
+  revisadoPor    String?   @map("revisado_por")
+  cerradoEn      DateTime? @map("cerrado_en")
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+  servicio       Servicio  @relation(fields: [servicioId], references: [id], onDelete: Restrict)
+  @@index([estado, createdAt])
+  @@index([servicioId])
+  @@map("eventos_seguridad")
 }
