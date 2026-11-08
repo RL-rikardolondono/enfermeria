@@ -1043,6 +1043,33 @@ export async function serviciosRoutes(app: FastifyInstance) {
     return { ok: true, mensaje: 'La IPS recibió su alerta y le llamará. Si hay riesgo para la vida, llame al 123.' }
   })
 
+  // POST /api/servicios/:id/evento-seguridad — el profesional reporta un incidente o evento adverso
+  // (programa de seguridad del paciente). Puede hacerlo durante la visita o hasta 30 días después.
+  app.post('/:id/evento-seguridad', { preHandler: requerirRol('profesional'), config: { rateLimit: { max: 10, timeWindow: '1 hour' } } }, async (request, reply) => {
+    const { id } = z.object({ id: z.string().uuid() }).parse(request.params)
+    const body = z.object({
+      tipo: z.enum(['caida', 'medicacion', 'procedimiento', 'lesion_piel', 'reaccion', 'infeccion', 'agresion', 'otro']),
+      gravedad: z.enum(['sin_dano', 'leve', 'moderado', 'grave', 'muerte']),
+      descripcion: z.string().trim().min(15).max(3000),
+      accionInmediata: z.string().trim().max(2000).optional(),
+    }).parse(request.body)
+    const p = await perfilProfesional(request.usuario.id)
+    const s = await prisma.servicio.findUnique({ where: { id }, select: { profesionalId: true, estado: true, fechaFin: true, tipo: true, paciente: { select: { nombreCompleto: true, usuario: { select: { nombreCompleto: true, telefono: true } } } } } })
+    const reciente = s?.estado === 'completado' && !!s.fechaFin && Date.now() - s.fechaFin.getTime() < 30 * 24 * 3600 * 1000
+    if (!p || !s || s.profesionalId !== p.id || !((ACTIVOS as readonly string[]).includes(s.estado) || reciente)) return reply.status(404).send({ error: 'Servicio no encontrado' })
+    const ev = await prisma.eventoSeguridad.create({ data: { servicioId: id, reportadoPor: request.usuario.id, rol: 'profesional', ...body }, select: { id: true } })
+    marcarCambio()
+    // Eventos graves: la IPS recibe el aviso de inmediato en el Gmail del dueño
+    if (['grave', 'muerte', 'moderado'].includes(body.gravedad)) {
+      const { enviarCorreo } = await import('../utils/correo')
+      const { DUENO_CORREO } = await import('../services/cuentas')
+      const e = (t: string) => t.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c] as string))
+      const pac = s.paciente?.nombreCompleto || s.paciente?.usuario?.nombreCompleto || '—'
+      enviarCorreo(DUENO_CORREO, 'Evento de seguridad ' + body.gravedad.toUpperCase() + ' · Salud en Casa', `<div style="font-family:Arial,sans-serif;color:#1C2B39"><h2 style="color:#B4412F">Evento de seguridad del paciente (${e(body.gravedad)})</h2><p><b>Paciente:</b> ${e(pac)} · tel. ${e(s.paciente?.usuario?.telefono || '—')}</p><p><b>Tipo:</b> ${e(body.tipo)}</p><p style="background:#F4F8FB;border:1px solid #DCE5EE;border-radius:8px;padding:12px">${e(body.descripcion)}</p>${body.accionInmediata ? '<p><b>Acción inmediata:</b> ' + e(body.accionInmediata) + '</p>' : ''}<p><a href="${APP_URL}/panel.html" style="background:#0B4F8A;color:#fff;padding:10px 16px;border-radius:8px;text-decoration:none">Analizarlo en el panel</a></p><p style="font-size:12px;color:#5D6B78">SkyNet Genesis · contacto@skynetgenesis.com · WhatsApp 3044375758</p></div>`).catch(() => {})
+    }
+    return reply.status(201).send({ ok: true, id: ev.id, mensaje: 'Evento reportado. La IPS lo analizará. Gracias por reportarlo: reportar ayuda a evitar que se repita.' })
+  })
+
   // GET /api/servicios/admin/todos
   app.get('/admin/todos', { preHandler: requerirPermiso('servicios') }, async (request) => {
     const { page, limit } = paginacion(100, 20).parse(request.query)

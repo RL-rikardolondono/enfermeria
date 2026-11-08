@@ -204,6 +204,39 @@ export async function adminRoutes(app: FastifyInstance) {
   })
 
   // GET /api/admin/quejas — quejas de los pacientes (abiertas primero)
+  // ── Seguridad del paciente: eventos adversos e incidentes ──
+  app.get('/eventos-seguridad', { preHandler: P('quejas') }, async (request) => {
+    const { page, limit } = z.object({ ...pag(100) }).parse(request.query)
+    const [total, items, abiertos] = await prisma.$transaction([
+      prisma.eventoSeguridad.count(),
+      prisma.eventoSeguridad.findMany({
+        orderBy: [{ estado: 'desc' }, { createdAt: 'desc' }], skip: (page - 1) * limit, take: limit,
+        select: {
+          id: true, tipo: true, gravedad: true, descripcion: true, accionInmediata: true, estado: true, clasificacion: true, analisis: true, planMejora: true, createdAt: true, cerradoEn: true,
+          servicio: { select: { id: true, tipo: true, profesional: { select: { usuario: { select: { nombreCompleto: true } } } }, paciente: { select: { nombreCompleto: true, usuario: { select: { nombreCompleto: true, telefono: true } } } } } },
+        },
+      }),
+      prisma.eventoSeguridad.count({ where: { estado: { not: 'cerrado' } } }),
+    ])
+    return { total, page, limit, items, abiertos }
+  })
+
+  app.put('/eventos-seguridad/:id', { preHandler: P('quejas') }, async (request, reply) => {
+    const { id } = z.object({ id: z.string().uuid() }).parse(request.params)
+    const b = z.object({
+      estado: z.enum(['en_analisis', 'cerrado']),
+      clasificacion: z.enum(['incidente', 'evento_prevenible', 'evento_no_prevenible']).optional(),
+      analisis: z.string().trim().max(4000).optional(),
+      planMejora: z.string().trim().max(3000).optional(),
+    }).parse(request.body)
+    if (b.estado === 'cerrado' && (!b.clasificacion || !b.analisis || b.analisis.length < 10)) return reply.status(400).send({ error: 'Para cerrar el evento escriba el análisis y elija la clasificación.' })
+    if (b.estado === 'cerrado' && b.clasificacion === 'evento_prevenible' && (!b.planMejora || b.planMejora.length < 10)) return reply.status(400).send({ error: 'Un evento prevenible necesita plan de mejora.' })
+    const r = await prisma.eventoSeguridad.updateMany({ where: { id }, data: { ...b, revisadoPor: request.usuario.id, cerradoEn: b.estado === 'cerrado' ? new Date() : null } })
+    if (!r.count) return reply.status(404).send({ error: 'Evento no encontrado' })
+    await prisma.bitacora.create({ data: { actorId: request.usuario.id, usuarioId: request.usuario.id, accion: 'evento_seguridad_' + b.estado, detalle: id } }).catch(() => {})
+    return { ok: true }
+  })
+
   app.get('/quejas', { preHandler: P('quejas') }, async (request) => {
     const { page, limit, estado } = z.object({ ...pag(100), estado: z.enum(['abierta', 'revisada']).optional() }).parse(request.query)
     const where: any = estado ? { estado } : {}
