@@ -401,6 +401,13 @@
           <button class="btn btn-teal" onclick="loadQuejas()">↻ Actualizar</button>
         </div>
         <div class="card" style="margin-bottom:18px">
+          <div class="card-header"><div class="card-title">Seguridad del paciente · eventos reportados <span class="badge badge-red" id="badge-eventos" style="display:none"></span></div></div>
+          <div class="card-body" style="padding:0"><div class="table-wrap"><table>
+            <thead><tr><th>Fecha</th><th>Paciente</th><th>Profesional</th><th>Evento</th><th>Estado</th><th></th></tr></thead>
+            <tbody id="eventos-tbody"><tr><td colspan="6"><div class="loading"><div class="spinner"></div> Cargando...</div></td></tr></tbody>
+          </table></div></div>
+        </div>
+        <div class="card" style="margin-bottom:18px">
           <div class="card-header"><div class="card-title">Quejas</div></div>
           <div class="card-body" style="padding:0"><div class="table-wrap"><table>
             <thead><tr><th>Fecha</th><th>Paciente</th><th>Profesional</th><th>Queja</th><th>Estado</th><th></th></tr></thead>
@@ -681,7 +688,61 @@ function pieLista(pag, total, fn, cols) {
 }
 function verQuejas(p) { pagQuejas = p; loadQuejas(); }
 function verOpiniones(p) { pagOpiniones = p; loadQuejas(); }
+var EV_TIPO = { caida: 'Caída', medicacion: 'Medicamentos', procedimiento: 'Procedimiento', lesion_piel: 'Lesión de piel', reaccion: 'Reacción adversa', infeccion: 'Infección', agresion: 'Agresión o riesgo', otro: 'Otro' };
+var EV_GRAV = { sin_dano: ['Sin daño', 'badge-gray'], leve: ['Leve', 'badge-blue'], moderado: ['Moderado', 'badge-amber'], grave: ['Grave', 'badge-red'], muerte: ['Muerte', 'badge-red'] };
+var EV_CLAS = { incidente: 'Incidente (sin daño)', evento_prevenible: 'Evento adverso prevenible', evento_no_prevenible: 'Evento adverso no prevenible' };
+var eventosVistos = {};
+async function loadEventos() {
+  var tb = document.getElementById('eventos-tbody');
+  var d = await apiFetch('/api/admin/eventos-seguridad?limit=50');
+  if (!d || !d.items) { tb.innerHTML = '<tr><td colspan="6">' + esc((d && d.error) || 'No se pudieron cargar los eventos') + '</td></tr>'; return; }
+  var b = document.getElementById('badge-eventos'); b.style.display = d.abiertos ? 'inline-block' : 'none'; b.textContent = d.abiertos + ' por analizar';
+  if (!d.items.length) { tb.innerHTML = '<tr><td colspan="6"><div class="empty"><div class="empty-icon">✅</div><div class="empty-text">No hay eventos reportados</div></div></td></tr>'; return; }
+  tb.innerHTML = d.items.map(function(x){
+    eventosVistos[x.id] = x;
+    var sv = x.servicio || {}, pa = sv.paciente || {}, cu = pa.usuario || {}, g = EV_GRAV[x.gravedad] || [x.gravedad, 'badge-gray'];
+    return '<tr><td style="font-size:12px;color:var(--muted)">' + formatDate(x.createdAt) + '</td>' +
+      '<td>' + esc(pa.nombreCompleto || cu.nombreCompleto || '—') + '<div class="profile-email">' + esc(cu.telefono || '') + '</div></td>' +
+      '<td>' + esc(sv.profesional && sv.profesional.usuario ? sv.profesional.usuario.nombreCompleto : '—') + '</td>' +
+      '<td style="max-width:340px;white-space:normal;font-size:13px"><b>' + esc(EV_TIPO[x.tipo] || x.tipo) + '</b> <span class="badge ' + g[1] + '">' + g[0] + '</span><div>' + esc(x.descripcion) + '</div>' + (x.accionInmediata ? '<div class="profile-email">Acción: ' + esc(x.accionInmediata) + '</div>' : '') + (x.clasificacion ? '<div class="profile-email">' + esc(EV_CLAS[x.clasificacion] || x.clasificacion) + '</div>' : '') + '</td>' +
+      '<td>' + (x.estado === 'cerrado' ? '<span class="badge badge-green">Cerrado</span>' : x.estado === 'en_analisis' ? '<span class="badge badge-amber">En análisis</span>' : '<span class="badge badge-red">Sin analizar</span>') + '</td>' +
+      '<td><button class="btn btn-sm btn-teal" data-id="' + x.id + '" onclick="analizarEvento(this.dataset.id)">' + (x.estado === 'cerrado' ? 'Ver' : 'Analizar') + '</button></td></tr>';
+  }).join('');
+}
+function analizarEvento(id) {
+  var x = eventosVistos[id]; if (!x) return;
+  var f = document.createElement('div');
+  f.className = 'sec-modal-fondo';
+  var est = 'width:100%;padding:9px;border:1px solid #DCE5EE;border-radius:8px;font:inherit;box-sizing:border-box;margin-bottom:8px;background:#fff';
+  f.innerHTML = '<div class="sec-modal" role="dialog" aria-modal="true" style="max-width:520px"><h3>Análisis del evento</h3><p style="margin-bottom:8px;font-size:13px"></p>' +
+    '<label style="font-size:13px;font-weight:700">Clasificación</label><select id="ev-clas" style="' + est + '"><option value="">— Elija —</option>' + Object.keys(EV_CLAS).map(function(k){ return '<option value="' + k + '"' + (x.clasificacion === k ? ' selected' : '') + '>' + EV_CLAS[k] + '</option>'; }).join('') + '</select>' +
+    '<label style="font-size:13px;font-weight:700">Análisis (causas, factores contributivos)</label><textarea id="ev-an" maxlength="4000" style="' + est + ';height:100px"></textarea>' +
+    '<label style="font-size:13px;font-weight:700">Plan de mejora (acciones, responsable, fecha)</label><textarea id="ev-plan" maxlength="3000" style="' + est + ';height:80px"></textarea>' +
+    '<div class="sec-modal-botones"><button class="sec-btn-no" type="button">Cerrar</button><button class="ev-guardar sec-btn-no" type="button">Guardar avance</button><button class="sec-btn-si" type="button">Cerrar evento</button></div></div>';
+  f.querySelector('p').textContent = (EV_TIPO[x.tipo] || x.tipo) + ' · ' + (EV_GRAV[x.gravedad] || [x.gravedad])[0] + ' — ' + x.descripcion;
+  f.querySelector('#ev-an').value = x.analisis || '';
+  f.querySelector('#ev-plan').value = x.planMejora || '';
+  var cerrar = function(){ f.remove(); };
+  f.__cerrar = cerrar;
+  f.querySelector('.sec-btn-no').onclick = cerrar;
+  var enviar = async function(estado, btn){
+    var cuerpo = { estado: estado, clasificacion: f.querySelector('#ev-clas').value || undefined, analisis: f.querySelector('#ev-an').value.trim() || undefined, planMejora: f.querySelector('#ev-plan').value.trim() || undefined };
+    btn.disabled = true;
+    var r = await apiFetch('/api/admin/eventos-seguridad/' + id, { method: 'PUT', body: JSON.stringify(cuerpo) });
+    btn.disabled = false;
+    if (r && r.ok) { aviso(estado === 'cerrado' ? 'Evento cerrado' : 'Análisis guardado'); cerrar(); loadEventos(); }
+    else aviso((r && r.error) || 'No se pudo guardar', 'error');
+  };
+  if (x.estado === 'cerrado') { f.querySelector('.ev-guardar').remove(); f.querySelector('.sec-btn-si').remove(); }
+  else {
+    f.querySelector('.ev-guardar').onclick = function(){ enviar('en_analisis', this); };
+    f.querySelector('.sec-btn-si').onclick = function(){ enviar('cerrado', this); };
+  }
+  document.body.appendChild(f);
+}
+
 async function loadQuejas() {
+  loadEventos();
   var tb = document.getElementById('quejas-tbody'), to = document.getElementById('opiniones-tbody');
   var q = await apiFetch('/api/admin/quejas?limit=50&page=' + pagQuejas);
   if (!q || !q.items) tb.innerHTML = '<tr><td colspan="6"><div class="empty"><div class="empty-text">Error cargando quejas</div></div></td></tr>';

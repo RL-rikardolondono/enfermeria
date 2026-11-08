@@ -720,6 +720,7 @@ function mostrarServicioActivo(s) {
   if (s.direccion) acc += '<a class="activo-link" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(s.direccion)+'">🗺️ Cómo llegar</a>';
   acc += '<a class="activo-link" href="#" data-id="'+s.id+'" data-n="'+esc(nombre)+'" onclick="event.preventDefault();abrirChat(API, token, this.dataset.id, \'Mensajes con \' + this.dataset.n)">💬 Mensajes</a>';
   acc += '<a class="activo-link" href="#" style="background:#B4412F;color:#fff" data-id="'+s.id+'" onclick="event.preventDefault();botonEmergencia(API, token, this.dataset.id)">🆘 Emergencia</a>';
+  acc += '<a class="activo-link" href="#" data-id="'+s.id+'" onclick="event.preventDefault();reportarEvento(this.dataset.id)">⚠️ Reportar evento</a>';
   document.getElementById('activo-detalle').innerHTML = det + (acc ? '<div class="activo-links">'+acc+'</div>' : '');
   if (s.estado !== 'en_curso') document.getElementById('evolucion-form').style.display='none';
   const btns = document.getElementById('estado-btns');
@@ -806,6 +807,35 @@ async function cambiarEstado(id,estado,firma,codigo) {
     await loadInicio();
     return true;
   } catch(e) { hideLoading(); aviso(mensajeRed(e), 'error'); return false; }
+}
+
+// ── Seguridad del paciente: reportar un incidente o evento adverso (caída, error de medicación, reacción…) ──
+function reportarEvento(id) {
+  const f = document.createElement('div');
+  f.className = 'sec-modal-fondo';
+  const sel = 'width:100%;padding:10px;border:1px solid #DCE5EE;border-radius:8px;font:inherit;background:#fff;margin-bottom:8px;box-sizing:border-box';
+  f.innerHTML = '<div class="sec-modal" role="dialog" aria-modal="true" style="max-width:460px"><h3>Reportar evento de seguridad</h3>' +
+    '<p style="margin-bottom:8px;font-size:13px">Reporte todo incidente o daño al paciente, aunque haya sido leve o no haya pasado nada. No es para culpar a nadie: sirve para que no se repita.</p>' +
+    '<label style="font-size:13px;font-weight:700">¿Qué pasó?</label><select id="ev-tipo" style="'+sel+'"><option value="caida">Caída del paciente</option><option value="medicacion">Error o problema con medicamentos</option><option value="procedimiento">Complicación de un procedimiento</option><option value="lesion_piel">Lesión de piel o úlcera</option><option value="reaccion">Reacción alérgica o adversa</option><option value="infeccion">Signos de infección</option><option value="agresion">Agresión o situación de riesgo</option><option value="otro">Otro</option></select>' +
+    '<label style="font-size:13px;font-weight:700">Daño al paciente</label><select id="ev-gravedad" style="'+sel+'"><option value="sin_dano">Sin daño (incidente)</option><option value="leve">Leve</option><option value="moderado">Moderado</option><option value="grave">Grave</option><option value="muerte">Muerte</option></select>' +
+    '<label style="font-size:13px;font-weight:700">Describa lo ocurrido</label><textarea id="ev-desc" maxlength="3000" style="'+sel+';height:90px" placeholder="Qué pasó, cuándo y cómo"></textarea>' +
+    '<label style="font-size:13px;font-weight:700">¿Qué hizo en el momento?</label><textarea id="ev-accion" maxlength="2000" style="'+sel+';height:60px" placeholder="Ej: se tomaron signos vitales, se llamó al 123, se avisó a la familia"></textarea>' +
+    '<div class="sec-modal-botones"><button class="sec-btn-no" type="button">Cancelar</button><button class="sec-btn-si" type="button">Enviar reporte</button></div></div>';
+  const cerrar = function(){ f.remove(); };
+  f.__cerrar = cerrar;
+  f.querySelector('.sec-btn-no').onclick = cerrar;
+  f.querySelector('.sec-btn-si').onclick = async function() {
+    const desc = document.getElementById('ev-desc').value.trim();
+    if (desc.length < 15) { aviso('Describa lo ocurrido (mínimo 15 letras)', 'aviso'); return; }
+    const b = this; if (b.disabled) return; b.disabled = true; b.textContent = 'Enviando...';
+    try {
+      const r = await fetch(API+'/api/servicios/'+id+'/evento-seguridad', { method: 'POST', headers: {'Content-Type':'application/json','Authorization':'Bearer '+token}, body: JSON.stringify({ tipo: document.getElementById('ev-tipo').value, gravedad: document.getElementById('ev-gravedad').value, descripcion: desc, accionInmediata: document.getElementById('ev-accion').value.trim() || undefined }) });
+      const d = await r.json().catch(function(){ return {}; });
+      if (!r.ok) throw new Error(d.error || 'No se pudo enviar el reporte');
+      cerrar(); aviso(d.mensaje || 'Evento reportado', '', 9000);
+    } catch (e) { b.disabled = false; b.textContent = 'Enviar reporte'; aviso(mensajeRed(e), 'error'); }
+  };
+  document.body.appendChild(f);
 }
 
 // Al llegar, el paciente le dice el código de 4 números que ve en su app: así ambos confirman que es la persona correcta
@@ -995,7 +1025,8 @@ async function loadHistorial(mas) {
     el.innerHTML = items.map(function(s){
       return '<div class="historial-item"><div class="hist-icon" style="background:'+(s.estado==='completado'?'var(--teal-dim)':'var(--red-dim)')+'">'+( iconos[s.tipo]||'🏥')+'</div>' +
         '<div class="hist-info"><div class="hist-tipo">'+tipoLabel(s.tipo)+'</div><div class="hist-fecha">'+esc((s.paciente&&(s.paciente.nombreCompleto||(s.paciente.usuario&&s.paciente.usuario.nombreCompleto)))||'')+' · '+formatDate(s.createdAt)+'</div></div>' +
-        '<span class="badge '+(s.estado==='completado'?'badge-teal':'badge-red')+'">'+(s.estado==='completado'?'Completado':'Cancelado')+'</span></div>';
+        '<span class="badge '+(s.estado==='completado'?'badge-teal':'badge-red')+'">'+(s.estado==='completado'?'Completado':'Cancelado')+'</span>' +
+        (s.estado==='completado' && s.fechaFin && Date.now()-new Date(s.fechaFin).getTime() < 30*24*3600*1000 ? '<button class="btn-reject" style="margin-left:6px;padding:6px 8px;font-size:12px;flex:0 0 auto" data-id="'+s.id+'" onclick="reportarEvento(this.dataset.id)" title="Reportar un evento de seguridad">⚠️</button>' : '') + '</div>';
     }).join('') +
       ((data.total||0) > (data.items||[]).length && (data.items||[]).length < 100 ? '<button class="btn-main" style="margin-top:10px" onclick="loadHistorial(true)">Ver servicios anteriores</button>' : '');
   } catch(e) { el.innerHTML='<div class="empty"><div class="empty-icon">📋</div><div class="empty-text">Sin historial aún</div></div>'; }
