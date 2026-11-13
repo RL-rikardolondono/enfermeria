@@ -118,8 +118,17 @@ body{font-family:'Public Sans',sans-serif;background:var(--cream);color:var(--in
 .codigo-llegada{margin-top:8px;padding:10px 12px;border-radius:12px;background:#E8F1FA;color:#0B4F8A;font-size:13px}.codigo-llegada b{display:block;font:800 30px 'Barlow Condensed',sans-serif;letter-spacing:8px;color:#0B4F8A}
 .prof-foto{width:56px;height:56px;border-radius:50%;object-fit:cover;border:2px solid #E3F6F2;float:right;margin-left:10px}
 .srv-acc{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}.srv-acc .btn-pago{flex:1;margin-top:0}
+.guia-fondo{position:fixed;inset:0;background:rgba(28,43,57,.55);z-index:10000;display:flex;align-items:flex-end;justify-content:center}
+.guia{background:#fff;width:100%;max-width:430px;border-radius:18px 18px 0 0;padding:22px 20px calc(20px + var(--safe-bottom));max-height:92vh;overflow:auto}
+.guia h2{font-family:'Barlow Condensed',sans-serif;font-size:24px;color:var(--teal);margin:0 0 4px}
+.guia p.sub{font-size:13px;color:var(--muted);margin:0 0 12px}
+.guia-paso{display:flex;gap:12px;padding:10px 0;border-top:1px solid var(--border)}
+.guia-paso .n{width:40px;height:40px;border-radius:12px;background:var(--teal-pale);display:flex;align-items:center;justify-content:center;font-size:22px;flex:none}
+.guia-paso b{display:block;font-size:14px;color:var(--ink)}
+.guia-paso span{font-size:13px;color:var(--muted);line-height:1.45}
+.link-guia{display:block;margin:-6px 0 14px;text-align:center;background:none;border:0;color:var(--teal);font:700 14px 'Public Sans',sans-serif;text-decoration:underline;cursor:pointer;width:100%}
 </style>
-<script src="comun.js?v=20261113a" data-rol="paciente"></script>
+<script src="comun.js?v=20261113b" data-rol="paciente"></script>
 </head>
 <body>
 <div class="loading-overlay" id="loading-overlay"><div class="loading-spinner"></div><div class="loading-text" id="loading-text">Cargando...</div></div>
@@ -165,6 +174,7 @@ body{font-family:'Public Sans',sans-serif;background:var(--cream);color:var(--in
   <div class="topbar"><div><div class="topbar-greeting">Buenos días,</div><div class="topbar-name" id="app-nombre">Paciente</div><div class="topbar-rol" id="app-rol">Cuenta de paciente</div></div><div class="topbar-avatar" id="app-avatar">P</div></div>
   <div class="page active" id="page-home">
     <div class="hero-card"><h2>¿Necesita atención en casa?</h2><p>Profesionales verificados listos para atenderle</p><button class="btn-hero" onclick="showPage('solicitar');resetSolicitud()">&#x2795; Solicitar servicio</button></div>
+    <button class="link-guia" onclick="mostrarGuia()">&#x2753; ¿Cómo funciona? Véalo en 4 pasos</button>
     <div class="info-card" id="avisos-card" style="display:none;gap:10px;align-items:center"><div style="flex:1;font-size:13px"><b>Active los avisos</b><br>Le avisamos cuando un profesional se ofrezca, salga hacia su casa o le escriba.</div><button class="btn-pago" style="margin:0;width:auto;padding:10px 14px" onclick="activarAvisos()">&#x1F514; Activar</button></div>
     <div class="section-title">Tipos de servicio</div>
     <div class="service-grid" id="inicio-grid"><div class="field-hint">Cargando servicios…</div></div>
@@ -379,6 +389,25 @@ function doLogout(manual) {
   setTimeout(function(){ location.reload(); }, 150);
 }
 
+
+function mostrarGuia() {
+  if (document.getElementById('guia-fondo')) return;
+  try { localStorage.setItem('sec_guia_vista', '1'); } catch (e) {}
+  var f = document.createElement('div'); f.className = 'guia-fondo'; f.id = 'guia-fondo';
+  var pasos = [
+    ['\u{1FA7A}', 'Pida el servicio', 'Toque "Solicitar servicio", elija qué necesita (curación, inyectable, signos vitales, cuidado por horas), escriba su dirección y si es para ya o para otro día.'],
+    ['\u{1F64B}', 'Elija a su profesional', 'Los profesionales verificados por la IPS se ofrecen. Usted ve su foto, profesión y calificación, y elige a quién recibir.'],
+    ['\u{1F4B3}', 'Pague por la app', 'Pague con tarjeta, PSE o Nequi. El servicio solo sale cuando el pago queda confirmado.'],
+    ['\u{1F3E0}', 'Reciba la atención', 'Siga el avance: Confirmado, En camino, Atendiendo y Terminado. Cuando llegue, dele su código de 4 números. Al final firme el recibido y califique.'],
+  ];
+  f.innerHTML = '<div class="guia" role="dialog" aria-modal="true" aria-label="Cómo funciona Salud en Casa"><h2>¿Cómo funciona Salud en Casa?</h2><p class="sub">Atención de salud en su casa, con profesionales de la Clínica Reina Elizabeth IPS.</p>' +
+    pasos.map(function(p, i){ return '<div class="guia-paso"><div class="n">' + p[0] + '</div><div><b>' + (i + 1) + '. ' + p[1] + '</b><span>' + p[2] + '</span></div></div>'; }).join('') +
+    '<p class="sub" style="margin-top:10px">\u{1F4AC} Puede escribirle al profesional con el botón "Mensajes" y, si algo pasa, usar el botón de emergencia o el WhatsApp de la IPS. Para inyecciones o medicamentos debe subir la orden médica.</p>' +
+    '<button class="btn-main" onclick="document.getElementById(\'guia-fondo\').remove()">Entendido</button></div>';
+  f.addEventListener('click', function(e){ if (e.target === f) f.remove(); });
+  document.body.appendChild(f);
+}
+
 function initApp() {
   cargarTarifas();
   document.getElementById('screen-auth').classList.remove('active');
@@ -393,6 +422,7 @@ function initApp() {
   try { history.replaceState({ pag: 'home', base: true }, ''); history.pushState({ pag: 'home' }, ''); } catch (e) {}
   revisarRegresoBold();
   loadServiciosRecientes();
+  try { if (!localStorage.getItem('sec_guia_vista')) setTimeout(mostrarGuia, 1200); } catch (e) {}
   prepararAvisos();
   if (notifInterval) notifInterval();
   // Revisa cambios cada 8 s; mientras hay una búsqueda en curso no se detiene aunque no toque la pantalla

@@ -218,7 +218,7 @@
   .firma-lienzo{width:100%;height:170px;background:#fff;border:2px dashed #14A38B;border-radius:10px;touch-action:none;display:block}
   .firma-campo{width:100%;padding:11px;border:1.5px solid #DCE5EE;border-radius:10px;font:500 15px 'Public Sans',sans-serif;margin-top:8px;box-sizing:border-box}
 </style>
-<script src="comun.js?v=20261113a" data-rol="profesional"></script>
+<script src="comun.js?v=20261113b" data-rol="profesional"></script>
 </head>
 <body>
 
@@ -1116,13 +1116,23 @@ function mesAnio(f) {
   if (!m) return '';
   return ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'][Number(m[2]) - 1] + ' de ' + m[1];
 }
+// "las 07:30 p. m.", "las 12:15 del mediodía", "las 12:40 de la medianoche"
+function textoHoraTurno(fin, hora) {
+  const p = new Intl.DateTimeFormat('en-US', { hour: 'numeric', minute: '2-digit', hour12: false, timeZone: 'America/Bogota' }).formatToParts(fin);
+  const h = Number((p.find(function(x){ return x.type === 'hour'; }) || {}).value) % 24;
+  const m = (p.find(function(x){ return x.type === 'minute'; }) || {}).value || '00';
+  if (h === 12) return 'las 12:' + m + ' del mediodía';
+  if (h === 0) return 'las 12:' + m + ' de la medianoche';
+  return 'las ' + hora;
+}
 function pintarDisponible() {
   document.getElementById('status-btn').className = 'status-pill '+(disponible?'disponible':'ocupado');
   document.getElementById('status-label').textContent = disponible?'Disponible':'No disponible';
   const fin = disponible && disponibleDesde ? new Date(new Date(disponibleDesde).getTime() + 12 * 3600 * 1000) : null;
   const hora = fin ? fin.toLocaleTimeString('es-CO', {hour:'2-digit', minute:'2-digit', timeZone:'America/Bogota'}) : '';
-  document.getElementById('status-btn').title = fin ? 'En turno hasta las ' + hora : 'Toque para iniciar su turno';
-  const tf = document.getElementById('turno-fin'); tf.hidden = !fin; tf.textContent = fin ? 'En turno hasta las ' + hora : '';
+  const horaTxt = fin ? textoHoraTurno(fin, hora) : '';
+  document.getElementById('status-btn').title = fin ? 'En turno hasta ' + horaTxt : 'Toque para iniciar su turno';
+  const tf = document.getElementById('turno-fin'); tf.hidden = !fin; tf.textContent = fin ? 'En turno hasta ' + horaTxt : '';
   if (disponible && typeof pintarListo === 'function') pintarListo(false);
 }
 var avisosActivos = false;

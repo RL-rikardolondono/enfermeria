@@ -421,6 +421,8 @@
         var firma = (d.items || []).map(function (m) { return m.id; }).join(',');
         if (firma === ultimo) return;
         ultimo = firma;
+        try { var its = d.items || []; if (its.length) localStorage.setItem('sec_chat_visto_' + servicioId, its[its.length - 1].id); } catch (e) {}
+        if (window.__pintarChatNuevo) window.__pintarChatNuevo(servicioId, false);
         lista.innerHTML = '';
         if (!(d.items || []).length) { var v = document.createElement('div'); v.style.cssText = 'color:#5D6B78;font-size:13px;text-align:center;margin:auto'; v.textContent = 'Aún no hay mensajes.'; lista.appendChild(v); }
         (d.items || []).forEach(function (m) {
@@ -456,6 +458,82 @@
     cargar();
     timer = setInterval(function () { if (!document.body.contains(f)) { clearInterval(timer); return; } cargar(true); }, 5000);
   };
+
+  // ── Aviso de mensaje nuevo en el chat ──
+  // Revisa cada 15 s los chats de los servicios que están en pantalla. Si llegó un mensaje de la otra persona
+  // que no se ha leído: punto rojo en el botón "Mensajes", aviso arriba con botón para abrirlo, sonido y vibración.
+  (function () {
+    var css = document.createElement('style');
+    css.textContent = '.chat-nuevo{position:relative;animation:chatLatido 1.2s ease-in-out infinite;border-color:#B4412F!important}' +
+      '.chat-nuevo::after{content:"Nuevo";position:absolute;top:-9px;right:-6px;background:#B4412F;color:#fff;font:700 11px/1 "Public Sans",sans-serif;padding:4px 7px;border-radius:999px;box-shadow:0 2px 6px rgba(0,0,0,.25)}' +
+      '@keyframes chatLatido{0%,100%{box-shadow:0 0 0 0 rgba(180,65,47,.45)}50%{box-shadow:0 0 0 7px rgba(180,65,47,0)}}' +
+      '.sec-toast .abrir-chat{margin-left:8px;background:#fff;color:#0B4F8A;border:0;border-radius:8px;padding:6px 10px;font:700 14px "Public Sans",sans-serif;cursor:pointer;flex:none}';
+    document.head.appendChild(css);
+    function botones(id) {
+      return Array.prototype.slice.call(document.querySelectorAll('[onclick*="abrirChat"]')).filter(function (b) { return (b.dataset.sid || b.dataset.id) === id; });
+    }
+    window.__pintarChatNuevo = function (id, nuevo) { botones(id).forEach(function (b) { b.classList.toggle('chat-nuevo', !!nuevo); }); };
+    function sonar() {
+      try { if (navigator.vibrate) navigator.vibrate([180, 90, 180]); } catch (e) {}
+      try {
+        var C = window.AudioContext || window.webkitAudioContext; if (!C) return;
+        var c = window.__chatAudio || (window.__chatAudio = new C());
+        [0, 0.22].forEach(function (t) {
+          var o = c.createOscillator(), g = c.createGain();
+          o.frequency.value = 880; o.connect(g); g.connect(c.destination);
+          g.gain.setValueAtTime(0.0001, c.currentTime + t); g.gain.exponentialRampToValueAtTime(0.25, c.currentTime + t + 0.02);
+          g.gain.exponentialRampToValueAtTime(0.0001, c.currentTime + t + 0.18);
+          o.start(c.currentTime + t); o.stop(c.currentTime + t + 0.2);
+        });
+      } catch (e) {}
+    }
+    function lee(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+    function guarda(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+    var revisando = false;
+    async function revisar() {
+      if (revisando || document.hidden) return;
+      var api, tk;
+      try { api = API; tk = token; } catch (e) { return; }
+      if (!api || !tk) return;
+      var ids = [];
+      Array.prototype.slice.call(document.querySelectorAll('[onclick*="abrirChat"]')).forEach(function (b) {
+        var id = b.dataset.sid || b.dataset.id; if (id && ids.indexOf(id) < 0) ids.push(id);
+      });
+      if (!ids.length) return;
+      revisando = true;
+      try {
+        for (var i = 0; i < ids.length && i < 6; i++) {
+          var id = ids[i];
+          if (document.querySelector('.sec-modal-fondo .chat-lista')) continue; // hay un chat abierto
+          var r = await fetch(api + '/api/servicios/' + id + '/mensajes', { headers: { 'Authorization': 'Bearer ' + tk, 'x-segundo-plano': '1' } }).catch(function () { return null; });
+          if (!r || !r.ok) continue;
+          var d = await r.json().catch(function () { return {}; });
+          var its = d.items || [];
+          var otros = its.filter(function (m) { return m.rol !== d.yo; });
+          if (!otros.length) { window.__pintarChatNuevo(id, false); continue; }
+          var ult = otros[otros.length - 1];
+          var visto = lee('sec_chat_visto_' + id);
+          var leido = visto && its.some(function (m, k) { return m.id === visto && k >= its.indexOf(ult); });
+          window.__pintarChatNuevo(id, !leido);
+          if (!leido && lee('sec_chat_avisado_' + id) !== ult.id) {
+            guarda('sec_chat_avisado_' + id, ult.id);
+            var b = botones(id)[0];
+            var quien = d.yo === 'paciente' ? 'su profesional' : 'el paciente';
+            window.aviso('Nuevo mensaje de ' + quien + ': "' + (ult.texto.length > 70 ? ult.texto.slice(0, 70) + '…' : ult.texto) + '"', 'aviso', 15000);
+            var t = document.querySelector('.sec-toast-zona .sec-toast:last-child');
+            if (t && b) {
+              var ab = document.createElement('button'); ab.className = 'abrir-chat'; ab.type = 'button'; ab.textContent = 'Abrir';
+              ab.onclick = function (ev) { ev.stopPropagation(); t.remove(); b.click(); };
+              t.insertBefore(ab, t.querySelector('.x'));
+            }
+            sonar();
+          }
+        }
+      } finally { revisando = false; }
+    }
+    setInterval(revisar, 15000);
+    document.addEventListener('visibilitychange', function () { if (!document.hidden) setTimeout(revisar, 800); });
+  })();
 
   // ── Botón de emergencia durante el servicio ──
   window.botonEmergencia = function (api, token, servicioId) {
