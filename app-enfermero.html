@@ -345,7 +345,7 @@
         <div class="nota-titulo">5. Recomendaciones</div>
         <textarea class="form-area" id="v-recomendaciones">Signos de alarma explicados al paciente y acompañante. Consultar a urgencias si presenta fiebre, sangrado o empeoramiento.</textarea>
         <button class="btn-main" onclick="guardarEvolucion()">Guardar nota clínica</button>
-        <div class="nota-ok" id="nota-ok">✓ Nota clínica guardada. Ya puede completar el servicio.</div>
+        <div class="nota-ok" id="nota-ok">✓ Nota clínica guardada. Último paso: toque el botón verde, pida la firma del paciente y listo.<button class="btn-estado btn-completar" style="margin-top:10px;width:100%" onclick="completarServicio(servicioActivoId)">✅ Completar servicio</button></div>
       </div>
       <div class="divider"></div>
     </div>
@@ -840,7 +840,7 @@ function mostrarServicioActivo(s) {
   else if (s.estado==='en_curso') {
     if (document.getElementById('evolucion-form').style.display !== 'block') recuperarBorrador(s.id);
     document.getElementById('evolucion-form').style.display='block';
-    html='<button class="btn-estado btn-completar" onclick="completarServicio(\''+s.id+'\')">✅ Completar servicio</button>';
+    html='<div class="nota-ok" style="display:block;background:#E8F1FA;color:#0B4F8A">🩺 Atendiendo. Llene la nota clínica aquí abajo y toque <b>Guardar nota clínica</b>; ahí mismo le aparece el botón para completar el servicio.</div><button class="btn-estado" style="background:#fff;color:#0E8571;border:2px solid #14A38B" onclick="completarServicio(\''+s.id+'\')">Ya guardé la nota: completar servicio</button>';
   }
   btns.innerHTML=html;
 }
@@ -1068,6 +1068,7 @@ async function guardarEvolucion() {
     if (!res.ok) { const d = await res.json().catch(function(){return {};}); throw new Error(d.error || 'No se pudo guardar la nota clínica. Revise su conexión e intente de nuevo.'); }
     aviso('Nota clínica guardada correctamente');
     document.getElementById('nota-ok').style.display = 'block';
+    setTimeout(function(){ document.getElementById('nota-ok').scrollIntoView({behavior:'smooth', block:'center'}); }, 150);
     document.querySelectorAll('.vital-input.fuera').forEach(function(x){ x.classList.remove('fuera'); });
     limpiarNota(true);
   } catch(e) { hideLoading(); aviso(mensajeRed(e), 'error'); }
