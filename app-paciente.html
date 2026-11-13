@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <link rel="manifest" href="manifest-paciente.webmanifest">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Salud en Casa">
 <link rel="apple-touch-icon" href="icon-192.png">
 <meta name="theme-color" content="#0B4F8A">
 <title>Salud en Casa · Pacientes</title>
@@ -110,11 +114,12 @@ body{font-family:'Public Sans',sans-serif;background:var(--cream);color:var(--in
 .nota-sec{margin-top:10px}.nota-sec b{display:block;color:#0B4F8A;font-size:13px;margin-bottom:2px}
 .recibido{margin-top:12px;border-top:1px solid #DCE5EE;padding-top:10px;font-size:13px}.recibido img{display:block;max-width:240px;width:100%;border:1px solid #DCE5EE;border-radius:8px;background:#fff;margin-top:6px}
 .cuando-opciones{display:flex;gap:8px}.cuando-op{flex:1;padding:12px;border-radius:12px;border:1.5px solid var(--border);background:#fff;font:700 15px 'Public Sans',sans-serif;color:var(--ink);cursor:pointer}.cuando-op.on{border-color:#14A38B;background:#E3F6F2;color:#0E8571}
+.progreso{margin:10px 0 4px;padding:12px;border-radius:12px;background:#F4F8FB;border:1px solid #DCE5EE}.progreso ol{list-style:none;margin:0;padding:0;display:flex;justify-content:space-between;position:relative}.progreso ol:before{content:'';position:absolute;top:13px;left:12%;right:12%;height:3px;background:#DCE5EE}.progreso li{flex:1;text-align:center;font-size:11px;color:#5D6B78;position:relative;font-weight:600}.progreso li i{display:flex;align-items:center;justify-content:center;width:28px;height:28px;margin:0 auto 4px;border-radius:50%;background:#fff;border:3px solid #DCE5EE;font-style:normal;font-size:13px;position:relative}.progreso li.hecho i{background:#14A38B;border-color:#14A38B;color:#fff}.progreso li.ahora i{border-color:#0B4F8A;background:#E8F1FA;animation:latir 1.4s infinite}.progreso li.ahora{color:#0B4F8A;font-weight:800}.progreso .prog-txt{margin-top:10px;font-size:13px;color:#1C2B39;text-align:center}@keyframes latir{0%,100%{box-shadow:0 0 0 0 rgba(11,79,138,.35)}50%{box-shadow:0 0 0 7px rgba(11,79,138,0)}}
 .codigo-llegada{margin-top:8px;padding:10px 12px;border-radius:12px;background:#E8F1FA;color:#0B4F8A;font-size:13px}.codigo-llegada b{display:block;font:800 30px 'Barlow Condensed',sans-serif;letter-spacing:8px;color:#0B4F8A}
 .prof-foto{width:56px;height:56px;border-radius:50%;object-fit:cover;border:2px solid #E3F6F2;float:right;margin-left:10px}
 .srv-acc{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}.srv-acc .btn-pago{flex:1;margin-top:0}
 </style>
-<script src="comun.js?v=20261022c" data-rol="paciente"></script>
+<script src="comun.js?v=20261113a" data-rol="paciente"></script>
 </head>
 <body>
 <div class="loading-overlay" id="loading-overlay"><div class="loading-spinner"></div><div class="loading-text" id="loading-text">Cargando...</div></div>
@@ -492,6 +497,15 @@ function servicioItem(s) {
   if (s.programadoPara && ['pendiente','asignado','en_camino','en_curso'].indexOf(s.estado) >= 0) extra += '<div class="srv-prof" style="color:#0B4F8A">&#x1F4C5; Cita: <b>'+escapeHtml(fechaCita(s.programadoPara))+'</b></div>';
   if (s.profesional && s.profesional.usuario && ['asignado','en_camino','en_curso','completado'].indexOf(s.estado) >= 0) {
     extra += '<div class="srv-prof">'+(activo ? '<img class="prof-foto" hidden alt="Foto del profesional" data-foto-prof="'+s.profesional.id+'">' : '')+'Profesional: <b>'+escapeHtml(s.profesional.usuario.nombreCompleto)+'</b>'+(s.profesional.especialidad?' · '+escapeHtml(s.profesional.especialidad):'')+'</div>';
+  }
+  // Progreso visible del servicio (para que el paciente sepa en qué va sin adivinar)
+  var pagadoP = s.pago && s.pago.estado === 'aprobado';
+  if (s.profesional && ['asignado','en_camino','en_curso','completado'].indexOf(s.estado) >= 0 && (pagadoP || !pagosEnLinea || s.estado !== 'asignado')) {
+    var pasosP = [['asignado','\u2714','Confirmado'],['en_camino','\u{1F697}','En camino'],['en_curso','\u{1FA7A}','Atendiendo'],['completado','\u2605','Terminado']];
+    var idxP = ['asignado','en_camino','en_curso','completado'].indexOf(s.estado);
+    var nomP = s.profesional.usuario ? escapeHtml(s.profesional.usuario.nombreCompleto.split(' ')[0]) : 'El profesional';
+    var txtP = [nomP + ' ya tiene su servicio y su pago. Le avisaremos cuando salga hacia su casa.', nomP + ' va en camino a su casa. Tenga a mano el código de llegada.', nomP + ' llegó y le está atendiendo.', 'Servicio terminado. Puede ver la nota clínica y calificar.'][idxP];
+    extra += '<div class="progreso"><ol>' + pasosP.map(function(p, i){ var c = i < idxP || s.estado === 'completado' ? 'hecho' : i === idxP ? 'ahora' : ''; return '<li class="' + c + '"><i>' + (c === 'hecho' ? '\u2714' : p[1]) + '</i>' + p[2] + '</li>'; }).join('') + '</ol><div class="prog-txt">' + txtP + '</div></div>';
   }
   // Código de llegada: el paciente se lo dice al profesional en la puerta (así sabe que es la persona correcta)
   if (s.codigoLlegada && (s.estado === 'asignado' || s.estado === 'en_camino')) {

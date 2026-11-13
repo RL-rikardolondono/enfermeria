@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <link rel="manifest" href="manifest-enfermero.webmanifest">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Salud en Casa Pro">
 <link rel="apple-touch-icon" href="icon-192.png">
 <meta name="theme-color" content="#0B4F8A">
 <title>Salud en Casa · Profesionales</title>
@@ -194,6 +198,11 @@
   .check-legal{display:flex;gap:10px;align-items:flex-start;font-size:13px;color:var(--muted);margin:6px 0 4px;line-height:1.45}
   .check-legal input{width:20px;height:20px;flex:none;margin-top:1px;accent-color:#0B4F8A}.check-legal a{color:#0B4F8A;font-weight:700}
   .btn-wa-grande{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:13px;background:#1F8A4C;color:#fff;border-radius:12px;font-weight:700;font-size:15px;text-decoration:none;margin-top:10px}
+  .gan-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.gan-grid div{background:#F4F8FB;border:1px solid #DCE5EE;border-radius:12px;padding:10px 6px;text-align:center}.gan-grid b{display:block;font:800 20px 'Barlow Condensed',sans-serif;color:#0B4F8A}.gan-grid span{font-size:11px;color:#5D6B78}
+  .gan-item{display:flex;justify-content:space-between;gap:8px;padding:8px 0;border-top:1px solid #DCE5EE}.gan-item small{display:block;color:#5D6B78}
+  .metodos{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:6px}.metodos button{padding:12px 8px;border-radius:12px;border:1.5px solid #DCE5EE;background:#fff;font:700 14px 'Public Sans',sans-serif;color:#1C2B39;cursor:pointer}.metodos button.on{border-color:#14A38B;background:#E3F6F2;color:#0E8571}
+  .lbl-c{display:block;font-size:13px;font-weight:700;margin:10px 0 4px}.inp-c{width:100%;padding:12px;border:1.5px solid #DCE5EE;border-radius:10px;font:15px 'Public Sans',sans-serif;background:#fff;box-sizing:border-box}
+  .aviso-cuenta{background:#FFF4D9;color:#5A3E00;border-radius:12px;padding:12px;font-size:13px;margin-bottom:12px}.aviso-cuenta button{margin-top:8px;padding:9px 14px;border:0;border-radius:10px;background:#0B4F8A;color:#fff;font-weight:700;cursor:pointer}
   .nota-ok{display:none;background:#E3F6F2;color:#1F8A4C;border-radius:10px;padding:10px 12px;font-size:13px;font-weight:700;margin-top:10px}
   #screen-app{padding-bottom:calc(140px + var(--safe-bottom))}
   .sol-info-row span,.activo-detalle{overflow-wrap:anywhere}
@@ -209,7 +218,7 @@
   .firma-lienzo{width:100%;height:170px;background:#fff;border:2px dashed #14A38B;border-radius:10px;touch-action:none;display:block}
   .firma-campo{width:100%;padding:11px;border:1.5px solid #DCE5EE;border-radius:10px;font:500 15px 'Public Sans',sans-serif;margin-top:8px;box-sizing:border-box}
 </style>
-<script src="comun.js?v=20261022c" data-rol="profesional"></script>
+<script src="comun.js?v=20261113a" data-rol="profesional"></script>
 </head>
 <body>
 
@@ -390,6 +399,33 @@
       <div id="docs-estado" style="font-size:13px;margin-bottom:8px"></div>
       <div id="docs-lista" style="font-size:13px;color:var(--muted)">Cargando...</div>
       <input type="file" id="doc-archivo" accept="image/*,application/pdf" hidden onchange="subirDocumento(this)">
+    </div>
+    <div class="info-card" id="card-ganancias">
+      <div style="font-size:12px;color:var(--muted);font-weight:600;letter-spacing:1px;text-transform:uppercase;margin-bottom:10px">💰 Mis ganancias</div>
+      <div class="gan-grid"><div><b id="gan-cobrar">—</b><span>Por recibir</span></div><div><b id="gan-curso">—</b><span>En servicios sin terminar</span></div><div><b id="gan-pagado">—</b><span>Ya recibido</span></div></div>
+      <div class="field-hint" style="margin:8px 0">Usted recibe el 60 % de cada servicio. La IPS le transfiere cuando el servicio termina con la nota clínica; le avisamos cuando le paguen.</div>
+      <div id="gan-lista" style="font-size:13px"></div>
+    </div>
+    <div class="info-card" id="card-cuenta">
+      <div style="font-size:12px;color:var(--muted);font-weight:600;letter-spacing:1px;text-transform:uppercase;margin-bottom:10px">🏦 Cómo recibir mis pagos</div>
+      <div id="cuenta-actual" style="font-size:14px;margin-bottom:10px"></div>
+      <div id="cuenta-form">
+        <label class="lbl-c">¿Dónde quiere recibir su dinero?</label>
+        <div class="metodos" id="metodos">
+          <button type="button" data-m="Nequi">Nequi</button><button type="button" data-m="Daviplata">Daviplata</button><button type="button" data-m="Llave Bre-B">Llave Bre-B</button><button type="button" data-m="banco">Cuenta bancaria</button>
+        </div>
+        <div id="cuenta-banco" hidden>
+          <label class="lbl-c" for="c-banco">Banco</label>
+          <select id="c-banco" class="inp-c"><option value="">Elija su banco</option><option>Bancolombia</option><option>Banco de Bogotá</option><option>Davivienda</option><option>BBVA</option><option>Banco de Occidente</option><option>Banco Popular</option><option>Banco AV Villas</option><option>Banco Caja Social</option><option>Banco Agrario</option><option>Scotiabank Colpatria</option><option>Itaú</option><option>Banco Falabella</option><option>Banco Pichincha</option><option>Bancamía</option><option>Nu Colombia</option><option>Lulo Bank</option><option>Otro</option></select>
+          <label class="lbl-c" for="c-tipo">Tipo de cuenta</label>
+          <select id="c-tipo" class="inp-c"><option>Ahorros</option><option>Corriente</option></select>
+        </div>
+        <label class="lbl-c" for="c-numero" id="c-numero-lbl">Número</label>
+        <input id="c-numero" class="inp-c" inputmode="text" maxlength="50" autocomplete="off">
+        <div class="field-hint" id="c-ayuda" style="margin-top:4px"></div>
+        <div class="field-hint" style="margin-top:6px">La cuenta debe estar <b>a su nombre</b>. Solo la ve la IPS para pagarle.</div>
+        <button class="btn-main" style="margin-top:10px" onclick="guardarCuenta()">Guardar mi cuenta</button>
+      </div>
     </div>
     <div class="info-card">
       <div style="font-size:12px;color:var(--muted);font-weight:600;letter-spacing:1px;text-transform:uppercase;margin-bottom:12px">Soporte</div>
@@ -676,6 +712,7 @@ async function loadInicio() {
     aviso.style.display = aprobado ? 'none' : 'block';
     if (!aprobado && miPerfil.estadoVerificacion !== 'rechazado') pintarPasosAlta(miPerfil);
     pintarListo(aprobado && !disponible);
+    pintarAvisoCuenta(miPerfil);
     if (miPerfil.estadoVerificacion === 'rechazado') {
       aviso.querySelector('.aviso-pendiente-titulo').textContent = 'Cuenta no aprobada';
       aviso.querySelector('.aviso-pendiente-texto').textContent = 'La IPS no aprobó su registro. Escríbanos por WhatsApp para más información.';
@@ -1159,7 +1196,9 @@ async function loadPerfil() {
       document.getElementById('perfil-servicios').textContent = miPerfil.totalServicios||0;
       document.getElementById('perfil-cal').textContent = miPerfil.calificacionPromedio?'⭐ '+Number(miPerfil.calificacionPromedio).toFixed(1):'—';
       cargarOpiniones(miPerfil.id);
+      pintarCuenta(miPerfil);
     }
+    cargarGanancias();
   } catch(e) {}
   cargarDocumentos();
 }
@@ -1213,6 +1252,100 @@ async function subirDocumento(inp) {
     aviso(d.mensaje || 'Documento recibido');
     cargarDocumentos();
   } catch (e) { hideLoading(); aviso(mensajeRed(e), 'error'); }
+}
+
+// ── Cómo recibir mis pagos y Mis ganancias ──
+let metodoPago = '';
+const AYUDA_METODO = {
+  'Nequi': ['Número de celular de su Nequi', 'Ej: 3001234567'],
+  'Daviplata': ['Número de celular de su Daviplata', 'Ej: 3001234567'],
+  'Llave Bre-B': ['Su llave Bre-B', 'Puede ser su celular, cédula, correo o la llave que creó en su banco (ej: @sheily123)'],
+  'banco': ['Número de cuenta', 'Solo números, sin puntos ni guiones'],
+};
+function elegirMetodo(m) {
+  metodoPago = m;
+  document.querySelectorAll('#metodos button').forEach(function(b){ b.classList.toggle('on', b.dataset.m === m); });
+  document.getElementById('cuenta-banco').hidden = m !== 'banco';
+  const a = AYUDA_METODO[m] || ['Número', ''];
+  document.getElementById('c-numero-lbl').textContent = a[0];
+  document.getElementById('c-ayuda').textContent = a[1];
+  document.getElementById('c-numero').inputMode = (m === 'Llave Bre-B') ? 'text' : 'numeric';
+}
+document.addEventListener('click', function(e){ const b = e.target.closest && e.target.closest('#metodos button'); if (b) elegirMetodo(b.dataset.m); });
+function textoCuenta(p) {
+  if (!p || !p.cuentaBancaria) return '';
+  if (p.banco === 'Nequi' || p.banco === 'Daviplata') return p.banco + ' · ' + p.cuentaBancaria;
+  if (p.banco === 'Llave Bre-B') return 'Llave Bre-B · ' + p.cuentaBancaria;
+  return (p.banco || 'Banco') + ' · ' + (p.tipoCuenta || '') + ' · ' + p.cuentaBancaria;
+}
+function pintarCuenta(p) {
+  const el = document.getElementById('cuenta-actual'); if (!el) return;
+  const t = textoCuenta(p);
+  el.innerHTML = t ? '✅ Le pagamos a: <b>' + esc(t) + '</b><div class="field-hint">Si quiere cambiarla, elija otra opción abajo y guarde.</div>' : '<div class="aviso-cuenta" style="margin:0">⚠️ Aún no nos ha dicho dónde pagarle. Elija una opción y guárdela.</div>';
+  if (p && p.banco) {
+    const m = ['Nequi','Daviplata','Llave Bre-B'].indexOf(p.banco) >= 0 ? p.banco : 'banco';
+    elegirMetodo(m);
+    if (m === 'banco') { const sb = document.getElementById('c-banco'); if ([].some.call(sb.options, function(o){ return o.value === p.banco; })) sb.value = p.banco; if (p.tipoCuenta) document.getElementById('c-tipo').value = p.tipoCuenta; }
+    document.getElementById('c-numero').value = p.cuentaBancaria || '';
+  }
+}
+async function guardarCuenta() {
+  if (!metodoPago) { aviso('Elija primero dónde quiere recibir su dinero.', 'aviso'); return; }
+  let numero = document.getElementById('c-numero').value.trim();
+  let banco = metodoPago, tipo = '';
+  if (metodoPago === 'Nequi' || metodoPago === 'Daviplata') {
+    numero = numero.replace(/\D/g, '');
+    if (!/^3\d{9}$/.test(numero)) { aviso('Escriba el celular de 10 números (empieza por 3).', 'aviso'); return; }
+    tipo = 'Celular';
+  } else if (metodoPago === 'Llave Bre-B') {
+    if (numero.length < 3) { aviso('Escriba su llave Bre-B.', 'aviso'); return; }
+    tipo = 'Llave';
+  } else {
+    banco = document.getElementById('c-banco').value; tipo = document.getElementById('c-tipo').value;
+    numero = numero.replace(/[\s.-]/g, '');
+    if (!banco) { aviso('Elija su banco.', 'aviso'); return; }
+    if (!/^\d{5,20}$/.test(numero)) { aviso('Escriba el número de cuenta (solo números).', 'aviso'); return; }
+  }
+  if (!miPerfilId) { aviso('No se pudo cargar su perfil. Intente de nuevo.', 'error'); return; }
+  showLoading('Guardando su cuenta...');
+  try {
+    const r = await fetch(API + '/api/profesionales/' + miPerfilId, { method: 'PUT', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token }, body: JSON.stringify({ banco: banco, tipoCuenta: tipo, cuentaBancaria: numero }) });
+    hideLoading();
+    if (!r.ok) { const d = await r.json().catch(function(){ return {}; }); throw new Error(d.error || 'No se pudo guardar. Intente de nuevo.'); }
+    const p = await r.json();
+    pintarCuenta(p); pintarAvisoCuenta(p);
+    aviso('Listo. La IPS le pagará a: ' + textoCuenta(p));
+  } catch (e) { hideLoading(); aviso(mensajeRed(e), 'error'); }
+}
+function pesos(n) { return '$' + Number(n || 0).toLocaleString('es-CO'); }
+async function cargarGanancias() {
+  try {
+    const r = await fetch(API + '/api/pagos/mis-ganancias', { headers: { 'Authorization': 'Bearer ' + token } });
+    if (!r.ok) throw new Error();
+    const d = await r.json();
+    document.getElementById('gan-cobrar').textContent = pesos(d.porCobrar);
+    document.getElementById('gan-curso').textContent = pesos(d.enCurso);
+    document.getElementById('gan-pagado').textContent = pesos(d.transferido);
+    const est = { liberado: '<span style="color:#B4412F">Por recibir</span>', retenido: '<span style="color:#5D6B78">Servicio sin terminar</span>', transferido: '<span style="color:#1F8A4C">✔ Recibido</span>' };
+    document.getElementById('gan-lista').innerHTML = (d.items || []).length ? d.items.slice(0, 20).map(function(i){
+      return '<div class="gan-item"><div>' + esc(tipoLabel(i.tipo)) + '<small>' + (i.fecha ? formatDate(i.fecha) : '') + '</small></div><div style="text-align:right"><b>' + pesos(i.valor) + '</b><small>' + (est[i.estado] || esc(i.estado || '')) + '</small></div></div>';
+    }).join('') : '<div class="field-hint">Aún no tiene servicios pagados.</div>';
+  } catch (e) { const l = document.getElementById('gan-lista'); if (l) l.textContent = 'No se pudieron cargar sus ganancias.'; }
+}
+// En Inicio: si está aprobada y no tiene cuenta, se lo recordamos
+function pintarAvisoCuenta(p) {
+  let el = document.getElementById('aviso-cuenta');
+  const falta = p && p.estadoVerificacion === 'aprobado' && !p.cuentaBancaria;
+  if (!falta) { if (el) el.remove(); return; }
+  if (el) return;
+  const cont = document.getElementById('page-inicio'); if (!cont) return;
+  el = document.createElement('div'); el.id = 'aviso-cuenta'; el.className = 'aviso-cuenta';
+  el.innerHTML = '💰 <b>¿Dónde le pagamos?</b> Díganos su Nequi, Daviplata, llave Bre-B o cuenta bancaria para transferirle lo que gane.<br><button type="button" onclick="irACuenta()">Poner mi cuenta</button>';
+  cont.insertBefore(el, cont.firstChild);
+}
+function irACuenta() {
+  showPage('perfil', document.querySelector('.nav-btn[data-pag="perfil"]')); loadPerfil();
+  setTimeout(function(){ const c = document.getElementById('card-cuenta'); if (c) c.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 400);
 }
 
 async function cargarOpiniones(id) {

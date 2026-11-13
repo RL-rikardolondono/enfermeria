@@ -502,4 +502,54 @@
     }
     document.querySelectorAll('[data-firma-skynet]').forEach(function (el) { el.appendChild(firmaSkyNet()); });
   });
+
+  // ── Instalar la app en el celular (ícono en la pantalla de inicio, sin abrir enlaces) ──
+  if (ROL === 'paciente' || ROL === 'profesional') {
+    var swArchivo = ROL === 'profesional' ? 'sw-enfermero.js' : 'sw-paciente.js';
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', function () {
+        navigator.serviceWorker.register(swArchivo, ROL === 'paciente' ? { scope: './app-paciente.html' } : undefined).catch(function () {});
+      });
+    }
+    var instalarEvt = null;
+    var instalada = function () {
+      return (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || window.navigator.standalone === true;
+    };
+    var esIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+    var nombreApp = ROL === 'profesional' ? 'Salud en Casa Pro' : 'Salud en Casa';
+    var cssI = '.sec-instalar{position:fixed;left:12px;right:12px;bottom:84px;z-index:9000;max-width:480px;margin:0 auto;background:#FFFFFF;border:1.5px solid #14A38B;border-radius:16px;box-shadow:0 10px 30px rgba(11,79,138,.25);padding:12px 14px;display:flex;gap:12px;align-items:center;font:500 14px/1.35 "Public Sans",sans-serif;color:#1C2B39}' +
+      '.sec-instalar img{width:44px;height:44px;border-radius:10px;flex:none}.sec-instalar b{display:block;font-size:15px}' +
+      '.sec-instalar .si{background:#14A38B;color:#fff;border:0;border-radius:10px;padding:10px 14px;font:700 14px "Public Sans",sans-serif;cursor:pointer;flex:none}' +
+      '.sec-instalar .no{background:none;border:0;font-size:22px;color:#5D6B78;cursor:pointer;flex:none;padding:0 2px}' +
+      '.sec-pasos-inst{text-align:left;margin:8px 0 0;padding-left:20px;font:500 15px/1.6 "Public Sans",sans-serif}';
+    var stI = document.createElement('style'); stI.textContent = cssI; document.head.appendChild(stI);
+    window.addEventListener('beforeinstallprompt', function (e) { e.preventDefault(); instalarEvt = e; mostrarInstalar(); });
+    window.addEventListener('appinstalled', function () { var b = document.getElementById('sec-instalar'); if (b) b.remove(); window.aviso('¡Listo! Ya tiene ' + nombreApp + ' en su pantalla de inicio.'); });
+    var instruccionesInstalar = function () {
+      var pasos = esIOS
+        ? ['Toque el botón <b>Compartir</b> (el cuadrito con la flecha hacia arriba, abajo en Safari).', 'Baje y toque <b>"Agregar a pantalla de inicio"</b>.', 'Toque <b>"Agregar"</b>. Le queda el ícono de ' + nombreApp + ' como cualquier app.']
+        : ['Toque los <b>tres puntos ⋮</b> arriba a la derecha de Chrome.', 'Toque <b>"Instalar aplicación"</b> o <b>"Agregar a pantalla principal"</b>.', 'Confirme. Le queda el ícono de ' + nombreApp + ' como cualquier app.'];
+      var fondo = document.createElement('div'); fondo.className = 'sec-modal-fondo';
+      fondo.innerHTML = '<div class="sec-modal" role="dialog" aria-modal="true"><h3>Instalar ' + nombreApp + '</h3><ol class="sec-pasos-inst">' + pasos.map(function (x) { return '<li>' + x + '</li>'; }).join('') + '</ol><div class="sec-modal-botones"><button class="sec-btn-si" type="button">Entendido</button></div></div>';
+      fondo.querySelector('.sec-btn-si').onclick = function () { fondo.remove(); };
+      document.body.appendChild(fondo);
+    };
+    window.instalarApp = function () {
+      if (instalarEvt) {
+        instalarEvt.prompt();
+        instalarEvt.userChoice.then(function () { instalarEvt = null; var b = document.getElementById('sec-instalar'); if (b) b.remove(); }).catch(function () {});
+      } else instruccionesInstalar();
+    };
+    var mostrarInstalar = function () {
+      if (instalada() || document.getElementById('sec-instalar') || !document.body) return;
+      var hasta = 0; try { hasta = Number(localStorage.getItem('sec_instalar_luego') || 0); } catch (e) {}
+      if (Date.now() < hasta) return;
+      var b = document.createElement('div'); b.className = 'sec-instalar'; b.id = 'sec-instalar';
+      b.innerHTML = '<img src="icon-192.png" alt=""><div style="flex:1"><b>Instale la app en su celular</b>Quedará con su ícono, sin tener que abrir el enlace.</div><button class="si" type="button">Instalar</button><button class="no" type="button" aria-label="Ahora no">×</button>';
+      b.querySelector('.si').onclick = window.instalarApp;
+      b.querySelector('.no').onclick = function () { try { localStorage.setItem('sec_instalar_luego', String(Date.now() + 3 * 864e5)); } catch (e) {} b.remove(); };
+      document.body.appendChild(b);
+    };
+    document.addEventListener('DOMContentLoaded', function () { setTimeout(mostrarInstalar, 4000); });
+  }
 })();
