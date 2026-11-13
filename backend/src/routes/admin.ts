@@ -9,8 +9,33 @@ import { liberarServiciosDe } from '../services/profesionalBaja'
 import { marcarCambio } from '../utils/cambios'
 import { enviarEnlaceClave, SUPERADMIN_CORREO } from '../services/cuentas'
 import { PERFIL_IDS, PERFILES, documentosAlDia, textoDocumentos, DOCUMENTOS, sacarDelTurnoSiFaltanDocs } from '../services/catalogo'
+import { enviarCorreo } from '../utils/correo'
+import { APP_URL } from '../utils/config'
 import bcrypt from 'bcryptjs'
 import crypto from 'crypto'
+
+// Le avisa a la profesional (al celular y al correo) que la IPS aprobó o no su cuenta, y qué sigue
+async function avisarVerificacion(profesionalId: string, estado: 'aprobado' | 'rechazado') {
+  const p = await prisma.profesional.findUnique({ where: { id: profesionalId }, select: { usuario: { select: { id: true, email: true, nombreCompleto: true } } } })
+  if (!p?.usuario) return
+  const url = APP_URL + '/app-enfermero.html'
+  const nombre = (p.usuario.nombreCompleto || '').split(' ')[0].replace(/[<>&"']/g, '')
+  const { notificarUsuario } = await import('./push')
+  const titulo = estado === 'aprobado' ? '✅ Su cuenta en Salud en Casa fue aprobada' : 'Su cuenta en Salud en Casa no fue aprobada'
+  const cuerpo = estado === 'aprobado'
+    ? 'Ya puede trabajar: abra la app y toque "Disponible" (arriba a la derecha) para recibir solicitudes de pacientes cerca de usted.'
+    : 'La Clínica Reina Elizabeth IPS no aprobó su registro. Escríbanos por WhatsApp al 312 888 6611 para más información.'
+  notificarUsuario(p.usuario.id, { titulo, cuerpo, url }).catch(() => {})
+  enviarCorreo(p.usuario.email, titulo, `
+    <div style="font-family:Arial,sans-serif;max-width:480px;margin:auto;color:#1C2B39">
+      <div style="background:#0B4F8A;color:#fff;padding:14px 18px;border-bottom:4px solid #14A38B;font-size:20px;font-weight:bold">Salud en Casa <span style="font-weight:normal;font-size:13px;opacity:.8">· Clínica Reina Elizabeth IPS</span></div>
+      <div style="padding:18px">
+        <p>Hola, ${nombre}.</p><p>${cuerpo}</p>
+        ${estado === 'aprobado' ? `<p><a href="${url}" style="display:inline-block;background:#0B4F8A;color:#fff;padding:12px 20px;border-radius:8px;text-decoration:none;font-weight:bold">Abrir la app</a></p>` : ''}
+      </div>
+      <p style="font-size:11px;color:#8A979D;text-align:center;border-top:1px solid #DCE5EE;padding-top:10px">Tecnología SkyNet Genesis · contacto@skynetgenesis.com · WhatsApp 304 437 5758</p>
+    </div>`).catch(() => {})
+}
 
 const pag = (max: number) => ({
   page: z.coerce.number().int().min(1).default(1),
@@ -131,6 +156,7 @@ export async function adminRoutes(app: FastifyInstance) {
     })
     if (estado !== 'aprobado') await liberarServiciosDe(id)
     else marcarCambio()
+    if (estado === 'aprobado' || estado === 'rechazado') avisarVerificacion(id, estado).catch(() => {})
     return actualizado
   })
 
