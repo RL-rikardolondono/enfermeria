@@ -622,6 +622,21 @@ async function pintarPasosAlta(miPerfil) {
   }).join('');
 }
 
+// Profesional aprobada pero fuera de turno: decirle claramente qué hacer
+function pintarListo(mostrar) {
+  let el = document.getElementById('aviso-listo');
+  if (!mostrar) { if (el) el.remove(); return; }
+  if (!el) {
+    el = document.createElement('div'); el.id = 'aviso-listo'; el.className = 'aviso-pendiente'; el.style.display = 'block';
+    el.style.background = '#E3F6F2';
+    el.innerHTML = '<div class="aviso-pendiente-titulo">✅ Su cuenta está aprobada</div>' +
+      '<div class="aviso-pendiente-texto">Para recibir solicitudes de pacientes cerca de usted, póngase en turno. Deje la app abierta y permita las notificaciones y la ubicación.</div>' +
+      '<button class="btn-main" style="margin-top:10px" onclick="toggleDisponible()">Ponerme Disponible</button>';
+    const aviso = document.getElementById('aviso-pendiente');
+    aviso.parentNode.insertBefore(el, aviso.nextSibling);
+  }
+}
+
 function irADocumentos() {
   const btn = document.querySelector('.nav-btn[data-pag="perfil"]');
   showPage('perfil', btn); loadPerfil();
@@ -660,6 +675,7 @@ async function loadInicio() {
     const aprobado = miPerfil.estadoVerificacion === 'aprobado';
     aviso.style.display = aprobado ? 'none' : 'block';
     if (!aprobado && miPerfil.estadoVerificacion !== 'rechazado') pintarPasosAlta(miPerfil);
+    pintarListo(aprobado && !disponible);
     if (miPerfil.estadoVerificacion === 'rechazado') {
       aviso.querySelector('.aviso-pendiente-titulo').textContent = 'Cuenta no aprobada';
       aviso.querySelector('.aviso-pendiente-texto').textContent = 'La IPS no aprobó su registro. Escríbanos por WhatsApp para más información.';
@@ -1069,6 +1085,7 @@ function pintarDisponible() {
   const hora = fin ? fin.toLocaleTimeString('es-CO', {hour:'2-digit', minute:'2-digit', timeZone:'America/Bogota'}) : '';
   document.getElementById('status-btn').title = fin ? 'En turno hasta las ' + hora : 'Toque para iniciar su turno';
   const tf = document.getElementById('turno-fin'); tf.hidden = !fin; tf.textContent = fin ? 'En turno hasta las ' + hora : '';
+  if (disponible && typeof pintarListo === 'function') pintarListo(false);
 }
 var avisosActivos = false;
 async function toggleDisponible() {
