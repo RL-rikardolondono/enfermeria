@@ -1,14 +1,54 @@
 {
-  "name": "Salud en Casa - Pacientes",
-  "short_name": "Salud en Casa",
-  "start_url": "app-paciente.html",
-  "scope": "./app-paciente.html",
+  "lang": "es-CO",
+  "dir": "ltr",
   "display": "standalone",
+  "orientation": "portrait",
   "background_color": "#F4F8FB",
   "theme_color": "#0B4F8A",
-  "lang": "es-CO",
+  "scope": "./app-paciente.html",
+  "categories": [
+    "medical",
+    "health"
+  ],
   "icons": [
-    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
-    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "id": "/app-paciente.html",
+  "name": "Salud en Casa",
+  "short_name": "Salud en Casa",
+  "start_url": "app-paciente.html",
+  "description": "Pida enfermería y atención de salud a domicilio en Santa Marta. Elija un profesional verificado por la Clínica Reina Elizabeth IPS, pague seguro y siga su servicio en tiempo real.",
+  "screenshots": [
+    {
+      "src": "captura-paciente-1.jpg",
+      "sizes": "1080x2338",
+      "type": "image/jpeg",
+      "form_factor": "narrow",
+      "label": "Pida su servicio de salud en casa"
+    },
+    {
+      "src": "captura-paciente-2.jpg",
+      "sizes": "1080x2338",
+      "type": "image/jpeg",
+      "form_factor": "narrow",
+      "label": "Siga a su profesional paso a paso"
+    }
   ]
 }
