@@ -205,6 +205,27 @@ export async function pagosRoutes(app: FastifyInstance) {
     return pago || { estado: 'sin_pago' }
   })
 
+  // GET /api/pagos/mis-ganancias — el profesional ve lo que le deben y lo que ya le pagaron
+  app.get('/mis-ganancias', { preHandler: requerirRol('profesional') }, async (request, reply) => {
+    const prof = await prisma.profesional.findUnique({ where: { usuarioId: request.usuario.id }, select: { id: true, banco: true, cuentaBancaria: true, tipoCuenta: true } })
+    if (!prof) return reply.status(404).send({ error: 'Perfil no encontrado' })
+    const pagos = await prisma.pago.findMany({
+      where: { estado: 'aprobado', servicio: { profesionalId: prof.id } },
+      orderBy: [{ createdAt: 'desc' }],
+      take: 100,
+      select: { id: true, monto: true, valorProfesional: true, estadoLiquidacion: true, transferidoEn: true, liberadoEn: true, createdAt: true, servicio: { select: { tipo: true, fechaFin: true, estado: true } } },
+    })
+    let porCobrar = 0, enCurso = 0, transferido = 0
+    const items = pagos.map((p: any) => {
+      const valor = p.valorProfesional != null ? Number(p.valorProfesional) : calcularReparto(Number(p.monto)).valorProfesional
+      if (p.estadoLiquidacion === 'liberado') porCobrar += valor
+      else if (p.estadoLiquidacion === 'retenido') enCurso += valor
+      else if (p.estadoLiquidacion === 'transferido') transferido += valor
+      return { id: p.id, tipo: p.servicio?.tipo, fecha: p.servicio?.fechaFin || p.createdAt, valor, estado: p.estadoLiquidacion, transferidoEn: p.transferidoEn }
+    })
+    return { items, porCobrar, enCurso, transferido, cuenta: { banco: prof.banco, tipoCuenta: prof.tipoCuenta, numero: prof.cuentaBancaria } }
+  })
+
   // ── Liquidaciones a profesionales (solo administrador) ──────────────
 
   // GET /api/pagos/liquidaciones?estado=liberado
@@ -258,6 +279,11 @@ export async function pagosRoutes(app: FastifyInstance) {
       data: { estadoLiquidacion: 'transferido', transferidoEn: new Date() },
     })
     if (r.count === 0) return reply.status(409).send({ error: 'Solo se pueden marcar pagos liberados' })
+    // Aviso a la profesional: ya le pagaron
+    const p = await prisma.pago.findUnique({ where: { id }, select: { valorProfesional: true, servicio: { select: { profesional: { select: { usuarioId: true } } } } } }).catch(() => null)
+    const uid = p?.servicio?.profesional?.usuarioId
+    if (uid) notificarUsuario(uid, { titulo: 'Le transferimos su pago', cuerpo: 'La IPS le transfirió $' + Number(p!.valorProfesional || 0).toLocaleString('es-CO') + '. Véalo en Perfil → Mis ganancias.', url: `${APP_URL}/app-enfermero.html` }).catch(() => {})
+    marcarCambio()
     return { ok: true }
   })
 
