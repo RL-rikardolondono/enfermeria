@@ -77,6 +77,32 @@
   .aviso-pendiente{background:var(--amber-dim);border:1px solid var(--amber);border-radius:var(--radius-sm);padding:14px 16px;margin-bottom:16px;display:none;}
   .aviso-pendiente-titulo{font-size:13px;font-weight:700;color:var(--amber);margin-bottom:4px;}
   .aviso-pendiente-texto{font-size:12px;color:var(--text);line-height:1.5;}
+  .marca-app{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+  .marca-app .ico{width:44px;height:44px;border-radius:12px;background:var(--teal);color:#fff;display:flex;align-items:center;justify-content:center;font-size:24px;flex:none}
+  .marca-app b{display:block;font-family:'Barlow Condensed',sans-serif;font-size:24px;color:var(--teal);line-height:1}
+  .marca-app span{font-size:12px;color:var(--muted)}
+  .auth-top .marca-app b{color:#fff}
+  .auth-top .marca-app span{color:rgba(255,255,255,.88)}
+  .auth-top .marca-app .ico{background:#fff;color:var(--teal)}
+  .auth-top a{color:#fff!important;text-decoration:underline}
+  .topbar-marca{font-size:11px;font-weight:700;color:var(--teal);letter-spacing:.5px}
+  .btn-ayuda{width:34px;height:34px;border-radius:50%;border:1px solid var(--border);background:#fff;color:var(--teal);font-weight:800;font-size:16px;cursor:pointer;flex:none}
+  .pasos{list-style:none;margin:8px 0 0;padding:0}
+  .pasos li{display:flex;gap:10px;align-items:flex-start;padding:8px 0;border-top:1px solid rgba(14,133,113,.2);font-size:13px;color:var(--text)}
+  .pasos li:first-child{border-top:0}
+  .pasos .chk{width:22px;height:22px;border-radius:50%;flex:none;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;border:2px solid var(--amber);color:var(--amber);background:#fff}
+  .pasos li.ok .chk{background:var(--amber);color:#fff}
+  .pasos li.ok .txt{color:var(--muted);text-decoration:line-through}
+  .pasos li.ahora .txt b{color:var(--teal)}
+  .pasos button{margin-top:6px;padding:8px 12px;border:0;border-radius:8px;background:var(--teal);color:#fff;font-weight:700;font-size:13px;cursor:pointer}
+  .guia-fondo{position:fixed;inset:0;background:rgba(28,43,57,.55);z-index:500;display:flex;align-items:flex-end;justify-content:center}
+  .guia{background:#fff;width:100%;max-width:430px;border-radius:18px 18px 0 0;padding:22px 20px calc(20px + var(--safe-bottom));max-height:92vh;overflow:auto}
+  .guia h2{font-family:'Barlow Condensed',sans-serif;font-size:24px;color:var(--teal);margin:0 0 4px}
+  .guia p.sub{font-size:13px;color:var(--muted);margin:0 0 12px}
+  .guia-paso{display:flex;gap:12px;padding:10px 0;border-top:1px solid var(--border)}
+  .guia-paso .n{width:40px;height:40px;border-radius:12px;background:var(--teal-dim);display:flex;align-items:center;justify-content:center;font-size:22px;flex:none}
+  .guia-paso b{display:block;font-size:14px;color:var(--text)}
+  .guia-paso span{font-size:13px;color:var(--muted);line-height:1.45}
   .section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
   .section-title{font-family:'Barlow Condensed',sans-serif;font-size:16px;color:var(--white);}
   .badge{font-size:11px;font-weight:700;padding:4px 10px;border-radius:20px;}
@@ -200,8 +226,9 @@
 
 <div class="screen" id="screen-auth">
   <div class="auth-top">
+    <div class="marca-app"><div class="ico">🩺</div><div><b>Salud en Casa</b><span>App para enfermeras y profesionales de la salud a domicilio</span></div></div>
     <h1>Acceso profesional</h1>
-    <p>Enfermería, medicina y terapias a domicilio con la Clínica Reina Elizabeth IPS</p>
+    <p>Reciba solicitudes de pacientes cerca de usted, ofrézcase y atienda a domicilio con la Clínica Reina Elizabeth IPS. <a href="#" onclick="mostrarGuia();return false" style="color:var(--teal);font-weight:700">¿Cómo funciona?</a></p>
     <div class="auth-tabs">
       <button class="auth-tab active" onclick="switchTab('login')">Ingresar</button>
       <button class="auth-tab" onclick="switchTab('registro')">Registrarse</button>
@@ -259,11 +286,13 @@
 <div class="screen" id="screen-app">
   <div class="topbar">
     <div class="topbar-left">
+      <div class="topbar-marca">🩺 SALUD EN CASA · PROFESIONALES</div>
       <div class="topbar-greeting" id="app-rol">Profesional</div>
       <div class="topbar-greeting" id="turno-fin" style="color:#0E8571;font-weight:700" hidden></div>
       <div class="topbar-name" id="app-nombre">Profesional</div>
     </div>
     <div class="topbar-right">
+      <button class="btn-ayuda" onclick="mostrarGuia()" aria-label="¿Cómo funciona la app?" title="¿Cómo funciona?">?</button>
       <button class="status-pill ocupado" id="status-btn" onclick="toggleDisponible()">
         <div class="status-dot"></div>
         <span id="status-label">No disponible</span>
@@ -275,6 +304,7 @@
     <div class="aviso-pendiente" id="aviso-pendiente">
       <div class="aviso-pendiente-titulo">⏳ Cuenta pendiente de verificación</div>
       <div class="aviso-pendiente-texto">Su cuenta está siendo revisada por la Clínica Reina Elizabeth IPS. Una vez aprobada podrá ver y aceptar solicitudes de servicio.</div>
+      <ol class="pasos" id="pasos-alta"></ol>
     </div>
     <div class="stats-row">
       <div class="stat-card"><div class="stat-value" id="stat-hoy">0</div><div class="stat-label">Hoy</div></div>
@@ -515,6 +545,7 @@ function initApp() {
   document.getElementById('app-nombre').textContent = nombre.split(' ')[0];
   try { history.replaceState({ pag: 'inicio', base: true }, ''); history.pushState({ pag: 'inicio' }, ''); } catch (e) {}
   loadInicio();
+  try { if (!localStorage.getItem('re_e_guia_vista')) { mostrarGuia(); localStorage.setItem('re_e_guia_vista', '1'); } } catch (e) {}
   if (refreshInterval) refreshInterval();
   // Mientras está "Disponible" o atiende un servicio, la app sigue pendiente de cambios aunque no la toque
   refreshInterval = vigilarCambios(API, function(){ if (document.getElementById('page-inicio').classList.contains('active')) loadSolicitudes(); }, 15000, 5 * 60 * 1000, function(){ return disponible || !!servicioActivoId; });
@@ -561,6 +592,60 @@ async function obtenerMiPerfil() {
   } catch(e) { return { sinRed: true }; }
 }
 
+// Pasos para empezar (profesional recién registrada): qué lleva hecho y qué sigue
+async function pintarPasosAlta(miPerfil) {
+  const ol = document.getElementById('pasos-alta'); if (!ol) return;
+  const aviso = document.getElementById('aviso-pendiente');
+  aviso.querySelector('.aviso-pendiente-titulo').textContent = '👋 Bienvenida(o). Así empieza a trabajar:';
+  aviso.querySelector('.aviso-pendiente-texto').textContent = 'Siga estos pasos. Cuando la IPS apruebe su cuenta, le llegarán solicitudes de pacientes.';
+  let subidos = 0, total = 6, revisando = false, alDia = false;
+  try {
+    const r = await fetch(API + '/api/profesionales/mis-documentos', { headers: { 'Authorization': 'Bearer ' + token } });
+    const d = await r.json();
+    const req = (d.requeridos || []).filter(function(x){ return x.obligatorio; });
+    total = req.length || total;
+    const tipos = {}; (d.items || []).forEach(function(x){ if (x.estado !== 'rechazado') tipos[x.tipo] = true; });
+    subidos = req.filter(function(x){ return tipos[x.tipo]; }).length;
+    alDia = !!(d.alDia && d.alDia.ok);
+    revisando = subidos >= total && !alDia;
+  } catch (e) {}
+  const docsOk = subidos >= total;
+  const pasos = [
+    { ok: true, t: '<b>Cuenta creada</b>' },
+    { ok: docsOk, t: '<b>Suba sus documentos</b> (' + subidos + ' de ' + total + '): foto, cédula, tarjeta o certificado, RETHUS, póliza y vacunas.', boton: docsOk ? '' : '<button onclick="irADocumentos()">Subir documentos</button>' },
+    { ok: false, t: '<b>La IPS revisa y aprueba su cuenta</b>' + (docsOk ? ' — ya puede esperar, le avisamos.' : ' (después de subir los documentos).') },
+    { ok: false, t: '<b>Toque "Disponible"</b> arriba a la derecha cuando quiera recibir solicitudes de pacientes cerca de usted.' },
+  ];
+  let ahora = pasos.findIndex(function(p){ return !p.ok; });
+  ol.innerHTML = pasos.map(function(p, i){
+    return '<li class="' + (p.ok ? 'ok' : (i === ahora ? 'ahora' : '')) + '"><div class="chk">' + (p.ok ? '✓' : (i + 1)) + '</div><div class="txt">' + p.t + (p.boton ? '<br>' + p.boton : '') + '</div></li>';
+  }).join('');
+}
+
+function irADocumentos() {
+  const btn = document.querySelector('.nav-btn[data-pag="perfil"]');
+  showPage('perfil', btn); loadPerfil();
+  setTimeout(function(){ const e = document.getElementById('docs-estado'); if (e) { const y = e.getBoundingClientRect().top + window.scrollY - 150; window.scrollTo({ top: y, behavior: 'smooth' }); } }, 400);
+}
+
+// Guía corta de cómo funciona la app (sale la primera vez y con el botón "?")
+function mostrarGuia() {
+  if (document.getElementById('guia-fondo')) return;
+  const f = document.createElement('div'); f.className = 'guia-fondo'; f.id = 'guia-fondo';
+  const pasos = [
+    ['🔔', 'Póngase "Disponible"', 'Cuando quiera trabajar, toque "Disponible". Le llegan al celular las solicitudes de pacientes cerca de usted (curaciones, inyectables, control de signos…).'],
+    ['🙋', 'Ofrézcase', 'Antes de elegir, solo ve el tipo de servicio y el barrio. Si le sirve, toque "Ofrecerme". Las citas programadas las ve aunque no esté en turno.'],
+    ['✅', 'El paciente la elige y paga', 'El paciente ve su foto y su perfil, la elige y paga por la app. Ahí usted ve la dirección. Nadie más tiene que autorizar.'],
+    ['🏠', 'Atienda y registre', 'Vaya a la casa, pida el código de 4 números al llegar, atienda y registre la atención. La IPS le paga su parte.'],
+  ];
+  f.innerHTML = '<div class="guia" role="dialog" aria-modal="true" aria-label="Cómo funciona Salud en Casa"><h2>¿Cómo funciona Salud en Casa?</h2><p class="sub">Es como inDrive, pero para atención de salud a domicilio, con la Clínica Reina Elizabeth IPS.</p>' +
+    pasos.map(function(p, i){ return '<div class="guia-paso"><div class="n">' + p[0] + '</div><div><b>' + (i + 1) + '. ' + p[1] + '</b><span>' + p[2] + '</span></div></div>'; }).join('') +
+    '<p class="sub" style="margin-top:10px">Para aplicar medicamentos o inyecciones el paciente sube la orden médica y usted la ve antes de ir. La IPS solo aprueba su cuenta y sus documentos.</p>' +
+    '<button class="btn-main" onclick="document.getElementById(\'guia-fondo\').remove()">Entendido</button></div>';
+  f.addEventListener('click', function(e){ if (e.target === f) f.remove(); });
+  document.body.appendChild(f);
+}
+
 async function loadInicio() {
   // Cargar perfil para verificar estado actual
   const miPerfil = await obtenerMiPerfil();
@@ -574,6 +659,7 @@ async function loadInicio() {
     pintarDisponible();
     const aprobado = miPerfil.estadoVerificacion === 'aprobado';
     aviso.style.display = aprobado ? 'none' : 'block';
+    if (!aprobado && miPerfil.estadoVerificacion !== 'rechazado') pintarPasosAlta(miPerfil);
     if (miPerfil.estadoVerificacion === 'rechazado') {
       aviso.querySelector('.aviso-pendiente-titulo').textContent = 'Cuenta no aprobada';
       aviso.querySelector('.aviso-pendiente-texto').textContent = 'La IPS no aprobó su registro. Escríbanos por WhatsApp para más información.';
