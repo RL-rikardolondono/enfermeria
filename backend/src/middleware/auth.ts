@@ -102,9 +102,9 @@ export function requerirRol(...roles: string[]) {
 // ── Perfiles dentro de la IPS (separación de funciones: quien aprueba profesionales no paga, quien paga no fija tarifas) ──
 // superadmin (o cuenta de administración antigua sin perfil): todo.
 export const PERMISOS_IPS: Record<string, string[]> = {
-  superadmin: ['resumen', 'servicios', 'profesionales', 'pacientes', 'quejas', 'tarifas', 'pagos', 'cuentas'],
-  coordinador: ['resumen', 'servicios', 'profesionales', 'pacientes', 'quejas'],
-  tesoreria: ['resumen', 'pagos'],
+  superadmin: ['resumen', 'servicios', 'profesionales', 'pacientes', 'quejas', 'tarifas', 'pagos', 'cuentas', 'facturacion', 'informes', 'copias'],
+  coordinador: ['resumen', 'servicios', 'profesionales', 'pacientes', 'quejas', 'informes'],
+  tesoreria: ['resumen', 'pagos', 'facturacion', 'informes'],
 }
 export const PERFILES_IPS: Record<string, string> = { superadmin: 'Superadministrador', coordinador: 'Coordinación de servicios', tesoreria: 'Tesorería' }
 export function permisosDe(u: { rol: string; rolIps?: string | null }) {
