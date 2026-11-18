@@ -32,6 +32,10 @@
   .heroe h1 em{font-style:normal;color:#E3F6F2}
   .heroe p{max-width:620px;font-size:18px;opacity:.9;margin:0 0 26px}
   .heroe .acciones{display:flex;gap:10px;flex-wrap:wrap}
+  .heroe .envoltura{display:grid;grid-template-columns:1.15fr .85fr;gap:36px;align-items:center}
+  .heroe .foto-heroe{width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:20px;box-shadow:0 18px 40px rgba(0,0,0,.25);border:4px solid rgba(255,255,255,.18)}
+  .foto-seccion{width:100%;max-height:340px;object-fit:cover;border-radius:18px;margin:6px 0 22px;box-shadow:0 10px 26px rgba(28,43,57,.12)}
+  @media (max-width:820px){.heroe .envoltura{grid-template-columns:1fr}.heroe .foto-heroe{aspect-ratio:16/10}}
   .sellos{display:flex;gap:18px;flex-wrap:wrap;margin-top:28px;font-size:14px;opacity:.9}
   .sellos span::before{content:'✓ ';color:#E3F6F2;font-weight:700}
   section{padding:48px 0}
@@ -79,6 +83,7 @@
 
 <div class="heroe">
   <div class="envoltura">
+  <div>
     <h1>Atención de salud<br><em>en la comodidad de su casa</em></h1>
     <p>Pida enfermería, medicina general y terapias a domicilio para usted o su familia. Profesionales verificados por la Clínica Reina Elizabeth IPS, con tarifas fijas y sin sorpresas.</p>
     <div class="acciones">
@@ -86,6 +91,8 @@
       <a class="btn btn-verde" id="wa-heroe" target="_blank" rel="noopener" href="https://wa.me/573128886611">Hablar con la IPS por WhatsApp</a>
     </div>
     <div class="sellos"><span>Servicio de una IPS de Santa Marta</span><span>Profesionales verificados</span><span>Precio fijo antes de pedir</span><span>Nota clínica de cada atención</span></div>
+  </div>
+  <img class="foto-heroe" src="https://images.unsplash.com/photo-1676313027775-a5a3dca6f98b?w=1100&q=70&auto=format&fit=crop" alt="Médica examina con el estetoscopio a una niña sentada en el sofá de su casa" onerror="this.remove()">
   </div>
 </div>
 
@@ -106,6 +113,7 @@
   <div class="envoltura">
     <h2>Cómo funciona</h2>
     <p class="bajada">Usted o un familiar pueden pedir el servicio. Una misma cuenta sirve para varios pacientes de la familia.</p>
+    <img class="foto-seccion" loading="lazy" src="https://images.unsplash.com/photo-1758876023053-3aa541a0935b?w=1400&q=70&auto=format&fit=crop" alt="Mujer sonriente en la sala de su casa pidiendo un servicio desde el celular" onerror="this.remove()">
     <div class="pasos">
       <div class="paso"><h3>Pida el servicio</h3><p>Elija el servicio, el paciente y la dirección. Verá el valor y si hay profesionales disponibles en ese momento.</p></div>
       <div class="paso"><h3>Usted elige al profesional</h3><p>Los profesionales verificados que pueden ir se ofrecen; usted elige viendo sus estrellas y opiniones.</p></div>
