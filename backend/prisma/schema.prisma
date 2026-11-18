@@ -138,6 +138,9 @@ model Paciente {
   estadoCivil                String?   @map("estado_civil") @db.VarChar(50)
   nombreAcudiente            String?   @map("nombre_acudiente") @db.VarChar(200)
   telefonoAcudiente          String?   @map("telefono_acudiente") @db.VarChar(20)
+  sexo                       String?   @db.VarChar(1) // H, M o I (RIPS)
+  municipioDane              String?   @map("municipio_dane") @db.VarChar(5) // código DANE del municipio de residencia (RIPS); por defecto Santa Marta 47001
+  zonaResidencia             String?   @map("zona_residencia") @db.VarChar(2) // 01 rural, 02 urbana (RIPS)
   activo                     Boolean   @default(true)
   createdAt                  DateTime  @default(now()) @map("created_at")
   updatedAt                  DateTime  @updatedAt @map("updated_at")
@@ -171,6 +174,8 @@ model Profesional {
   banco                String?            @db.VarChar(100)
   cuentaBancaria       String?            @map("cuenta_bancaria") @db.VarChar(100)
   tipoCuenta           String?            @map("tipo_cuenta") @db.VarChar(50)
+  documentoTipo        String?            @map("documento_tipo") @db.VarChar(4) // CC, CE, PT… (RIPS y documento soporte)
+  documentoNumero      String?            @map("documento_numero") @db.VarChar(20)
   verificadoPor        String?            @map("verificado_por")
   verificadoEn         DateTime?          @map("verificado_en")
   activo               Boolean            @default(true)
@@ -248,6 +253,7 @@ model Servicio {
   recibido               Recibido?
   mensajes               Mensaje[]
   eventosSeguridad       EventoSeguridad[]
+  factura                Factura?
   @@index([estado, createdAt])
   @@index([estado, programadoPara])
   @@index([estado, buscandoHasta])
@@ -273,6 +279,7 @@ model Evolucion {
   procedimientos     String?
   impresionDiagnostica String?    @map("impresion_diagnostica")
   recomendaciones    String?
+  cie10              String?      @db.VarChar(4) // diagnóstico principal CIE-10 para los RIPS (opcional; si falta se usa el del catálogo)
   createdAt          DateTime     @default(now()) @map("created_at")
   servicio           Servicio     @relation(fields: [servicioId], references: [id], onDelete: Restrict)
   profesional        Profesional? @relation(fields: [profesionalId], references: [id], onDelete: Restrict)
@@ -292,10 +299,12 @@ model Pago {
   valorProfesional  Int?       @map("valor_profesional")
   liberadoEn        DateTime?  @map("liberado_en")
   transferidoEn     DateTime?  @map("transferido_en")
+  soporteNumero     Int?       @map("soporte_numero") // documento soporte del pago al profesional (consecutivo DS; lo asigna el servidor con bloqueo)
   createdAt         DateTime   @default(now()) @map("created_at")
   servicio          Servicio   @relation(fields: [servicioId], references: [id])
   @@index([estadoLiquidacion, createdAt])
   @@index([estado, createdAt])
+  @@index([soporteNumero])
   @@map("pagos")
 }
 
@@ -334,6 +343,12 @@ model Tarifa {
   perfiles    String[]     @default([]) // perfiles de profesional que pueden atenderlo (vacío = cualquiera)
   requiereOrden Boolean    @default(false) @map("requiere_orden") // exige foto de la orden médica
   orden       Int          @default(0)
+  // Datos para la factura electrónica de salud y los RIPS (los revisa la IPS en el panel)
+  cups        String?      @db.VarChar(6) // código CUPS de la atención
+  codServicioReps Int?     @map("cod_servicio_reps") // código del servicio habilitado en el REPS
+  finalidad   String?      @db.VarChar(2) // finalidad de la tecnología en salud (tabla RIPS)
+  causaAtencion String?    @map("causa_atencion") @db.VarChar(2) // causa o motivo de atención (tabla RIPS)
+  cie10       String?      @db.VarChar(4) // diagnóstico por defecto si el profesional no escribe uno
   updatedAt   DateTime     @updatedAt @map("updated_at")
   @@map("tarifas")
 }
@@ -476,4 +491,29 @@ model EventoSeguridad {
   @@index([estado, createdAt])
   @@index([servicioId])
   @@map("eventos_seguridad")
+}
+
+// Factura electrónica de salud (con RIPS) de cada servicio pagado; la emite Factura-IA con la llave de la IPS
+// estado: pendiente (en cola), faltan_datos, emitida (aceptada por la DIAN), rechazada, anulada (nota crédito)
+model Factura {
+  id             String    @id @default(uuid())
+  servicioId     String    @unique @map("servicio_id")
+  estado         String    @default("pendiente") @db.VarChar(20)
+  motivo         String?   @db.VarChar(1000) // por qué no se ha emitido (falta un dato, Factura-IA no conectado, la DIAN la rechazó…)
+  total          Int
+  docId          String?   @map("doc_id") @db.VarChar(80) // id del documento en Factura-IA
+  numero         String?   @db.VarChar(40)
+  cufe           String?   @db.VarChar(200)
+  cuv            String?   @db.VarChar(200) // código único de validación de los RIPS (Ministerio)
+  notaCreditoId  String?   @map("nota_credito_id") @db.VarChar(80)
+  notaCreditoNumero String? @map("nota_credito_numero") @db.VarChar(40)
+  intentos       Int       @default(0)
+  proximoIntento DateTime  @default(now()) @map("proximo_intento")
+  emitidaEn      DateTime? @map("emitida_en")
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+  servicio       Servicio  @relation(fields: [servicioId], references: [id], onDelete: Restrict)
+  @@index([estado, proximoIntento])
+  @@index([createdAt])
+  @@map("facturas")
 }
