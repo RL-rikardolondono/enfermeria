@@ -5,6 +5,7 @@ import { autenticar, requerirRol } from '../middleware/auth'
 import { calcularTarifa } from '../services/tarifas'
 import { notificarProfesionalesDisponibles, notificarUsuario } from './push'
 import { liberarPago, marcarReembolso, PAGO_OBLIGATORIO } from '../services/liquidacion'
+import { encolarFactura } from '../services/facturacion'
 import { APP_URL } from '../utils/config'
 import { marcarCambio } from '../utils/cambios'
 import { vencerPendientesAntiguas, buscandoVigente, finBusqueda, MINUTOS_EXTRA_OFERTA } from '../services/vencimiento'
@@ -908,6 +909,7 @@ export async function serviciosRoutes(app: FastifyInstance) {
     // Pago retenido: se libera al completar con nota clínica; se marca para reembolso si se cancela
     if (estado === 'completado') {
       await liberarPago(id)
+      encolarFactura(id).catch(() => {}) // factura electrónica de salud con RIPS (queda en cola si no se puede emitir aún)
       if (servicio.profesionalId) {
         await prisma.profesional.update({ where: { id: servicio.profesionalId }, data: { totalServicios: { increment: 1 } } })
       }
@@ -932,6 +934,7 @@ export async function serviciosRoutes(app: FastifyInstance) {
       procedimientos: z.string().trim().max(5000).optional(),
       impresionDiagnostica: z.string().trim().max(1000).optional(),
       recomendaciones: z.string().trim().max(3000).optional(),
+      cie10: z.string().trim().toUpperCase().regex(/^[A-Z][0-9]{2}[0-9A-Z]?$/, 'Diagnóstico CIE-10 no válido (ej. Z480)').transform((v) => v.length === 3 ? v + 'X' : v).optional(),
     }).parse(request.body)
     if (!body.observaciones && !body.procedimientos) {
       return reply.status(400).send({ error: 'Escriba las observaciones o los procedimientos realizados' })

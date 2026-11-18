@@ -5,7 +5,10 @@ import { autenticar, tienePermiso } from '../middleware/auth'
 
 // Datos clínicos y de contacto que el titular puede registrar para cada paciente
 const datosPaciente = {
-  documentoTipo: z.string().max(50).optional(),
+  documentoTipo: z.enum(['CC', 'TI', 'RC', 'CE', 'PA', 'PT', 'PE', 'CN', 'MS', 'AS']).optional(),
+  sexo: z.enum(['H', 'M', 'I']).optional(),
+  municipioDane: z.string().regex(/^\d{5}$/, 'Código DANE de 5 números').optional(),
+  zonaResidencia: z.enum(['01', '02']).optional(),
   documentoNumero: z.string().max(50).optional(),
   fechaNacimiento: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Fecha inválida (AAAA-MM-DD)')
     .refine((v) => !isNaN(Date.parse(v)) && new Date(v) <= new Date(), 'Fecha inválida').optional(),

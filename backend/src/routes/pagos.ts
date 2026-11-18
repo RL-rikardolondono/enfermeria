@@ -1,7 +1,7 @@
 import { FastifyInstance } from 'fastify'
 import { z } from 'zod'
 import { prisma } from '../utils/prisma'
-import { autenticar, requerirRol, requerirPermiso } from '../middleware/auth'
+import { autenticar, requerirRol, requerirPermiso, tienePermiso } from '../middleware/auth'
 import { calcularReparto, PAGO_OBLIGATORIO, marcarReembolso } from '../services/liquidacion'
 import { avisarQueja } from '../services/quejas'
 import { marcarCambio } from '../utils/cambios'
@@ -213,7 +213,7 @@ export async function pagosRoutes(app: FastifyInstance) {
       where: { estado: 'aprobado', servicio: { profesionalId: prof.id } },
       orderBy: [{ createdAt: 'desc' }],
       take: 100,
-      select: { id: true, monto: true, valorProfesional: true, estadoLiquidacion: true, transferidoEn: true, liberadoEn: true, createdAt: true, servicio: { select: { tipo: true, fechaFin: true, estado: true } } },
+      select: { id: true, monto: true, valorProfesional: true, estadoLiquidacion: true, transferidoEn: true, liberadoEn: true, soporteNumero: true, createdAt: true, servicio: { select: { tipo: true, fechaFin: true, estado: true } } },
     })
     let porCobrar = 0, enCurso = 0, transferido = 0
     const items = pagos.map((p: any) => {
@@ -221,7 +221,7 @@ export async function pagosRoutes(app: FastifyInstance) {
       if (p.estadoLiquidacion === 'liberado') porCobrar += valor
       else if (p.estadoLiquidacion === 'retenido') enCurso += valor
       else if (p.estadoLiquidacion === 'transferido') transferido += valor
-      return { id: p.id, tipo: p.servicio?.tipo, fecha: p.servicio?.fechaFin || p.createdAt, valor, estado: p.estadoLiquidacion, transferidoEn: p.transferidoEn }
+      return { id: p.id, tipo: p.servicio?.tipo, fecha: p.servicio?.fechaFin || p.createdAt, valor, estado: p.estadoLiquidacion, transferidoEn: p.transferidoEn, soporte: p.soporteNumero ? 'DS-' + String(p.soporteNumero).padStart(6, '0') : null }
     })
     return { items, porCobrar, enCurso, transferido, cuenta: { banco: prof.banco, tipoCuenta: prof.tipoCuenta, numero: prof.cuentaBancaria } }
   })
@@ -274,9 +274,14 @@ export async function pagosRoutes(app: FastifyInstance) {
   // PUT /api/pagos/liquidaciones/:id/transferido — la IPS ya pagó al profesional
   app.put('/liquidaciones/:id/transferido', { preHandler: requerirPermiso('pagos') }, async (request, reply) => {
     const { id } = z.object({ id: z.string().uuid() }).parse(request.params)
-    const r = await prisma.pago.updateMany({
-      where: { id, estadoLiquidacion: 'liberado' },
-      data: { estadoLiquidacion: 'transferido', transferidoEn: new Date() },
+    // Atómico: se marca transferido y recibe el siguiente número de documento soporte (DS) en la misma operación
+    const r = await prisma.$transaction(async (tx: any) => {
+      await tx.$queryRaw`SELECT pg_advisory_xact_lock(hashtext('soporte-ds'))::text`
+      const u = await tx.pago.updateMany({ where: { id, estadoLiquidacion: 'liberado' }, data: { estadoLiquidacion: 'transferido', transferidoEn: new Date() } })
+      if (u.count === 0) return u
+      const m = await tx.pago.aggregate({ _max: { soporteNumero: true } })
+      await tx.pago.update({ where: { id }, data: { soporteNumero: (m._max.soporteNumero || 0) + 1 } })
+      return u
     })
     if (r.count === 0) return reply.status(409).send({ error: 'Solo se pueden marcar pagos liberados' })
     // Aviso a la profesional: ya le pagaron
@@ -285,6 +290,43 @@ export async function pagosRoutes(app: FastifyInstance) {
     if (uid) notificarUsuario(uid, { titulo: 'Le transferimos su pago', cuerpo: 'La IPS le transfirió $' + Number(p!.valorProfesional || 0).toLocaleString('es-CO') + '. Véalo en Perfil → Mis ganancias.', url: `${APP_URL}/app-enfermero.html` }).catch(() => {})
     marcarCambio()
     return { ok: true }
+  })
+
+  // GET /api/pagos/soporte/:id — documento soporte del pago al profesional (página para imprimir o guardar en PDF).
+  // Lo ven Tesorería/Superadministrador y el propio profesional. La transmisión electrónica a la DIAN se hará con Factura-IA
+  // cuando tenga el módulo de documento soporte; mientras tanto es el soporte interno del egreso.
+  app.get('/soporte/:id', { preHandler: autenticar }, async (request, reply) => {
+    const { id } = z.object({ id: z.string().uuid() }).parse(request.params)
+    const p = await prisma.pago.findUnique({ where: { id }, include: { servicio: { select: { id: true, tipo: true, fechaFin: true,
+      profesional: { select: { usuarioId: true, documentoTipo: true, documentoNumero: true, banco: true, tipoCuenta: true, cuentaBancaria: true, perfil: true, usuario: { select: { nombreCompleto: true, telefono: true, email: true } } } } } } } })
+    if (!p || !p.soporteNumero) return reply.status(404).send({ error: 'Este pago aún no tiene documento soporte (se crea al marcarlo como transferido).' })
+    const u = request.usuario
+    const esDueno = u.rol === 'profesional' && p.servicio.profesional?.usuarioId === u.id
+    if (!esDueno && !tienePermiso(u, 'pagos')) return reply.status(404).send({ error: 'No encontrado' })
+    const t = await prisma.tarifa.findUnique({ where: { tipo: p.servicio.tipo }, select: { nombre: true } })
+    const pr = p.servicio.profesional
+    const e = (v: unknown) => String(v ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c] as string))
+    const $ = (n: number) => '$' + Math.round(n).toLocaleString('es-CO')
+    const f = (d?: Date | null) => d ? new Date(d.getTime() - 5 * 3600 * 1000).toISOString().slice(0, 16).replace('T', ' ') : ''
+    const cuenta = pr?.cuentaBancaria ? (pr.banco || '') + (pr.tipoCuenta ? ' · ' + pr.tipoCuenta : '') + ' · ' + pr.cuentaBancaria : 'No registrada'
+    const num = 'DS-' + String(p.soporteNumero).padStart(6, '0')
+    reply.header('Content-Type', 'text/html; charset=utf-8')
+    return reply.send(`<!doctype html><html lang="es"><head><meta charset="utf-8"><title>${num} · Salud en Casa</title><meta name="viewport" content="width=device-width,initial-scale=1">
+<style>body{font-family:'Public Sans',Arial,sans-serif;color:#1C2B39;max-width:760px;margin:24px auto;padding:0 16px}h1{font-family:'Barlow Condensed',Arial,sans-serif;color:#0B4F8A;margin:0}
+.cab{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:4px solid #14A38B;padding-bottom:12px;margin-bottom:16px}table{width:100%;border-collapse:collapse;margin:10px 0}td,th{border:1px solid #DCE5EE;padding:8px;text-align:left;font-size:14px}th{background:#E8F1FA}
+.tot{font-size:18px;font-weight:bold;color:#0B4F8A}.nota{font-size:12px;color:#5D6B78;margin-top:18px;line-height:1.5}.firmas{display:flex;gap:40px;margin-top:50px}.firmas div{flex:1;border-top:1px solid #1C2B39;padding-top:6px;font-size:13px}
+button{background:#0B4F8A;color:#fff;border:0;border-radius:8px;padding:10px 18px;font-size:15px;cursor:pointer}@media print{button{display:none}}</style></head><body>
+<button onclick="print()">🖨 Imprimir o guardar en PDF</button>
+<div class="cab"><div><h1>Documento soporte de pago</h1><div>Pago a profesional independiente · Salud en Casa</div></div><div style="text-align:right"><b style="font-size:20px">${num}</b><br>Fecha: ${e(f(p.transferidoEn))}</div></div>
+<table><tr><th colspan="2">Quien paga</th></tr><tr><td>Razón social</td><td>Reina Elizabeth IPS S.A.S. (Clínica Reina Elizabeth IPS)</td></tr><tr><td>NIT</td><td>901074496-5</td></tr><tr><td>Dirección</td><td>Calle 22 No. 18-18, Santa Marta (Magdalena) · WhatsApp 312 888 6611</td></tr></table>
+<table><tr><th colspan="2">Quien recibe (profesional no obligado a facturar)</th></tr><tr><td>Nombre</td><td>${e(pr?.usuario.nombreCompleto)}</td></tr><tr><td>Documento</td><td>${e(pr?.documentoTipo || 'CC')} ${e(pr?.documentoNumero || 'NO REGISTRADO')}</td></tr><tr><td>Contacto</td><td>${e(pr?.usuario.telefono || '')} · ${e(pr?.usuario.email)}</td></tr><tr><td>Medio de pago</td><td>${e(cuenta)}</td></tr></table>
+<table><tr><th>Concepto</th><th>Servicio</th><th>Atendido</th><th style="text-align:right">Valor</th></tr>
+<tr><td>Honorarios por atención domiciliaria: ${e(t?.nombre || p.servicio.tipo)}</td><td>${e(p.servicio.id.slice(0, 8))}</td><td>${e(f(p.servicio.fechaFin))}</td><td style="text-align:right">${$(Number(p.valorProfesional || 0))}</td></tr>
+<tr><td colspan="3" style="text-align:right">Valor pagado por el paciente: ${$(Number(p.monto))} · Parte de la IPS: ${$(Number(p.comision || 0))}</td><td></td></tr>
+<tr><td colspan="3" style="text-align:right" class="tot">Total pagado al profesional</td><td style="text-align:right" class="tot">${$(Number(p.valorProfesional || 0))}</td></tr></table>
+<div class="firmas"><div>Firma de quien paga (Tesorería)</div><div>Firma de quien recibe</div></div>
+<p class="nota">Soporte interno del pago a un profesional independiente no obligado a expedir factura. La transmisión del documento soporte electrónico a la DIAN se hará con Factura-IA cuando ese módulo esté activo para la IPS. Sin retenciones aplicadas en este documento; si la IPS debe practicarlas, se registran en su contabilidad.</p>
+<p class="nota" style="text-align:center;border-top:1px solid #DCE5EE;padding-top:8px">Tecnología SkyNet Genesis · contacto@skynetgenesis.com · WhatsApp 304 437 5758</p></body></html>`)
   })
 
   // PUT /api/pagos/liquidaciones/:id/reembolsado — la IPS devolvió el dinero al paciente

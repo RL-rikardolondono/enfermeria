@@ -24,7 +24,7 @@ async function esDuenoOAdmin(request: FastifyRequest, profesionalId: string) {
 const PERFIL_SELECT = {
   id: true, especialidad: true, perfil: true, registroProfesional: true, estadoVerificacion: true, disponible: true, disponibleDesde: true,
   calificacionPromedio: true, totalServicios: true, anosExperiencia: true, fotoUrl: true,
-  banco: true, cuentaBancaria: true, tipoCuenta: true, activo: true, createdAt: true,
+  banco: true, cuentaBancaria: true, tipoCuenta: true, documentoTipo: true, documentoNumero: true, activo: true, createdAt: true,
   usuario: { select: { nombreCompleto: true, email: true, telefono: true, fotoUrl: true } },
 } as const
 
@@ -85,6 +85,8 @@ export async function profesionalesRoutes(app: FastifyInstance) {
       banco: z.string().trim().max(100).optional(),
       cuentaBancaria: z.string().trim().max(50).optional(),
       tipoCuenta: z.string().trim().max(50).optional(),
+      documentoTipo: z.enum(['CC', 'CE', 'PA', 'PT', 'PE']).optional(),
+      documentoNumero: z.string().trim().regex(/^[0-9A-Za-z]{4,20}$/, 'Cédula no válida').optional(),
       lat: z.number().min(-90).max(90).optional(),
       lng: z.number().min(-180).max(180).optional(),
       // Encender el turno solo por /disponibilidad (revisa avisos y marca la hora); aquí solo se puede apagar
@@ -92,7 +94,7 @@ export async function profesionalesRoutes(app: FastifyInstance) {
     }).parse(request.body)
     // Separación de funciones: la cuenta bancaria la cambia el propio profesional (o el Superadministrador), nunca Coordinación
     if (request.usuario.rol === 'admin' && !tienePermiso(request.usuario, 'cuentas') &&
-      (body.banco !== undefined || body.cuentaBancaria !== undefined || body.tipoCuenta !== undefined)) {
+      (body.banco !== undefined || body.cuentaBancaria !== undefined || body.tipoCuenta !== undefined || body.documentoNumero !== undefined || body.documentoTipo !== undefined)) {
       return reply.status(403).send({ error: 'La cuenta bancaria solo la cambia el profesional desde su app (o el Superadministrador).' })
     }
 

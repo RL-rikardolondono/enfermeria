@@ -26,6 +26,12 @@ export async function tarifasRoutes(app: FastifyInstance) {
       activo: z.boolean().optional(),
       perfiles: z.array(z.enum(PERFIL_IDS)).max(10).optional(),
       requiereOrden: z.boolean().optional(),
+      // datos de la factura de salud y los RIPS
+      cups: z.string().trim().toUpperCase().regex(/^[0-9A-Z]{6}$/, 'El código CUPS tiene 6 caracteres').optional(),
+      codServicioReps: z.number().int().min(1).max(9999).optional(),
+      finalidad: z.string().regex(/^\d{2}$/, 'Finalidad: 2 números').optional(),
+      causaAtencion: z.string().regex(/^\d{2}$/, 'Causa de atención: 2 números').optional(),
+      cie10: z.string().trim().toUpperCase().regex(/^[A-Z][0-9]{2}[0-9A-Z]$/, 'Diagnóstico CIE-10 de 4 caracteres (ej. Z480)').optional(),
     }).parse(request.body)
     if (body.perfiles && !body.perfiles.length) return reply.status(400).send({ error: 'Elija al menos un perfil de profesional que pueda atender este servicio.' })
 
