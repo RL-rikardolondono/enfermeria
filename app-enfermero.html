@@ -442,6 +442,7 @@
       <div style="font-size:12px;color:var(--muted);font-weight:600;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px">Lo que dicen sus pacientes</div>
       <div id="perfil-opiniones" style="font-size:13px;color:var(--muted)">Cargando...</div>
     </div>
+    <button class="btn-main" style="margin:0 0 12px" onclick="abrirManual()">📘 Manual del profesional</button>
     <div style="text-align:center;margin:6px 0 10px;font-size:13px"><a href="legal.html" target="_blank" rel="noopener" style="color:var(--muted)">Términos y política de datos</a></div>
     <button class="btn-main" style="margin-bottom:8px" onclick="activarAvisos()">🔔 Activar avisos de nuevas solicitudes</button>
     <button class="btn-danger" onclick="doLogout()">Cerrar sesión</button>
@@ -1464,6 +1465,17 @@ async function verOrdenMedica(id, marcar) {
     aviso('Orden revisada. Ya puede salir hacia el domicilio.');
     loadInicio();
   } catch (e) { aviso(mensajeRed(e), 'error'); }
+}
+
+// Manual del usuario: el servidor entrega solo el de este perfil
+async function abrirManual() {
+  try {
+    if (window.aviso) aviso('Abriendo su manual…');
+    var r = await fetch(API + '/api/manual', { headers: { 'Authorization': 'Bearer ' + token } });
+    if (!r.ok) { var j = await r.json().catch(function(){ return null; }); aviso((j && j.error) || 'No se pudo abrir el manual', 'error'); return; }
+    var u = URL.createObjectURL(await r.blob()); var w = window.open(u, '_blank'); if (!w) location.href = u;
+    setTimeout(function(){ URL.revokeObjectURL(u); }, 120000);
+  } catch (e) { aviso(window.mensajeRed ? mensajeRed(e) : 'Sin conexión', 'error'); }
 }
 </script>
 </body>

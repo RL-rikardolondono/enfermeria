@@ -186,6 +186,7 @@
         <div class="topbar-avatar" id="user-avatar">A</div>
         <span><span id="user-name">Administrador</span><span class="user-rol">Administrador de la IPS</span></span>
       </div>
+      <button class="btn-logout" onclick="abrirManual()" title="Manual de la IPS">📘 Manual</button>
       <button class="btn-logout" onclick="doLogout()">Cerrar sesión</button>
     </div>
   </div>
@@ -1651,6 +1652,17 @@ async function bajarCopia(conArchivos, btn) {
   btn.disabled = true; var t = btn.textContent; btn.textContent = 'Preparando la copia...';
   await bajarArchivo('/api/admin/informes/copia?archivos=' + conArchivos, 'salud-en-casa-copia-' + hoyCol() + '.json.gz');
   btn.disabled = false; btn.textContent = t; setTimeout(loadInformes, 1500);
+}
+
+// Manual del usuario: el servidor entrega solo el de este perfil
+async function abrirManual() {
+  try {
+    if (window.aviso) aviso('Abriendo su manual…');
+    var r = await fetch(API + '/api/manual', { headers: { 'Authorization': 'Bearer ' + token } });
+    if (!r.ok) { var j = await r.json().catch(function(){ return null; }); aviso((j && j.error) || 'No se pudo abrir el manual', 'error'); return; }
+    var u = URL.createObjectURL(await r.blob()); var w = window.open(u, '_blank'); if (!w) location.href = u;
+    setTimeout(function(){ URL.revokeObjectURL(u); }, 120000);
+  } catch (e) { aviso(window.mensajeRed ? mensajeRed(e) : 'Sin conexión', 'error'); }
 }
 </script>
 </body>
