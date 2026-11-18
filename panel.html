@@ -220,6 +220,13 @@
         <button class="nav-item" onclick="showSection('pagos',this)">
           <span class="nav-item-icon">💳</span> Pagos
         </button>
+        <button class="nav-item" onclick="showSection('facturacion',this)">
+          <span class="nav-item-icon">🧾</span> Facturación (RIPS)
+          <span class="nav-badge" id="badge-facturas" style="display:none">0</span>
+        </button>
+        <button class="nav-item" onclick="showSection('informes',this)">
+          <span class="nav-item-icon">📈</span> Informes y copias
+        </button>
       </div>
       <div class="sidebar-section">
         <div class="sidebar-section-title">Sistema</div>
@@ -433,8 +440,8 @@
           <div class="card-body" style="padding:0">
             <div class="table-wrap">
               <table>
-                <thead><tr><th>Servicio</th><th>Precio (COP)</th><th>Quién puede atenderlo</th><th>Orden médica</th><th>Activo</th><th></th></tr></thead>
-                <tbody id="tarifas-tbody"><tr><td colspan="6"><div class="loading"><div class="spinner"></div> Cargando...</div></td></tr></tbody>
+                <thead><tr><th>Servicio</th><th>Precio (COP)</th><th>Quién puede atenderlo</th><th>Orden médica</th><th>Factura y RIPS</th><th>Activo</th><th></th></tr></thead>
+                <tbody id="tarifas-tbody"><tr><td colspan="7"><div class="loading"><div class="spinner"></div> Cargando...</div></td></tr></tbody>
               </table>
             </div>
           </div>
@@ -457,6 +464,43 @@
             </div>
           </div>
         </div>
+      </div>
+
+      <div class="section" id="section-facturacion">
+        <div class="page-header">
+          <div><div class="page-title">🧾 Facturación electrónica (con RIPS)</div><div class="page-subtitle">Cada servicio pagado y completado genera su factura electrónica de salud con los RIPS. La emite Factura-IA con los datos de la IPS ante la DIAN y el Ministerio. Si algo falta, la factura queda en cola con el motivo y se envía sola cuando se resuelve.</div></div>
+          <button class="btn btn-teal" onclick="loadFacturacion()">↻ Actualizar</button>
+        </div>
+        <div class="card" style="margin-bottom:20px"><div class="card-body" id="fia-estado"><div class="loading"><div class="spinner"></div> Revisando la conexión...</div></div></div>
+        <div class="stats-grid" id="fia-resumen" style="margin-bottom:20px"></div>
+        <div class="card">
+          <div class="card-body" style="padding:0">
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Estado</th><th>Paciente / servicio</th><th>Profesional</th><th>Valor</th><th>Factura</th><th></th></tr></thead>
+                <tbody id="fia-tbody"><tr><td colspan="6"><div class="loading"><div class="spinner"></div> Cargando...</div></td></tr></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section" id="section-informes">
+        <div class="page-header">
+          <div><div class="page-title">📈 Informes y copias de seguridad</div><div class="page-subtitle">Resumen del periodo que elija, listados para abrir en Excel y la copia completa de la información de la app.</div></div>
+        </div>
+        <div class="card" style="margin-bottom:20px"><div class="card-body" style="display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end">
+          <label style="font-size:13px;font-weight:600">Desde<br><input type="date" id="inf-desde" style="padding:8px;border:1px solid var(--border);border-radius:8px;font:inherit"></label>
+          <label style="font-size:13px;font-weight:600">Hasta<br><input type="date" id="inf-hasta" style="padding:8px;border:1px solid var(--border);border-radius:8px;font:inherit"></label>
+          <button class="btn btn-teal" onclick="loadInformes()">Ver informe</button>
+          <span style="flex:1"></span>
+          <button class="btn btn-sm" onclick="rangoInforme('mes')">Este mes</button>
+          <button class="btn btn-sm" onclick="rangoInforme('anterior')">Mes anterior</button>
+          <button class="btn btn-sm" onclick="rangoInforme('anio')">Este año</button>
+        </div></div>
+        <div id="inf-cuerpo"><div class="loading"><div class="spinner"></div> Cargando...</div></div>
+        <div class="card" style="margin-top:20px"><div class="card-header"><div class="card-title">📥 Listados para Excel</div></div><div class="card-body" style="display:flex;flex-wrap:wrap;gap:10px" id="inf-csv"></div></div>
+        <div class="card" style="margin-top:20px" id="inf-copia-card"><div class="card-header"><div class="card-title">🛟 Copia de seguridad</div></div><div class="card-body" id="inf-copia"></div></div>
       </div>
 
       <div class="section" id="section-api">
@@ -538,7 +582,7 @@ document.getElementById('login-password').addEventListener('keydown', function(e
 });
 
 var PERFIL_IPS_NOMBRE = { superadmin: 'Superadministrador de la IPS', coordinador: 'Coordinación de servicios', tesoreria: 'Tesorería' };
-var SECCION_PERMISO = { dashboard: 'resumen', servicios: 'servicios', profesionales: 'profesionales', pacientes: 'pacientes', quejas: 'quejas', tarifas: 'tarifas', pagos: 'pagos', cuentas: 'cuentas', api: 'resumen' };
+var SECCION_PERMISO = { dashboard: 'resumen', servicios: 'servicios', profesionales: 'profesionales', pacientes: 'pacientes', quejas: 'quejas', tarifas: 'tarifas', pagos: 'pagos', facturacion: 'facturacion', informes: 'informes', cuentas: 'cuentas', api: 'resumen' };
 function puede(permiso) {
   var p = currentUser && currentUser.permisos;
   return !p || p.indexOf(permiso) >= 0; // cuentas antiguas guardadas sin permisos: el servidor decide
@@ -676,6 +720,8 @@ function showSection(name, btn, desdeHistorial) {
   if (name === 'pagos') loadPagos();
   if (name === 'quejas') loadQuejas();
   if (name === 'cuentas') loadCuentas();
+  if (name === 'facturacion') loadFacturacion();
+  if (name === 'informes') loadInformes();
 }
 
 var pagQuejas = 1, pagOpiniones = 1;
@@ -836,6 +882,7 @@ async function loadPagos(pagina, filtro) {
     if (p.estadoLiquidacion === 'liberado') accion = '<button class="btn btn-teal btn-sm" onclick="marcarLiquidacion(\'' + p.id + '\',\'transferido\',this)">Marcar transferido</button>';
     if (p.estadoLiquidacion === 'revisar') accion = '<div style="font-size:12px;color:var(--muted);margin-bottom:6px">Revise el pago en el panel de Bold y devuelva el dinero al paciente.</div><button class="btn btn-teal btn-sm" onclick="marcarLiquidacion(\'' + p.id + '\',\'reembolsado\',this)">Marcar reembolsado</button>';
     if (kl === 'reembolso') accion = '<button class="btn btn-teal btn-sm" onclick="marcarLiquidacion(\'' + p.id + '\',\'reembolsado\',this)">Marcar reembolsado</button>';
+    if (p.estadoLiquidacion === 'transferido' && p.soporteNumero) accion = '<button class="btn btn-sm" onclick="verSoporte(\'' + p.id + '\')">📄 Soporte DS-' + String(p.soporteNumero).padStart(6, '0') + '</button>';
     return '<tr>' +
       '<td><strong>' + et[0] + '</strong><div style="color:var(--muted);font-size:12px">' + et[1] + '</div></td>' +
       '<td>' + (pr && pr.usuario ? esc(pr.usuario.nombreCompleto) : '—') + '</td>' +
@@ -868,7 +915,7 @@ function chip(id, texto, activo) {
 async function loadTarifas() {
   var tbody = document.getElementById('tarifas-tbody');
   var data = await cargarCatalogo();
-  if (!data || !data.items) { tbody.innerHTML = '<tr><td colspan="6">' + esc((data && data.error) || 'No se pudieron cargar las tarifas.') + '</td></tr>'; return; }
+  if (!data || !data.items) { tbody.innerHTML = '<tr><td colspan="7">' + esc((data && data.error) || 'No se pudieron cargar las tarifas.') + '</td></tr>'; return; }
   tbody.innerHTML = data.items.map(function(t){
     var perfiles = Object.keys(PERFILES_PROF).map(function(k){ return chip(k, PERFILES_PROF[k], (t.perfiles || []).indexOf(k) >= 0); }).join('');
     return '<tr>' +
@@ -877,6 +924,8 @@ async function loadTarifas() {
       '<td><input type="number" id="tarifa-' + t.tipo + '" value="' + t.precio + '" min="10000" max="2000000" step="1000" style="width:120px;padding:6px 8px;border:1px solid var(--border);border-radius:6px;font-family:inherit"></td>' +
       '<td><div class="chips" id="perfiles-' + t.tipo + '">' + perfiles + '</div></td>' +
       '<td><div class="chips" id="orden-' + t.tipo + '">' + chip('si', 'Exige orden', t.requiereOrden) + '</div></td>' +
+      '<td style="font-size:12px;min-width:190px">' + [['cups', 'CUPS', 6, t.cups], ['reps', 'REPS', 4, t.codServicioReps], ['fin', 'Finalidad', 2, t.finalidad], ['causa', 'Causa', 2, t.causaAtencion], ['cie', 'CIE-10', 4, t.cie10]].map(function (c) {
+        return '<label style="display:flex;justify-content:space-between;gap:6px;margin-bottom:3px">' + c[1] + ' <input id="' + c[0] + '-' + t.tipo + '" value="' + esc(c[3] == null ? '' : c[3]) + '" maxlength="' + c[2] + '" style="width:80px;padding:4px 6px;border:1px solid var(--border);border-radius:6px;font:inherit;font-size:12px;text-transform:uppercase"></label>'; }).join('') + '</td>' +
       '<td><div class="chips" id="activo-' + t.tipo + '">' + chip('si', t.activo ? 'Activo' : 'Activar', t.activo) + '</div><div class="profile-email">' + formatDate(t.updatedAt) + '</div></td>' +
       '<td><button class="btn btn-teal btn-sm" onclick="guardarTarifa(\'' + t.tipo + '\', this)">Guardar</button></td>' +
     '</tr>';
@@ -893,7 +942,14 @@ async function guardarTarifa(tipo, btn) {
   if (!perfiles.length) { aviso('Elija al menos un perfil que pueda atender este servicio', 'aviso'); return; }
   if (nombre.length < 3) { aviso('Escriba el nombre del servicio', 'aviso'); return; }
   btn.disabled = true; btn.textContent = 'Guardando...';
-  var res = await apiFetch('/api/tarifas/' + tipo, { method: 'PUT', body: JSON.stringify({ precio: precio, activo: activo, perfiles: perfiles, requiereOrden: requiereOrden, nombre: nombre, descripcion: descripcion }) });
+  var cuerpo = { precio: precio, activo: activo, perfiles: perfiles, requiereOrden: requiereOrden, nombre: nombre, descripcion: descripcion };
+  var vr = function (k) { var el = document.getElementById(k + '-' + tipo); return el ? el.value.trim().toUpperCase() : ''; };
+  if (vr('cups')) cuerpo.cups = vr('cups');
+  if (vr('reps')) cuerpo.codServicioReps = parseInt(vr('reps'), 10);
+  if (vr('fin')) cuerpo.finalidad = vr('fin');
+  if (vr('causa')) cuerpo.causaAtencion = vr('causa');
+  if (vr('cie')) cuerpo.cie10 = vr('cie');
+  var res = await apiFetch('/api/tarifas/' + tipo, { method: 'PUT', body: JSON.stringify(cuerpo) });
   if (res && res.tipo) setTimeout(loadTarifas, 600);
   btn.disabled = false;
   btn.textContent = (res && res.tipo) ? 'Guardado' : 'Error, reintente';
@@ -1389,6 +1445,212 @@ async function cambiarPerfilIps(id, sel) {
   var r = await apiFetch('/api/admin/cuentas/' + id + '/perfil-ips', { method: 'PUT', body: JSON.stringify({ rolIps: sel.value }) });
   if (r && r.ok) aviso('Perfil cambiado'); else aviso((r && r.error) || 'No se pudo cambiar', 'error');
   loadCuentas(paginaCuentas);
+}
+
+// ══ Paquete 7: Facturación electrónica de salud con RIPS (Factura-IA) ══
+var FIA_ESTADO = { pendiente: ['En cola', 'badge-amber'], faltan_datos: ['Faltan datos', 'badge-red'], emitida: ['Emitida', 'badge-green'], rechazada: ['Rechazada por la DIAN', 'badge-red'], anulada: ['Anulada', 'badge-gray'] };
+var filtroFacturas = '', paginaFacturas = 1;
+function ventanaForm(op) { // ventana con varios campos; resuelve con los valores o null
+  return new Promise(function (resolve) {
+    var f = document.createElement('div'); f.className = 'sec-modal-fondo';
+    var html = '<div class="sec-modal" role="dialog" aria-modal="true" style="max-width:520px;max-height:90vh;overflow:auto"><h3></h3><p class="vf-texto"></p>';
+    (op.campos || []).forEach(function (c, i) {
+      html += '<label style="display:block;font-size:13px;font-weight:600;margin:10px 0 4px">' + esc(c.etiqueta) + '</label>';
+      if (c.opciones) html += '<select data-i="' + i + '" style="width:100%;padding:10px;border:1px solid #DCE5EE;border-radius:10px;font:inherit">' + c.opciones.map(function (o) { return '<option value="' + esc(o[0]) + '"' + (String(c.valor || '') === String(o[0]) ? ' selected' : '') + '>' + esc(o[1]) + '</option>'; }).join('') + '</select>';
+      else html += '<input data-i="' + i + '" type="' + (c.tipo || 'text') + '" value="' + esc(c.valor || '') + '" placeholder="' + esc(c.ayuda || '') + '" maxlength="' + (c.max || 200) + '" style="width:100%;box-sizing:border-box;padding:10px;border:1px solid #DCE5EE;border-radius:10px;font:inherit">';
+      if (c.nota) html += '<div style="font-size:12px;color:var(--muted);margin-top:3px">' + esc(c.nota) + '</div>';
+    });
+    html += '<div class="sec-modal-botones" style="margin-top:16px"><button class="sec-btn-no" type="button">Cancelar</button><button class="sec-btn-si" type="button"></button></div></div>';
+    f.innerHTML = html;
+    f.querySelector('h3').textContent = op.titulo || '';
+    f.querySelector('.vf-texto').textContent = op.texto || '';
+    f.querySelector('.sec-btn-si').textContent = op.si || 'Guardar';
+    var fin = function (v) { f.remove(); resolve(v); };
+    f.__cerrar = function () { fin(null); };
+    f.querySelector('.sec-btn-no').onclick = function () { fin(null); };
+    f.querySelector('.sec-btn-si').onclick = function () {
+      var v = {}; (op.campos || []).forEach(function (c, i) { var el = f.querySelector('[data-i="' + i + '"]'); v[c.id] = el.value.trim(); });
+      fin(v);
+    };
+    document.body.appendChild(f);
+  });
+}
+async function loadFacturacion(pagina, filtro) {
+  paginaFacturas = pagina || 1; if (filtro !== undefined) filtroFacturas = filtro;
+  var caja = document.getElementById('fia-estado');
+  var e = await apiFetch('/api/admin/facturacion/estado');
+  if (!e || e.error && !e.conectada) { caja.innerHTML = esc((e && e.error) || 'No se pudo revisar la conexión.'); }
+  else {
+    var h = '';
+    if (!e.conectada) {
+      h = '<div style="font-size:16px;font-weight:700;color:var(--red)">Factura-IA aún no está conectado</div>' +
+        '<p style="margin:8px 0;color:var(--ink-light);line-height:1.6">Para emitir las facturas, la IPS usa su cuenta de <b>Factura-IA</b> (la misma de Clínica-IA). Pasos: 1) entre a Factura-IA con la cuenta de la Clínica Reina Elizabeth; 2) en <b>Datos de la empresa</b> toque <b>Llave de conexión para otras apps</b> y copie la llave; 3) péguela aquí. Mientras tanto las facturas se guardan en cola y no se pierde ninguna.</p>' +
+        (puede('cuentas') ? '<button class="btn btn-teal" onclick="pegarLlaveFia()">🔑 Pegar la llave de conexión</button>' : '<p style="color:var(--muted)">La llave la pega el Superadministrador.</p>');
+    } else if (e.valida === false || e.error) {
+      h = '<div style="font-size:16px;font-weight:700;color:var(--red)">' + esc(e.error || 'La conexión con Factura-IA no es válida') + '</div>' +
+        (puede('cuentas') ? '<button class="btn btn-teal" style="margin-top:10px" onclick="pegarLlaveFia()">🔑 Pegar una llave nueva</button>' : '');
+    } else {
+      var p = e.pasos || {}, listoDian = e.empresa && e.empresa.produccion;
+      h = '<div style="font-size:16px;font-weight:700;color:var(--teal)">✅ Conectado con Factura-IA' + (e.empresa && e.empresa.razon ? ' · ' + esc(e.empresa.razon) : '') + '</div>' +
+        '<ul style="margin:10px 0 0 18px;line-height:1.8">' +
+        '<li>' + (listoDian ? '✅ Habilitada ante la DIAN (producción)' : '⏳ Habilitación DIAN pendiente: termínela en Factura-IA (certificado de firma, set de pruebas y numeración). Hasta entonces las facturas esperan en cola.') + '</li>' +
+        '<li>' + (e.salud && e.salud.listo ? '✅ Código de prestador (REPS) configurado: ' + esc(e.salud.codigoPrestador) : '⏳ Falta el código de prestador REPS (12 dígitos) en Factura-IA → Sector salud.') + '</li>' +
+        '<li>' + (e.pausa ? '⏸ Emisión automática EN PAUSA' : '▶️ Emisión automática activa (cada servicio pagado y completado)') + '</li></ul>' +
+        '<div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap"><button class="btn btn-sm" onclick="pausaFia(' + (!e.pausa) + ')">' + (e.pausa ? '▶️ Reanudar' : '⏸ Pausar') + ' la emisión automática</button>' +
+        (puede('cuentas') ? '<button class="btn btn-sm" onclick="pegarLlaveFia()">🔑 Cambiar la llave</button><button class="btn btn-sm" onclick="quitarLlaveFia()">Desconectar</button>' : '') + '</div>' +
+        ((e.avisos || []).length ? '<div style="margin-top:12px;padding:10px 12px;background:#FFF6E5;border-radius:8px;font-size:13px;line-height:1.6"><b>Avisos de Factura-IA:</b><br>' + e.avisos.map(esc).join('<br>') + '</div>' : '');
+    }
+    h += '<p style="font-size:12px;color:var(--muted);margin-top:12px">Paciente particular: cobertura 15 (particular), pago por evento, sin copago, atención extramural domiciliaria. Los códigos CUPS, REPS, finalidad y diagnóstico por defecto de cada servicio se revisan en <a href="#" onclick="irA(\'tarifas\');return false">Tarifas</a>; confírmelos con su auditor antes de la primera factura real.</p>';
+    caja.innerHTML = h;
+    var c = {}; (e.conteo || []).forEach(function (x) { c[x.estado] = x; });
+    var falt = (c.faltan_datos ? c.faltan_datos._count._all : 0) + (c.rechazada ? c.rechazada._count._all : 0);
+    var bf = document.getElementById('badge-facturas'); if (bf) { bf.textContent = falt; bf.style.display = falt ? 'inline-block' : 'none'; }
+    document.getElementById('fia-resumen').innerHTML = ['pendiente', 'faltan_datos', 'rechazada', 'emitida', 'anulada'].map(function (k) {
+      var x = c[k]; if ((k === 'anulada' || k === 'rechazada') && !x) return '';
+      return '<div class="stat-card" role="button" tabindex="0" style="cursor:pointer;' + (filtroFacturas === k ? 'outline:3px solid #14A38B' : '') + '" onclick="loadFacturacion(1,\'' + (filtroFacturas === k ? '' : k) + '\')"><div class="stat-label">' + FIA_ESTADO[k][0] + '</div><div class="stat-value" style="font-size:26px">' + (x ? x._count._all : 0) + '</div><div class="stat-change">' + cop(x ? x._sum.total : 0) + '</div></div>';
+    }).join('');
+  }
+  var tb = document.getElementById('fia-tbody');
+  var d = await apiFetch('/api/admin/facturacion/facturas?page=' + paginaFacturas + (filtroFacturas ? '&estado=' + filtroFacturas : ''));
+  if (!d || !d.items) { tb.innerHTML = '<tr><td colspan="6">' + esc((d && d.error) || 'No se pudieron cargar las facturas.') + '</td></tr>'; return; }
+  if (!d.items.length) { tb.innerHTML = '<tr><td colspan="6" style="color:var(--muted)">' + (filtroFacturas ? 'No hay facturas en «' + FIA_ESTADO[filtroFacturas][0] + '».' : 'Aún no hay facturas. Se crean solas cuando un servicio pagado se completa.') + '</td></tr>'; return; }
+  tb.innerHTML = d.items.map(function (f) {
+    var s = f.servicio || {}, pac = s.paciente || {}, pr = s.profesional;
+    var et = FIA_ESTADO[f.estado] || [f.estado, 'badge-gray'];
+    var acc = [];
+    if (f.estado === 'faltan_datos' || f.estado === 'rechazada' || f.estado === 'pendiente') acc.push('<button class="btn btn-sm" onclick="datosFactura(\'' + f.id + '\')">Completar datos</button>', '<button class="btn btn-teal btn-sm" onclick="emitirFactura(\'' + f.id + '\',this)">Emitir ahora</button>');
+    if (f.docId) acc.push('<button class="btn btn-sm" onclick="bajarFactura(\'' + f.id + '\',\'pdf\')">PDF</button>', '<button class="btn btn-sm" onclick="bajarFactura(\'' + f.id + '\',\'xml\')">XML</button>', '<button class="btn btn-sm" onclick="bajarFactura(\'' + f.id + '\',\'rips\')">RIPS</button>');
+    if (f.estado !== 'anulada') acc.push('<button class="btn btn-sm" onclick="anularFactura(\'' + f.id + '\',' + (f.estado === 'emitida') + ')">' + (f.estado === 'emitida' ? 'Anular (nota crédito)' : 'Retirar de la cola') + '</button>');
+    return '<tr><td><span class="badge ' + et[1] + '">' + et[0] + '</span>' + (f.motivo ? '<div style="font-size:12px;color:var(--muted);margin-top:4px;max-width:320px">' + esc(f.motivo) + '</div>' : '') + '</td>' +
+      '<td>' + esc(pac.nombreCompleto || (pac.usuario && pac.usuario.nombreCompleto) || '—') + '<div style="color:var(--muted);font-size:12px">' + tipoLabel(s.tipo) + ' · ' + formatDate(s.fechaFin || f.createdAt) + '</div></td>' +
+      '<td>' + (pr && pr.usuario ? esc(pr.usuario.nombreCompleto) : '—') + '</td><td>' + cop(f.total) + '</td>' +
+      '<td style="font-size:12px">' + (f.numero ? '<b>' + esc(f.numero) + '</b>' : '—') + (f.cuv ? '<div>CUV ' + esc(String(f.cuv).slice(0, 12)) + '…</div>' : '') + (f.notaCreditoNumero ? '<div>Nota crédito ' + esc(f.notaCreditoNumero) + '</div>' : '') + '</td>' +
+      '<td><div style="display:flex;gap:6px;flex-wrap:wrap">' + acc.join('') + '</div></td></tr>';
+  }).join('');
+  if (paginaFacturas > 1 || d.hayMas) tb.innerHTML += '<tr><td colspan="6" style="text-align:center">Página ' + paginaFacturas + ' · ' + (paginaFacturas > 1 ? '<button class="btn btn-sm" onclick="loadFacturacion(' + (paginaFacturas - 1) + ')">← Anterior</button> ' : '') + (d.hayMas ? '<button class="btn btn-sm btn-teal" onclick="loadFacturacion(' + (paginaFacturas + 1) + ')">Siguiente →</button>' : '') + '</td></tr>';
+}
+async function pegarLlaveFia() {
+  var v = await pedirDato({ titulo: 'Llave de conexión de Factura-IA', texto: 'Péguela completa (se muestra una sola vez en Factura-IA → Datos de la empresa → Llave de conexión para otras apps). Se guarda cifrada.', si: 'Conectar', maxlength: 200, validar: function (x) { return x.length >= 20; }, error: 'La llave está incompleta' });
+  if (!v) return;
+  var r = await apiFetch('/api/admin/facturacion/llave', { method: 'PUT', body: JSON.stringify({ llave: v }) });
+  if (r && r.ok) { aviso('Factura-IA conectado' + (r.empresa ? ' (' + r.empresa + ')' : '') + '. Las facturas en cola se envían ahora.'); loadFacturacion(); } else aviso((r && r.error) || 'No se pudo conectar', 'error');
+}
+async function quitarLlaveFia() {
+  if (!(await confirmar('Las facturas nuevas quedarán en cola hasta que pegue otra llave. Las ya emitidas siguen en Factura-IA.', { titulo: '¿Desconectar Factura-IA?', si: 'Sí, desconectar', peligro: true }))) return;
+  var r = await apiFetch('/api/admin/facturacion/llave', { method: 'DELETE' });
+  if (r && r.ok) { aviso('Desconectado'); loadFacturacion(); } else aviso((r && r.error) || 'No se pudo', 'error');
+}
+async function pausaFia(si) {
+  var r = await apiFetch('/api/admin/facturacion/pausa', { method: 'PUT', body: JSON.stringify({ pausa: si }) });
+  if (r && r.ok) { aviso(si ? 'Emisión automática en pausa' : 'Emisión automática activa'); loadFacturacion(); } else aviso((r && r.error) || 'No se pudo', 'error');
+}
+async function datosFactura(id) {
+  var d = await apiFetch('/api/admin/facturacion/facturas/' + id + '/datos');
+  if (!d || !d.factura) { aviso((d && d.error) || 'No se pudo abrir', 'error'); return; }
+  var s = d.factura.servicio || {}, p = s.paciente || {}, pr = s.profesional || {}, ev = (s.evoluciones || [])[0] || {};
+  var campos = [
+    { id: 'pacienteDocumentoTipo', etiqueta: 'Tipo de documento del paciente', valor: p.documentoTipo || 'CC', opciones: (d.tiposDoc || ['CC']).map(function (t) { return [t, t]; }) },
+    { id: 'pacienteDocumentoNumero', etiqueta: 'Número de documento del paciente', valor: p.documentoNumero || '', max: 20 },
+    { id: 'pacienteFechaNacimiento', etiqueta: 'Fecha de nacimiento', tipo: 'date', valor: p.fechaNacimiento ? String(p.fechaNacimiento).slice(0, 10) : '' },
+    { id: 'pacienteSexo', etiqueta: 'Sexo (como aparece en el documento)', valor: p.sexo || '', opciones: [['', 'Elija…'], ['M', 'Mujer'], ['H', 'Hombre'], ['I', 'Indeterminado']] },
+    { id: 'pacienteMunicipio', etiqueta: 'Municipio de residencia (código DANE)', valor: p.municipioDane || d.municipioSugerido || '47001', max: 5, nota: 'Santa Marta: 47001 · Ciénaga: 47189 · Barranquilla: 08001' },
+    { id: 'pacienteZona', etiqueta: 'Zona de residencia', valor: p.zonaResidencia || '02', opciones: [['02', 'Urbana'], ['01', 'Rural']] },
+    { id: 'cie10', etiqueta: 'Diagnóstico principal (CIE-10, 4 caracteres)', valor: ev.cie10 || '', max: 4, nota: ev.impresionDiagnostica ? 'Impresión del profesional: ' + ev.impresionDiagnostica : 'Si lo deja vacío se usa el del servicio en Tarifas' },
+  ];
+  if (puede('cuentas')) campos.push({ id: 'profesionalDocumentoNumero', etiqueta: 'Cédula de ' + ((pr.usuario && pr.usuario.nombreCompleto) || 'el profesional'), valor: pr.documentoNumero || '', max: 20 });
+  var v = await ventanaForm({ titulo: 'Datos para la factura y los RIPS', texto: d.faltan && d.faltan.length ? 'Falta: ' + d.faltan.join(', ') + '.' : 'Revise los datos antes de emitir.', campos: campos, si: 'Guardar' });
+  if (!v) return;
+  var cuerpo = {}; Object.keys(v).forEach(function (k) { if (v[k]) cuerpo[k] = v[k]; });
+  if (cuerpo.cie10) cuerpo.cie10 = cuerpo.cie10.toUpperCase();
+  var r = await apiFetch('/api/admin/facturacion/facturas/' + id + '/datos', { method: 'PUT', body: JSON.stringify(cuerpo) });
+  if (r && r.ok) { aviso(r.faltan && r.faltan.length ? 'Guardado. Aún falta: ' + r.faltan.join(', ') : 'Datos completos. Toque «Emitir ahora» o espere a que salga sola.'); loadFacturacion(paginaFacturas); } else aviso((r && r.error) || 'No se pudo guardar', 'error');
+}
+async function emitirFactura(id, btn) {
+  btn.disabled = true; btn.textContent = 'Emitiendo...';
+  var r = await apiFetch('/api/admin/facturacion/facturas/' + id + '/emitir', { method: 'POST', body: '{}' });
+  if (r && r.ok) aviso('Factura emitida y aceptada por la DIAN' + (r.factura && r.factura.numero ? ': ' + r.factura.numero : ''));
+  else aviso((r && r.factura && r.factura.motivo) || (r && r.error) || 'No se pudo emitir todavía', 'aviso', 9000);
+  loadFacturacion(paginaFacturas);
+}
+async function anularFactura(id, emitida) {
+  var m = await pedirDato({ titulo: emitida ? 'Anular la factura con nota crédito' : 'Retirar la factura de la cola', texto: emitida ? 'Se hace una nota crédito total ante la DIAN (por ejemplo, si se devolvió el dinero). Escriba el motivo.' : 'La factura no se enviará. Escriba el motivo.', si: emitida ? 'Anular' : 'Retirar', maxlength: 300, validar: function (x) { return x.length >= 10; }, error: 'Escriba el motivo (mínimo 10 letras)' });
+  if (!m) return;
+  var r = await apiFetch('/api/admin/facturacion/facturas/' + id + '/anular', { method: 'POST', body: JSON.stringify({ motivo: m }) });
+  if (r && r.ok) { aviso(r.nota ? 'Factura anulada con la nota crédito ' + r.nota : 'Listo'); loadFacturacion(paginaFacturas); } else aviso((r && r.error) || 'No se pudo', 'error');
+}
+async function bajarArchivo(ruta, nombre, abrir) {
+  try {
+    var r = await fetch(API + ruta, { headers: { 'Authorization': 'Bearer ' + token } });
+    if (!r.ok) { var j = await r.json().catch(function () { return null; }); aviso((j && j.error) || 'No se pudo descargar', 'error'); return; }
+    var b = await r.blob(), u = URL.createObjectURL(b);
+    if (abrir) { var w = window.open(u, '_blank'); if (!w) location.href = u; }
+    else { var a = document.createElement('a'); a.href = u; a.download = nombre || ''; document.body.appendChild(a); a.click(); a.remove(); }
+    setTimeout(function () { URL.revokeObjectURL(u); }, 60000);
+  } catch (e) { aviso(mensajeRed(e), 'error'); }
+}
+function bajarFactura(id, f) { bajarArchivo('/api/admin/facturacion/facturas/' + id + '/' + f, 'factura-' + id.slice(0, 8) + '.' + (f === 'rips' ? 'json' : f)); }
+function verSoporte(id) { bajarArchivo('/api/pagos/soporte/' + id, '', true); }
+
+// ══ Paquete 8: Informes y copias ══
+function hoyCol() { return new Date(Date.now() - 5 * 3600000).toISOString().slice(0, 10); }
+function rangoInforme(t) {
+  var h = hoyCol(), y = +h.slice(0, 4), m = +h.slice(5, 7);
+  var d = document.getElementById('inf-desde'), a = document.getElementById('inf-hasta');
+  if (t === 'mes') { d.value = h.slice(0, 8) + '01'; a.value = h; }
+  if (t === 'anio') { d.value = y + '-01-01'; a.value = h; }
+  if (t === 'anterior') { var py = m === 1 ? y - 1 : y, pm = m === 1 ? 12 : m - 1; var ult = new Date(Date.UTC(py, pm, 0)).getUTCDate(); d.value = py + '-' + String(pm).padStart(2, '0') + '-01'; a.value = py + '-' + String(pm).padStart(2, '0') + '-' + String(ult).padStart(2, '0'); }
+  loadInformes();
+}
+function tarjeta(t, v, n) { return '<div class="stat-card"><div class="stat-label">' + t + '</div><div class="stat-value" style="font-size:24px">' + v + '</div>' + (n ? '<div class="stat-change">' + n + '</div>' : '') + '</div>'; }
+async function loadInformes() {
+  var d = document.getElementById('inf-desde'), a = document.getElementById('inf-hasta');
+  if (!d.value || !a.value) { var h = hoyCol(); d.value = d.value || h.slice(0, 8) + '01'; a.value = a.value || h; }
+  var q = '?desde=' + d.value + '&hasta=' + a.value;
+  var cuerpo = document.getElementById('inf-cuerpo');
+  cuerpo.innerHTML = '<div class="loading"><div class="spinner"></div> Calculando...</div>';
+  var r = await apiFetch('/api/admin/informes/resumen' + q);
+  if (!r || !r.servicios) { cuerpo.innerHTML = '<div class="card"><div class="card-body">' + esc((r && r.error) || 'No se pudo calcular el informe.') + '</div></div>'; }
+  else {
+    var S = r.servicios, tot = Object.keys(S).reduce(function (t, k) { return t + S[k]; }, 0);
+    var h = '<div class="stats-grid" style="margin-bottom:20px">' + tarjeta('Solicitudes', tot) + tarjeta('Completados', S.completado || 0, tot ? Math.round(100 * (S.completado || 0) / tot) + ' % de las solicitudes' : '') + tarjeta('Cancelados', S.cancelado || 0) +
+      tarjeta('Calificación promedio', r.calidad.calificacionPromedio != null ? '⭐ ' + r.calidad.calificacionPromedio : '—', r.calidad.calificaciones + ' calificaciones') + '</div>';
+    if (r.dinero) {
+      var D = r.dinero;
+      h += '<div class="stats-grid" style="margin-bottom:20px">' + tarjeta('Recaudado (Bold)', cop(D.recaudado), D.pagosRecibidos + ' pagos') + tarjeta('Parte de la IPS (40 %)', cop(D.comisionIps), 'servicios completados') +
+        tarjeta('Por pagar a profesionales', cop(D.porPagarProfesionales)) + tarjeta('Pagado a profesionales', cop(D.pagadoProfesionales)) +
+        (D.porDevolver ? tarjeta('Por devolver a pacientes', cop(D.porDevolver)) : '') + (D.devuelto ? tarjeta('Devuelto', cop(D.devuelto)) : '') + '</div>';
+      if (D.facturas && D.facturas.length) h += '<div class="card" style="margin-bottom:20px"><div class="card-header"><div class="card-title">🧾 Facturas del periodo</div></div><div class="card-body">' + D.facturas.map(function (f) { return '<span class="badge ' + ((FIA_ESTADO[f.estado] || [])[1] || 'badge-gray') + '" style="margin:3px">' + ((FIA_ESTADO[f.estado] || [f.estado])[0]) + ': ' + f.cantidad + ' · ' + cop(f.total) + '</span>'; }).join('') + '</div></div>';
+    }
+    h += '<div class="grid-2" style="gap:20px;display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr))">';
+    h += '<div class="card"><div class="card-header"><div class="card-title">Por servicio</div></div><div class="card-body" style="padding:0"><div class="table-wrap"><table><thead><tr><th>Servicio</th><th>Solicitudes</th><th>Completados</th><th>Cancelados</th></tr></thead><tbody>' +
+      (r.porTipo.length ? r.porTipo.map(function (t) { return '<tr><td>' + esc(t.nombre) + '</td><td>' + t.total + '</td><td>' + t.completados + '</td><td>' + t.cancelados + '</td></tr>'; }).join('') : '<tr><td colspan="4" style="color:var(--muted)">Sin servicios en el periodo</td></tr>') + '</tbody></table></div></div></div>';
+    h += '<div class="card"><div class="card-header"><div class="card-title">Por profesional</div></div><div class="card-body" style="padding:0"><div class="table-wrap"><table><thead><tr><th>Profesional</th><th>Completados</th><th>Calificación</th><th>Quejas</th>' + (r.dinero ? '<th>Por pagar</th><th>Pagado</th>' : '') + '</tr></thead><tbody>' +
+      (r.porProfesional.length ? r.porProfesional.map(function (p) { return '<tr><td>' + esc(p.nombre) + '</td><td>' + p.completados + '</td><td>' + (p.calificacion != null ? '⭐ ' + p.calificacion : '—') + '</td><td>' + p.quejas + '</td>' + (r.dinero ? '<td>' + cop(p.porPagar) + '</td><td>' + cop(p.pagado) + '</td>' : '') + '</tr>'; }).join('') : '<tr><td colspan="6" style="color:var(--muted)">Sin servicios completados</td></tr>') + '</tbody></table></div></div></div>';
+    var Q = r.calidad.quejas, E = r.calidad.eventos, ne = Object.keys(E).reduce(function (t, k) { return t + E[k]; }, 0);
+    h += '<div class="card"><div class="card-header"><div class="card-title">Calidad y seguridad del paciente</div></div><div class="card-body" style="line-height:1.9">Quejas: <b>' + ((Q.abierta || 0) + (Q.revisada || 0)) + '</b> (' + (Q.abierta || 0) + ' abiertas)<br>Incidentes y eventos adversos: <b>' + ne + '</b>' +
+      (ne ? '<br><span style="font-size:13px;color:var(--muted)">' + ['sin_dano', 'leve', 'moderado', 'grave', 'muerte'].filter(function (k) { return E[k]; }).map(function (k) { return k.replace('_', ' ') + ': ' + E[k]; }).join(' · ') + '</span>' : '') + '</div></div>';
+    h += '</div>';
+    cuerpo.innerHTML = h;
+  }
+  var csv = [['servicios', '🏥 Servicios'], ['profesionales', '👩‍⚕️ Profesionales']];
+  if (puede('pagos') || puede('facturacion')) csv.push(['pagos', '💳 Pagos y liquidaciones'], ['facturas', '🧾 Facturas']);
+  document.getElementById('inf-csv').innerHTML = csv.map(function (c) { return '<button class="btn btn-sm" onclick="bajarArchivo(\'/api/admin/informes/csv/' + c[0] + q + '\',\'salud-en-casa-' + c[0] + '.csv\')">' + c[1] + ' (Excel)</button>'; }).join('') +
+    '<div style="width:100%;font-size:12px;color:var(--muted)">Del ' + esc(d.value) + ' al ' + esc(a.value) + '. Se abren directamente en Excel.</div>';
+  var cc = document.getElementById('inf-copia-card');
+  if (!puede('copias')) { cc.hidden = true; return; }
+  cc.hidden = false;
+  var ce = await apiFetch('/api/admin/informes/copia/estado');
+  var ult = ce && ce.ultima ? new Date(ce.ultima) : null, dias = ult ? Math.floor((Date.now() - ult.getTime()) / 86400000) : null;
+  document.getElementById('inf-copia').innerHTML = '<p style="line-height:1.6;margin-bottom:10px">Descarga en un solo archivo toda la información de Salud en Casa: pacientes, profesionales, servicios, notas clínicas, pagos, facturas, quejas y eventos de seguridad. No lleva contraseñas ni llaves. ' +
+    '<b>Contiene datos de salud:</b> guárdela en un lugar seguro (por ejemplo, la carpeta de respaldos del disco D) y no la comparta.</p>' +
+    '<p style="margin-bottom:12px">' + (ult ? 'Última copia: <b>' + fechaCO(ult, true) + '</b>' + (dias >= 7 ? ' <span class="badge badge-red">hace ' + dias + ' días: haga una nueva</span>' : '') : '<span class="badge badge-red">Aún no se ha hecho ninguna copia</span>') + '</p>' +
+    '<div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn btn-teal" onclick="bajarCopia(0,this)">🛟 Descargar copia (datos)</button><button class="btn" onclick="bajarCopia(1,this)">Copia completa con documentos y órdenes (más pesada)</button></div>' +
+    '<p style="font-size:12px;color:var(--muted);margin-top:10px">Recomendado: una copia cada semana.</p>';
+}
+async function bajarCopia(conArchivos, btn) {
+  btn.disabled = true; var t = btn.textContent; btn.textContent = 'Preparando la copia...';
+  await bajarArchivo('/api/admin/informes/copia?archivos=' + conArchivos, 'salud-en-casa-copia-' + hoyCol() + '.json.gz');
+  btn.disabled = false; btn.textContent = t; setTimeout(loadInformes, 1500);
 }
 </script>
 </body>

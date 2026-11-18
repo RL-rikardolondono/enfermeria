@@ -351,6 +351,9 @@
         <textarea class="form-area" id="v-procedimientos" placeholder="Ej: curación de herida en pierna derecha con solución salina, apósito estéril."></textarea>
         <div class="nota-titulo">4. Impresión diagnóstica</div>
         <textarea class="form-area" id="v-impresion" placeholder="Ej: herida en proceso de cicatrización, sin signos de infección."></textarea>
+        <div class="vital-ayuda" style="margin-top:8px;font-weight:600">Diagnóstico CIE-10 (opcional)</div>
+        <input class="vital-field" id="v-cie10" maxlength="4" placeholder="Ej: Z480 (déjelo vacío si no lo sabe)" style="text-transform:uppercase;width:100%;box-sizing:border-box" autocomplete="off">
+        <div class="vital-ayuda">Va en la factura y los RIPS. Si lo deja vacío, la IPS usa el diagnóstico habitual del servicio.</div>
         <div class="nota-titulo">5. Recomendaciones</div>
         <textarea class="form-area" id="v-recomendaciones">Signos de alarma explicados al paciente y acompañante. Consultar a urgencias si presenta fiebre, sangrado o empeoramiento.</textarea>
         <button class="btn-main" onclick="guardarEvolucion()">Guardar nota clínica</button>
@@ -424,6 +427,9 @@
         <input id="c-numero" class="inp-c" inputmode="text" maxlength="50" autocomplete="off">
         <div class="field-hint" id="c-ayuda" style="margin-top:4px"></div>
         <div class="field-hint" style="margin-top:6px">La cuenta debe estar <b>a su nombre</b>. Solo la ve la IPS para pagarle.</div>
+        <label class="lbl-c" for="c-cedula">Número de su cédula</label>
+        <input id="c-cedula" class="inp-c" inputmode="numeric" maxlength="20" autocomplete="off" placeholder="Solo números">
+        <div class="field-hint" style="margin-top:4px">La IPS la necesita para la factura del paciente (RIPS) y para el documento soporte de cada pago que le hace.</div>
         <button class="btn-main" style="margin-top:10px" onclick="guardarCuenta()">Guardar mi cuenta</button>
       </div>
     </div>
@@ -996,7 +1002,7 @@ async function completarServicio(id) {
 
 // Deja el formulario de la nota listo para el siguiente servicio (con lo normal ya escrito)
 function limpiarNota(guardada) {
-  ['v-sistolica','v-diastolica','v-fc','v-temp','v-spo2','v-glucemia','v-procedimientos','v-impresion'].forEach(function(id){document.getElementById(id).value='';});
+  ['v-sistolica','v-diastolica','v-fc','v-temp','v-spo2','v-glucemia','v-procedimientos','v-impresion','v-cie10'].forEach(function(id){document.getElementById(id).value='';});
   document.getElementById('v-observaciones').value = document.getElementById('v-observaciones').defaultValue;
   document.getElementById('v-recomendaciones').value = document.getElementById('v-recomendaciones').defaultValue;
   if (!guardada) document.getElementById('nota-ok').style.display = 'none';
@@ -1004,7 +1010,7 @@ function limpiarNota(guardada) {
 }
 
 // Borrador de la nota en este celular: si la app se recarga o se cierra la sesión, no se pierde lo escrito
-var CAMPOS_NOTA = ['v-sistolica','v-diastolica','v-fc','v-temp','v-spo2','v-glucemia','v-observaciones','v-procedimientos','v-impresion','v-recomendaciones'];
+var CAMPOS_NOTA = ['v-sistolica','v-diastolica','v-fc','v-temp','v-spo2','v-glucemia','v-observaciones','v-procedimientos','v-impresion','v-cie10','v-recomendaciones'];
 function guardarBorrador() {
   if (!servicioActivoId) return;
   var b = { id: servicioActivoId, v: {} };
@@ -1085,6 +1091,7 @@ async function guardarEvolucion() {
     observaciones:document.getElementById('v-observaciones').value||undefined,
     procedimientos:document.getElementById('v-procedimientos').value||undefined,
     impresionDiagnostica:document.getElementById('v-impresion').value.trim()||undefined,
+    cie10:(document.getElementById('v-cie10').value.trim().toUpperCase().replace(/[^A-Z0-9]/g,''))||undefined,
     recomendaciones:document.getElementById('v-recomendaciones').value.trim()||undefined,
   };
   // Rangos esperados: si algo está por fuera, se pide confirmación (evita errores de digitación)
@@ -1298,6 +1305,7 @@ function pintarCuenta(p) {
     if (m === 'banco') { const sb = document.getElementById('c-banco'); if ([].some.call(sb.options, function(o){ return o.value === p.banco; })) sb.value = p.banco; if (p.tipoCuenta) document.getElementById('c-tipo').value = p.tipoCuenta; }
     document.getElementById('c-numero').value = p.cuentaBancaria || '';
   }
+  if (p && p.documentoNumero) document.getElementById('c-cedula').value = p.documentoNumero;
 }
 async function guardarCuenta() {
   if (!metodoPago) { aviso('Elija primero dónde quiere recibir su dinero.', 'aviso'); return; }
@@ -1316,10 +1324,12 @@ async function guardarCuenta() {
     if (!banco) { aviso('Elija su banco.', 'aviso'); return; }
     if (!/^\d{5,20}$/.test(numero)) { aviso('Escriba el número de cuenta (solo números).', 'aviso'); return; }
   }
+  const cedula = document.getElementById('c-cedula').value.replace(/[^0-9A-Za-z]/g, '');
+  if (!/^[0-9A-Za-z]{4,20}$/.test(cedula)) { aviso('Escriba el número de su cédula (sin puntos).', 'aviso'); return; }
   if (!miPerfilId) { aviso('No se pudo cargar su perfil. Intente de nuevo.', 'error'); return; }
   showLoading('Guardando su cuenta...');
   try {
-    const r = await fetch(API + '/api/profesionales/' + miPerfilId, { method: 'PUT', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token }, body: JSON.stringify({ banco: banco, tipoCuenta: tipo, cuentaBancaria: numero }) });
+    const r = await fetch(API + '/api/profesionales/' + miPerfilId, { method: 'PUT', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token }, body: JSON.stringify({ banco: banco, tipoCuenta: tipo, cuentaBancaria: numero, documentoNumero: cedula }) });
     hideLoading();
     if (!r.ok) { const d = await r.json().catch(function(){ return {}; }); throw new Error(d.error || 'No se pudo guardar. Intente de nuevo.'); }
     const p = await r.json();
@@ -1338,9 +1348,19 @@ async function cargarGanancias() {
     document.getElementById('gan-pagado').textContent = pesos(d.transferido);
     const est = { liberado: '<span style="color:#B4412F">Por recibir</span>', retenido: '<span style="color:#5D6B78">Servicio sin terminar</span>', transferido: '<span style="color:#1F8A4C">✔ Recibido</span>' };
     document.getElementById('gan-lista').innerHTML = (d.items || []).length ? d.items.slice(0, 20).map(function(i){
-      return '<div class="gan-item"><div>' + esc(tipoLabel(i.tipo)) + '<small>' + (i.fecha ? formatDate(i.fecha) : '') + '</small></div><div style="text-align:right"><b>' + pesos(i.valor) + '</b><small>' + (est[i.estado] || esc(i.estado || '')) + '</small></div></div>';
+      return '<div class="gan-item"><div>' + esc(tipoLabel(i.tipo)) + '<small>' + (i.fecha ? formatDate(i.fecha) : '') + '</small></div><div style="text-align:right"><b>' + pesos(i.valor) + '</b><small>' + (est[i.estado] || esc(i.estado || '')) + '</small>' +
+        (i.soporte ? '<small><a href="#" onclick="verSoporte(\'' + i.id + '\');return false" style="color:#0B4F8A">📄 ' + esc(i.soporte) + '</a></small>' : '') + '</div></div>';
     }).join('') : '<div class="field-hint">Aún no tiene servicios pagados.</div>';
   } catch (e) { const l = document.getElementById('gan-lista'); if (l) l.textContent = 'No se pudieron cargar sus ganancias.'; }
+}
+// Documento soporte del pago (lo genera la IPS al transferirle)
+async function verSoporte(id) {
+  try {
+    const r = await fetch(API + '/api/pagos/soporte/' + id, { headers: { 'Authorization': 'Bearer ' + token } });
+    if (!r.ok) { const j = await r.json().catch(function(){ return null; }); aviso((j && j.error) || 'No se pudo abrir el documento', 'error'); return; }
+    const u = URL.createObjectURL(await r.blob()); const w = window.open(u, '_blank'); if (!w) location.href = u;
+    setTimeout(function(){ URL.revokeObjectURL(u); }, 60000);
+  } catch (e) { aviso(mensajeRed(e), 'error'); }
 }
 // En Inicio: si está aprobada y no tiene cuenta, se lo recordamos
 function pintarAvisoCuenta(p) {

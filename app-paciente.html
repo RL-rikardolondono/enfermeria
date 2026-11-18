@@ -191,12 +191,22 @@ body{font-family:'Public Sans',sans-serif;background:var(--cream);color:var(--in
     <div id="paso-2" style="display:none">
       <div class="step-title">¿Para quién y dónde?</div><div class="step-subtitle">Elija el paciente e ingrese la dirección de atención</div>
       <div class="form-group"><label for="sol-paciente">Paciente</label><select id="sol-paciente" onchange="cambioPaciente()"><option value="">Cargando...</option></select></div>
+      <div id="datos-factura" class="info-card" style="display:none;margin-bottom:16px">
+        <div style="font-size:14px;font-weight:800;margin-bottom:4px">🧾 Datos del paciente para la factura</div>
+        <div class="field-hint" style="margin-bottom:10px">La IPS debe expedir la factura electrónica de salud con estos datos (lo exige el Ministerio de Salud). Solo se piden una vez.</div>
+        <div class="form-group"><label for="fac-tipo">Tipo de documento</label><select id="fac-tipo"><option value="CC">Cédula de ciudadanía</option><option value="TI">Tarjeta de identidad</option><option value="RC">Registro civil</option><option value="CE">Cédula de extranjería</option><option value="PT">Permiso por protección temporal</option><option value="PA">Pasaporte</option></select></div>
+        <div class="form-group"><label for="fac-num">Número de documento</label><input type="text" id="fac-num" inputmode="numeric" maxlength="20" placeholder="Sin puntos"></div>
+        <div class="form-group"><label for="fac-nac">Fecha de nacimiento</label><input type="date" id="fac-nac"></div>
+        <div class="form-group"><label for="fac-sexo">Sexo (como aparece en el documento)</label><select id="fac-sexo"><option value="">Elija…</option><option value="M">Mujer</option><option value="H">Hombre</option><option value="I">Indeterminado</option></select></div>
+      </div>
       <div id="nuevo-paciente" class="info-card" style="display:none;margin-bottom:16px">
         <div style="font-size:14px;font-weight:800;margin-bottom:12px">Agregar paciente a su cuenta</div>
         <div class="form-group"><label for="np-nombre">Nombre completo</label><input type="text" id="np-nombre" placeholder="Ej: Rosa Gómez"></div>
         <div class="form-group"><label for="np-parentesco">Parentesco</label><select id="np-parentesco"><option>Madre</option><option>Padre</option><option>Hijo(a)</option><option>Esposo(a)</option><option>Abuelo(a)</option><option>Hermano(a)</option><option>Otro familiar</option><option>Paciente a cargo</option></select></div>
         <div class="form-group"><label for="np-nacimiento">Fecha de nacimiento</label><input type="date" id="np-nacimiento"></div>
-        <div class="form-group"><label for="np-documento">Documento (CC, TI o RC)</label><input type="text" id="np-documento" placeholder="Número de documento"></div>
+        <div class="form-group"><label for="np-doctipo">Tipo de documento</label><select id="np-doctipo"><option value="CC">Cédula de ciudadanía</option><option value="TI">Tarjeta de identidad</option><option value="RC">Registro civil</option><option value="CE">Cédula de extranjería</option><option value="PT">Permiso por protección temporal</option><option value="PA">Pasaporte</option></select></div>
+        <div class="form-group"><label for="np-documento">Número de documento</label><input type="text" id="np-documento" inputmode="numeric" placeholder="Sin puntos"></div>
+        <div class="form-group"><label for="np-sexo">Sexo (como aparece en el documento)</label><select id="np-sexo"><option value="">Elija…</option><option value="M">Mujer</option><option value="H">Hombre</option><option value="I">Indeterminado</option></select></div>
         <div class="form-group"><label for="np-alergias">Alergias y antecedentes importantes</label><textarea id="np-alergias" placeholder="Ej: alergia a penicilina, diabetes tipo 2"></textarea></div>
         <div class="auth-error" id="np-error"></div>
         <div style="display:flex;gap:10px"><button class="btn-main" style="background:var(--border);color:var(--ink);flex:0 0 auto;width:auto;padding:0 18px" onclick="cancelarNuevoPaciente()">Cancelar</button><button class="btn-main" style="flex:1" id="np-guardar" onclick="guardarNuevoPaciente()">Guardar paciente</button></div>
@@ -853,9 +863,37 @@ async function cargarMisPacientes(seleccionarId) {
   cambioPaciente();
 }
 function escapeHtml(t) { return String(t).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+function pacienteElegido() { var v = document.getElementById('sol-paciente').value; return misPacientes.filter(function(p){ return p.id === v; })[0] || null; }
+var TIPOS_DOC_OK = ['CC','TI','RC','CE','PA','PT','PE','CN','MS','AS'];
+function faltaDatoFactura(p) { return !!p && (TIPOS_DOC_OK.indexOf(String(p.documentoTipo || '').toUpperCase()) < 0 || !/^[0-9A-Za-z]{4,20}$/.test(String(p.documentoNumero || '').replace(/[^0-9A-Za-z]/g, '')) || !p.fechaNacimiento || ['H','M','I'].indexOf(p.sexo) < 0); }
 function cambioPaciente() {
   var nuevo = document.getElementById('sol-paciente').value === '__nuevo';
   document.getElementById('nuevo-paciente').style.display = nuevo ? 'block' : 'none';
+  var p = nuevo ? null : pacienteElegido(), caja = document.getElementById('datos-factura');
+  if (!caja) return;
+  caja.style.display = faltaDatoFactura(p) ? 'block' : 'none';
+  if (p && faltaDatoFactura(p)) {
+    if (TIPOS_DOC_OK.indexOf(String(p.documentoTipo || '').toUpperCase()) >= 0) document.getElementById('fac-tipo').value = String(p.documentoTipo).toUpperCase();
+    document.getElementById('fac-num').value = String(p.documentoNumero || '').replace(/[^0-9A-Za-z]/g, '');
+    document.getElementById('fac-nac').value = p.fechaNacimiento ? String(p.fechaNacimiento).slice(0, 10) : '';
+    document.getElementById('fac-sexo').value = p.sexo || '';
+  }
+}
+// Guarda los datos de la factura del paciente antes de seguir (una sola vez)
+async function guardarDatosFactura() {
+  var p = pacienteElegido(); if (!p || !faltaDatoFactura(p)) return true;
+  var num = document.getElementById('fac-num').value.replace(/[^0-9A-Za-z]/g, ''), nac = document.getElementById('fac-nac').value, sx = document.getElementById('fac-sexo').value;
+  if (!/^[0-9A-Za-z]{4,20}$/.test(num)) { aviso('Escriba el número de documento del paciente (sin puntos)', 'aviso'); document.getElementById('fac-num').focus(); return false; }
+  if (!nac) { aviso('Escriba la fecha de nacimiento del paciente', 'aviso'); return false; }
+  if (!sx) { aviso('Elija el sexo del paciente como aparece en su documento', 'aviso'); return false; }
+  try {
+    var r = await fetch(API + '/api/pacientes/' + p.id, { method: 'PUT', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token }, body: JSON.stringify({ documentoTipo: document.getElementById('fac-tipo').value, documentoNumero: num, fechaNacimiento: nac, sexo: sx }) });
+    var d = await r.json().catch(function(){ return {}; });
+    if (!r.ok) throw new Error(d.error || 'No se pudieron guardar los datos del paciente');
+    Object.assign(p, { documentoTipo: document.getElementById('fac-tipo').value, documentoNumero: num, fechaNacimiento: nac, sexo: sx });
+    document.getElementById('datos-factura').style.display = 'none';
+    return true;
+  } catch (e) { aviso(mensajeRed(e), 'error'); return false; }
 }
 function cancelarNuevoPaciente() {
   var sel = document.getElementById('sol-paciente');
@@ -870,12 +908,13 @@ async function guardarNuevoPaciente() {
   try {
     var body = { nombreCompleto: nombre, parentesco: document.getElementById('np-parentesco').value };
     var nac = document.getElementById('np-nacimiento').value; if (nac) body.fechaNacimiento = nac;
-    var doc = document.getElementById('np-documento').value.trim(); if (doc) body.documentoNumero = doc;
+    var doc = document.getElementById('np-documento').value.replace(/[^0-9A-Za-z]/g, ''); if (doc) { body.documentoNumero = doc; body.documentoTipo = document.getElementById('np-doctipo').value; }
+    var sx = document.getElementById('np-sexo').value; if (sx) body.sexo = sx;
     var ant = document.getElementById('np-alergias').value.trim(); if (ant) { body.alergias = ant; body.antecedentes = ant; }
     var res = await fetch(API + '/api/pacientes', {method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},body:JSON.stringify(body)});
     var data = await res.json();
     if (!res.ok) throw new Error(data.error || 'No se pudo guardar el paciente');
-    ['np-nombre','np-nacimiento','np-documento','np-alergias'].forEach(function(id){ document.getElementById(id).value=''; });
+    ['np-nombre','np-nacimiento','np-documento','np-alergias','np-sexo'].forEach(function(id){ document.getElementById(id).value=''; });
     await cargarMisPacientes(data.id);
   } catch(e) { showError(errEl, mensajeRed(e)); }
   btn.disabled = false; btn.textContent = 'Guardar paciente';
@@ -908,6 +947,7 @@ function irPaso(n) {
     var pv = document.getElementById('sol-paciente').value;
     if (!pv && !misPacientes.length) { cargarMisPacientes(); return; }
     if (!pv || pv === '__nuevo') { aviso('Guarde el nuevo paciente o elija para quién es el servicio', 'aviso'); return; }
+    if (faltaDatoFactura(pacienteElegido())) { guardarDatosFactura().then(function(ok){ if (ok) irPaso(3); }); return; }
     if (dir.length < 5) { aviso('Por favor escriba la dirección completa', 'aviso'); return; }
     if (desc.length < 5) { aviso('Describa brevemente lo que necesita (mínimo 5 caracteres)', 'aviso'); return; }
     if (tarifasIPS[tipoSeleccionado] && tarifasIPS[tipoSeleccionado].requiereOrden && !ordenFoto) { aviso('Tome la foto de la orden médica para continuar', 'aviso'); document.getElementById('bloque-orden').scrollIntoView({behavior:'smooth'}); return; }
