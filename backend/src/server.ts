@@ -16,6 +16,9 @@ import { adminRoutes } from './routes/admin'
 import { pagosRoutes } from './routes/pagos'
 import { pushRoutes } from './routes/push'
 import { tarifasRoutes } from './routes/tarifas'
+import { facturacionRoutes } from './routes/facturacion'
+import { informesRoutes } from './routes/informes'
+import { asegurarRipsCatalogo, iniciarColaFacturas } from './services/facturacion'
 import { asegurarCatalogo } from './services/catalogo'
 import { asegurarSuperadmin } from './services/cuentas'
 import { prepararVapid } from './routes/push'
@@ -31,7 +34,7 @@ const NOMBRES_CAMPO: Record<string, string> = {
   tensionSistolica: 'tensión sistólica', tensionDiastolica: 'tensión diastólica', frecuenciaCardiaca: 'frecuencia cardiaca', temperatura: 'temperatura',
   saturacionOxigeno: 'saturación de oxígeno', glucemia: 'glucemia', observaciones: 'observaciones', procedimientos: 'procedimientos',
   precio: 'precio', puntuacion: 'calificación', comentario: 'comentario', estado: 'estado', token: 'enlace',
-  queja: 'queja (mínimo 10 letras)', texto: 'queja (mínimo 10 letras)', respuesta: 'nota de revisión', ofertaId: 'profesional elegido',
+  queja: 'queja (mínimo 10 letras)', texto: 'queja (mínimo 10 letras)', respuesta: 'nota de revisión', ofertaId: 'profesional elegido', cie10: 'diagnóstico CIE-10', sexo: 'sexo', municipioDane: 'municipio (código DANE)', documentoTipo: 'tipo de documento',
 }
 
 const app = Fastify({
@@ -114,6 +117,8 @@ async function bootstrap() {
   await app.register(pagosRoutes,         { prefix: '/api/pagos' })
   await app.register(pushRoutes, { prefix: '/api/push' })
   await app.register(tarifasRoutes,       { prefix: '/api/tarifas' })
+  await app.register(facturacionRoutes,   { prefix: '/api/admin/facturacion' })
+  await app.register(informesRoutes,      { prefix: '/api/admin/informes' })
 
 
   // Graceful shutdown
@@ -135,6 +140,9 @@ async function bootstrap() {
   // Cuenta propia del Superadministrador (superadmin.saludencasa@) y claves de los avisos al celular
   await asegurarSuperadmin(app.log).catch((err) => app.log.error(err, 'No se pudo preparar el Superadministrador'))
   await prepararVapid(app.log)
+  // Códigos de los RIPS en el catálogo (una sola vez) y cola de facturas electrónicas de salud
+  await asegurarRipsCatalogo().catch((err) => app.log.error(err, 'No se pudieron completar los códigos de los RIPS'))
+  iniciarColaFacturas()
 
   const port = parseInt(process.env.PORT || '3000')
   await app.listen({ port, host: '0.0.0.0' })
