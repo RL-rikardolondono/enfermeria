@@ -25,6 +25,9 @@ import { prepararVapid } from './routes/push'
 import { prisma } from './utils/prisma'
 import { versionActual } from './utils/cambios'
 import { redis, redisReal } from './utils/redis'
+import { autenticar } from './middleware/auth'
+import fs from 'fs'
+import path from 'path'
 
 // Nombres en español de los campos, para los mensajes de error
 const NOMBRES_CAMPO: Record<string, string> = {
@@ -106,6 +109,20 @@ async function bootstrap() {
   app.get('/api/cambios', { config: { rateLimit: false } }, async (request, reply) => {
     reply.header('Cache-Control', 'no-store')
     return { v: versionActual() }
+  })
+
+  // Manual del usuario: cada perfil recibe SOLO el suyo (paciente, profesional o IPS)
+  app.get('/api/manual', { preHandler: autenticar }, async (request, reply) => {
+    const rol = request.usuario.rol
+    const archivo = rol === 'paciente' ? 'Manual-Salud-en-Casa-Paciente.pdf' : rol === 'profesional' ? 'Manual-Salud-en-Casa-Profesional.pdf' : rol === 'admin' ? 'Manual-Salud-en-Casa-IPS.pdf' : null
+    if (!archivo) return reply.status(404).send({ error: 'No hay manual para este perfil' })
+    try {
+      const datos = await fs.promises.readFile(path.join(__dirname, '..', 'manuales', archivo))
+      reply.header('Content-Type', 'application/pdf')
+      reply.header('Content-Disposition', `inline; filename="${archivo}"`)
+      reply.header('Cache-Control', 'private, max-age=3600')
+      return reply.send(datos)
+    } catch { return reply.status(404).send({ error: 'El manual no está disponible en este momento' }) }
   })
 
   // Rutas REST
