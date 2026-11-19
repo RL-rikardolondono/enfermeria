@@ -217,6 +217,7 @@ model Servicio {
   tipo                   TipoServicio
   estado                 EstadoServicio @default(pendiente)
   descripcion            String?
+  facturarA              String?        @map("facturar_a") @db.VarChar(20) // "titular": la factura sale a nombre de quien paga (titular de la cuenta)
   direccion              String?        @db.VarChar(500)
   barrio                 String?        @db.VarChar(100)
   ordenArchivoId         String?        @map("orden_archivo_id")
@@ -299,6 +300,7 @@ model Pago {
   valorProfesional  Int?       @map("valor_profesional")
   liberadoEn        DateTime?  @map("liberado_en")
   transferidoEn     DateTime?  @map("transferido_en")
+  referenciaTransferencia String? @map("referencia_transferencia") @db.VarChar(120) // comprobante de la transferencia al profesional
   soporteNumero     Int?       @map("soporte_numero") // documento soporte del pago al profesional (consecutivo DS; lo asigna el servidor con bloqueo)
   createdAt         DateTime   @default(now()) @map("created_at")
   servicio          Servicio   @relation(fields: [servicioId], references: [id])
