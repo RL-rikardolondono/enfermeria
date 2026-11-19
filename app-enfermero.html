@@ -247,7 +247,7 @@
   <div class="auth-body">
     <div id="tab-login">
       <div class="form-group"><label>Correo electrónico</label><input type="email" id="login-email" placeholder="correo@ejemplo.com"></div>
-      <div class="form-group"><label>Contraseña</label><input type="password" id="login-password" placeholder="••••••••"></div>
+      <div class="form-group"><label>Contraseña</label><input type="password" id="login-password" placeholder="Su contraseña"></div>
       <button class="btn-main" onclick="doLogin()">Ingresar</button>
       <div style="text-align:center;margin-top:14px"><a href="restablecer.html" style="color:inherit;font-weight:700;font-size:14px">¿Olvidó su contraseña?</a></div>
       <div class="auth-error" id="login-error"></div>
@@ -507,6 +507,13 @@ function switchTab(tab) {
   });
 }
 
+// Enter (o «Ir» del teclado del celular) también ingresa o crea la cuenta
+document.addEventListener('keydown', function(e){
+  if (e.key !== 'Enter' || !e.target || e.target.tagName !== 'INPUT') return;
+  var id = e.target.id || '';
+  if (id === 'login-email' || id === 'login-password') { e.preventDefault(); doLogin(); }
+  else if (/^reg-/.test(id) && e.target.type !== 'checkbox') { e.preventDefault(); doRegistro(); }
+});
 async function doLogin() {
   const email = document.getElementById('login-email').value.trim();
   const password = document.getElementById('login-password').value;
@@ -545,7 +552,7 @@ async function doRegistro() {
   if (!email.includes('@')||!email.includes('.')) { showError(errEl,'⚠️ El correo no es válido. Ejemplo: nombre@gmail.com'); return; }
   if (!telefonoRaw) { showError(errEl,'⚠️ Por favor ingrese su número de teléfono celular'); return; }
   const telefonoDigitos = telefonoRaw.replace(/\D/g,'');
-  if (telefonoDigitos.length<7||telefonoDigitos.length>15) { showError(errEl,'⚠️ Teléfono inválido. Ingrese solo los números. Ejemplo: 3001234567'); return; }
+  if (telefonoRaw.startsWith('+') ? (telefonoDigitos.length<8||telefonoDigitos.length>15) : !/^(3\d{9}|60\d{8})$/.test(telefonoDigitos)) { showError(errEl,'⚠️ El teléfono debe tener 10 números, por ejemplo 3001234567'); return; }
   if (!password) { showError(errEl,'⚠️ Por favor ingrese una contraseña'); return; }
   if (password.length<10) { showError(errEl,'⚠️ La contraseña debe tener mínimo 10 caracteres'); return; }
   if (password !== document.getElementById('reg-password2').value) { showError(errEl,'⚠️ Las dos contraseñas no coinciden. Escríbalas otra vez.'); return; }
@@ -817,7 +824,11 @@ async function cargarCitas() {
       return '<div class="solicitud-card normal"><div class="sol-header"><div class="sol-tipo"><div class="sol-icon">'+(ICONOS_SERVICIO[s.tipo]||'🏥')+'</div><div><div class="sol-name">'+tipoLabel(s.tipo)+'</div><div class="sol-sub">'+esc(nombre)+'</div></div></div><span class="badge badge-teal">CITA</span></div>' +
         '<div class="sol-info"><div class="sol-info-row">📅 <span><b>'+esc(fechaCita(s.programadoPara))+'</b></span></div><div class="sol-info-row">📍 <span>'+esc(s.direccion||'')+'</span></div>' +
         (s.descripcion?'<div class="sol-info-row">📝 <span>'+esc(s.descripcion)+'</span></div>':'') +
+        // Alergias y orden médica a la vista desde que acepta la cita (para prepararse con tiempo)
+        (pac.alergias?'<div class="sol-info-row">⚠️ <span><b>Alergias:</b> '+esc(pac.alergias)+'</span></div>':'') +
+        (pac.antecedentes && pac.antecedentes !== pac.alergias?'<div class="sol-info-row">📋 <span>'+esc(pac.antecedentes)+'</span></div>':'') +
         (pagado?'':'<div class="sol-info-row">⏳ <span>Esperando el pago del paciente</span></div>') + '</div>' +
+        (s.ordenArchivoId?'<div class="sol-actions" style="margin-bottom:6px"><button class="btn-reject" style="flex:1" onclick="verOrdenMedica(\''+s.id+'\')">📄 Ver orden médica</button></div>':'') +
         '<div class="sol-actions"><button class="btn-reject" style="flex:1" data-id="'+s.id+'" data-n="'+esc(nombre)+'" onclick="abrirChat(API, token, this.dataset.id, \'Mensajes con \' + this.dataset.n)">💬 Mensajes</button><button class="btn-reject" style="flex:1" onclick="desistirServicio(\''+s.id+'\')">No podré ir</button></div></div>';
     }).join('');
   } catch (e) {}
@@ -834,7 +845,7 @@ function solicitudCard(s) {
     '<div class="sol-info">' + (s.programadoPara?'<div class="sol-info-row">📅 <span><b>'+esc(fechaCita(s.programadoPara))+'</b></span></div>':'') + (s.paraUsted?'<div class="sol-info-row">⭐ <span>Un paciente que usted atendió le pide otra visita</span></div>':'') + '<div class="sol-info-row">📍 <span>'+esc(s.direccion||'Sin dirección')+'</span></div>' +
     (s.conOrden?'<div class="sol-info-row">📄 <span>Con orden médica (la verá si el paciente lo elige)</span></div>':'') +
     '<div class="sol-info-row">🕐 <span>'+formatDate(s.createdAt||s.fechaSolicitud)+'</span></div>' +
-    (s.monto?'<div class="sol-info-row">💵 <span>Tarifa $'+Number(s.monto).toLocaleString('es-CO')+'</span></div>':'') +
+    (s.monto?'<div class="sol-info-row">💵 <span>'+(s.paraProfesional?'<b>Usted recibe $'+Number(s.paraProfesional).toLocaleString('es-CO')+'</b> · tarifa $':'Tarifa $')+Number(s.monto).toLocaleString('es-CO')+'</span></div>':'') +
     (s.descripcion?'<div class="sol-info-row">📝 <span>'+esc(s.descripcion)+'</span></div>':'') + '</div>' +
     '<div class="sol-ofertas">' + (s.totalOfertas ? s.totalOfertas + (s.totalOfertas === 1 ? ' profesional ofrecido' : ' profesionales ofrecidos') + ' · ' : '') + 'el paciente elige</div>' +
     '<div class="sol-actions">' + (s.miOferta
@@ -933,9 +944,14 @@ async function noPuedoVisita(id) {
 }
 
 async function desistirServicio(id) {
-  if (!(await confirmar('El servicio volverá a quedar disponible para otro profesional. Avise a la IPS si es posible.', {titulo:'¿No puede atender este servicio?', si:'Sí, liberarlo', peligro:true}))) return;
-  if (await cambiarEstado(id,'cancelado')) aviso('Servicio liberado para otro profesional');
+  // El motivo es obligatorio: el paciente puede haber pagado y la IPS debe saber qué pasó
+  const motivo = await pedirDato({ titulo: '¿No puede atender este servicio?', texto: 'El servicio volverá a quedar disponible para otro profesional y el paciente no tendrá que pagar de nuevo. Escriba por qué no puede ir: lo verá la IPS.', tipo: 'text', normal: true, maxlength: 300, placeholder: 'Ej: se me varó la moto', si: 'Sí, liberarlo', validar: function(v){ return v.trim().length >= 5; }, error: 'Escriba el motivo (mínimo 5 letras)' });
+  if (!motivo) return;
+  desisteMotivo = motivo.trim();
+  if (await cambiarEstado(id,'cancelado')) aviso('Servicio liberado para otro profesional. La IPS recibió su motivo.');
+  desisteMotivo = '';
 }
+let desisteMotivo = '';
 
 async function cambiarEstado(id,estado,firma,codigo) {
   showLoading('Actualizando...');
@@ -943,6 +959,7 @@ async function cambiarEstado(id,estado,firma,codigo) {
     const cuerpo = {estado: estado};
     if (firma) cuerpo.firma = firma;
     if (codigo) cuerpo.codigo = codigo;
+    if (estado === 'cancelado' && desisteMotivo) cuerpo.motivo = desisteMotivo;
     // Ubicación al salir, llegar y terminar (seguridad de la visita; si no la da, sigue sin ella)
     if (['en_camino','en_curso','completado'].indexOf(estado) >= 0) { const pos = await ubicacionActual(4000); if (pos) { cuerpo.lat = pos.lat; cuerpo.lng = pos.lng; } }
     const res = await fetch(API+'/api/servicios/'+id+'/estado',{method:'PUT',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},body:JSON.stringify(cuerpo)});
@@ -993,7 +1010,12 @@ async function iniciarConCodigo(id) {
 }
 
 async function completarServicio(id) {
+  let notaEnServidor = false;
   if (getComputedStyle(document.getElementById('nota-ok')).display === 'none') {
+    // Si la nota ya está guardada (por ejemplo, cerró la app o cambió de celular), no se pregunta
+    try { const rs = await fetch(API + '/api/servicios?activos=1&limit=10', { headers: { 'Authorization': 'Bearer ' + token } }); if (rs.ok) { const ds = await rs.json(); const sv = (ds.items || []).filter(function(x){ return x.id === id; })[0]; notaEnServidor = !!(sv && sv._count && sv._count.evoluciones > 0); } } catch (e) {}
+  }
+  if (!notaEnServidor && getComputedStyle(document.getElementById('nota-ok')).display === 'none') {
     const yaGuardo = await confirmar('No vemos una nota clínica guardada en este celular para este servicio. La firma del paciente se pide al final, después de guardar la nota.', {titulo:'¿Ya guardó la nota clínica?', si:'Sí, ya la guardé', no:'Ir a la nota'});
     if (!yaGuardo) { document.getElementById('evolucion-form').scrollIntoView({behavior:'smooth'}); return; }
   }
@@ -1097,7 +1119,8 @@ async function guardarEvolucion() {
     recomendaciones:document.getElementById('v-recomendaciones').value.trim()||undefined,
   };
   // Rangos esperados: si algo está por fuera, se pide confirmación (evita errores de digitación)
-  const rangos = {'v-sistolica':[70,220,'Tensión sistólica'],'v-diastolica':[40,130,'Tensión diastólica'],'v-fc':[40,180,'Frecuencia cardiaca'],'v-temp':[34,41,'Temperatura'],'v-spo2':[80,100,'Saturación de oxígeno'],'v-glucemia':[40,400,'Glucemia']};
+  // Rangos de alarma clínica en adulto (no solo errores de digitación): T/A ≥180/110 o <90/50, FC >120 o <50, fiebre ≥38 °C o <35,5, SpO2 <92 %, glucemia <70 o >250
+  const rangos = {'v-sistolica':[90,179,'Tensión sistólica'],'v-diastolica':[50,109,'Tensión diastólica'],'v-fc':[50,120,'Frecuencia cardiaca'],'v-temp':[35.5,37.9,'Temperatura'],'v-spo2':[92,100,'Saturación de oxígeno'],'v-glucemia':[70,250,'Glucemia']};
   const fuera = [];
   Object.keys(rangos).forEach(function(id){
     const el = document.getElementById(id), v = parseFloat(el.value), r = rangos[id];
@@ -1106,7 +1129,7 @@ async function guardarEvolucion() {
   });
   if (body.tensionSistolica && body.tensionDiastolica && body.tensionDiastolica >= body.tensionSistolica) fuera.push('La diastólica es mayor o igual que la sistólica');
   if (!body.observaciones && !body.procedimientos) { aviso('Escriba las observaciones o los procedimientos realizados.', 'aviso'); return; }
-  if (fuera.length && !(await confirmar('Estos valores están fuera de lo esperado:\n• '+fuera.join('\n• ')+'\n\n¿Los confirma?', {titulo:'Revise los signos vitales', si:'Sí, son correctos', no:'Corregir'}))) return;
+  if (fuera.length && !(await confirmar('Estos valores están fuera de lo normal:\n• '+fuera.join('\n• ')+'\n\nRevise que estén bien escritos. Si son correctos, anótelo en la nota y avise a la IPS o al médico tratante (si hay riesgo para la vida, use el botón Emergencia).', {titulo:'Revise los signos vitales', si:'Sí, son correctos', no:'Corregir'}))) return;
   showLoading('Guardando nota clínica...');
   try {
     const res = await fetch(API+'/api/servicios/'+servicioActivoId+'/evolucion',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},body:JSON.stringify(body)});
@@ -1166,7 +1189,8 @@ function mostrarAyudaAvisos() {
   const instalada = window.matchMedia && window.matchMedia('(display-mode: standalone)').matches;
   let texto = 'Para recibir las solicitudes con el celular guardado, permita las notificaciones de esta app.';
   if (esIphone && !instalada) texto = 'En iPhone primero toque el botón Compartir (cuadro con flecha) y elija "Agregar a pantalla de inicio". Abra la app desde ese ícono, toque "Disponible" y acepte las notificaciones.';
-  else if (typeof Notification !== 'undefined' && Notification.permission === 'denied') texto = 'Las notificaciones están bloqueadas para esta página. Actívelas en la configuración del navegador (ícono de candado junto a la dirección) y vuelva a tocar "Disponible".';
+  else if (motivoAvisos === 'sin_soporte' || (motivoAvisos === 'fallo' && !(typeof Notification !== 'undefined' && Notification.permission === 'denied'))) texto = 'Este navegador no puede recibir avisos (pasa en modo incógnito o en navegadores sin esa función). Abra la app en Chrome normal, o instálela con el botón «Instalar», y vuelva a tocar "Disponible".';
+  else if (typeof Notification !== 'undefined' && Notification.permission === 'denied') texto = 'Las notificaciones están bloqueadas para esta página, o este navegador no las permite (por ejemplo, en modo incógnito). Actívelas en la configuración del navegador (ícono de candado junto a la dirección) o abra la app en Chrome normal, y vuelva a tocar "Disponible".';
   confirmar(texto, { titulo: 'Active los avisos', si: 'Entendido', no: 'Cerrar' });
 }
 
@@ -1186,7 +1210,7 @@ async function loadHistorial(mas) {
       return '<div class="historial-item"><div class="hist-icon" style="background:'+(s.estado==='completado'?'var(--teal-dim)':'var(--red-dim)')+'">'+( iconos[s.tipo]||'🏥')+'</div>' +
         '<div class="hist-info"><div class="hist-tipo">'+tipoLabel(s.tipo)+'</div><div class="hist-fecha">'+esc((s.paciente&&(s.paciente.nombreCompleto||(s.paciente.usuario&&s.paciente.usuario.nombreCompleto)))||'')+' · '+formatDate(s.createdAt)+'</div></div>' +
         '<span class="badge '+(s.estado==='completado'?'badge-teal':'badge-red')+'">'+(s.estado==='completado'?'Completado':'Cancelado')+'</span>' +
-        (s.estado==='completado' && s.fechaFin && Date.now()-new Date(s.fechaFin).getTime() < 30*24*3600*1000 ? '<button class="btn-reject" style="margin-left:6px;padding:6px 8px;font-size:12px;flex:0 0 auto" data-id="'+s.id+'" onclick="reportarEvento(this.dataset.id)" title="Reportar un evento de seguridad">⚠️</button>' : '') + '</div>';
+        (s.estado==='completado' && s.fechaFin && Date.now()-new Date(s.fechaFin).getTime() < 30*24*3600*1000 ? '<button class="btn-reject" style="margin-left:6px;padding:6px 8px;font-size:12px;flex:0 0 auto" data-id="'+s.id+'" onclick="reportarEvento(this.dataset.id)" title="Reportar un evento de seguridad">⚠️ Reportar evento</button>' : '') + '</div>';
     }).join('') +
       ((data.total||0) > (data.items||[]).length && (data.items||[]).length < 100 ? '<button class="btn-main" style="margin-top:10px" onclick="loadHistorial(true)">Ver servicios anteriores</button>' : '');
   } catch(e) { el.innerHTML='<div class="empty"><div class="empty-icon">📋</div><div class="empty-text">Sin historial aún</div></div>'; }
@@ -1410,7 +1434,8 @@ function activarAvisos() { pidiendoAvisos = true; iniciarNotificacionesPush().fi
 async function iniciarNotificacionesPush() {
   try {
     // Verificar soporte
-    if (!('serviceWorker' in navigator) || !('PushManager' in window)) return;
+    motivoAvisos = '';
+    if (!('serviceWorker' in navigator) || !('PushManager' in window)) { motivoAvisos = 'sin_soporte'; return; }
 
     // Registrar Service Worker
     const reg = await navigator.serviceWorker.register('sw-enfermero.js');
@@ -1440,8 +1465,10 @@ async function iniciarNotificacionesPush() {
     if (pidiendoAvisos) aviso('Avisos activados en este dispositivo');
   } catch(e) {
     console.log('Push no disponible:', e.message);
+    motivoAvisos = 'fallo';
   }
 }
+let motivoAvisos = '';
 
 function urlBase64ToUint8Array(base64String) {
   const padding = '='.repeat((4 - base64String.length % 4) % 4);
@@ -1460,6 +1487,8 @@ async function verOrdenMedica(id, marcar) {
   if (!ok || !marcar) return;
   const conf = await confirmar('¿Revisó la orden? Debe tener nombre del paciente, medicamento, dosis, vía y firma del médico. Si algo no está claro, llame al paciente o a la IPS antes de salir.', { titulo: 'Confirmar revisión de la orden', si: 'Sí, la revisé', no: 'Volver a verla' });
   if (!conf) return;
+  // cierra la foto de la orden que quedaba abierta encima de la pantalla
+  document.querySelectorAll('.sec-modal-fondo').forEach(function(f){ if (f.querySelector('img[alt="Orden médica del paciente"], img') && f.__cerrar) f.__cerrar(); });
   try {
     const r = await fetch(API + '/api/servicios/' + id + '/orden-revisada', { method: 'POST', headers: { 'Authorization': 'Bearer ' + token } });
     if (!r.ok) { const d = await r.json().catch(function(){ return {}; }); throw new Error(d.error || 'No se pudo guardar'); }

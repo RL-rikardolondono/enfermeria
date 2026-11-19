@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#0B4F8A">
 <title>Salud en Casa · Clínica Reina Elizabeth IPS</title>
-<meta name="description" content="Enfermería, medicina y terapias a domicilio en Santa Marta con profesionales verificados de la Clínica Reina Elizabeth IPS. Tarifas fijas y atención por WhatsApp.">
+<meta name="description" content="Enfermería a domicilio en Santa Marta con profesionales verificados de la Clínica Reina Elizabeth IPS. Tarifas fijas y atención por WhatsApp.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Public+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="comun.js?v=20261022c" data-rol="publico"></script>
@@ -85,7 +85,7 @@
   <div class="envoltura">
   <div>
     <h1>Atención de salud<br><em>en la comodidad de su casa</em></h1>
-    <p>Pida enfermería, medicina general y terapias a domicilio para usted o su familia. Profesionales verificados por la Clínica Reina Elizabeth IPS, con tarifas fijas y sin sorpresas.</p>
+    <p><span id="heroe-texto">Pida enfermería a domicilio para usted o su familia.</span> Profesionales verificados por la Clínica Reina Elizabeth IPS, con tarifas fijas y sin sorpresas.</p>
     <div class="acciones">
       <a class="btn btn-claro" href="app-paciente.html">Pedir un servicio</a>
       <a class="btn btn-verde" id="wa-heroe" target="_blank" rel="noopener" href="https://wa.me/573128886611">Hablar con la IPS por WhatsApp</a>
@@ -146,12 +146,19 @@
 
 <script>
 var API = 'https://saludencasa-api.onrender.com';
-var ICONOS = {curacion:'🩹',medicacion:'💊',inyeccion:'💉',control:'🩺',cuidado_basico:'🛁',urgencia:'🚨'};
+var ICONOS = {curacion:'🩹',medicacion:'💊',inyeccion:'💉',control:'🩺',cuidado_basico:'🛁',urgencia:'🚨',consulta_medica:'👨‍⚕️',terapia_fisica:'🦵',terapia_ocupacional:'🧩',terapia_respiratoria:'🫁',terapia_conductual:'🧠',psicologia:'💬'};
 document.getElementById('wa-heroe').href = enlaceWhatsApp();
 function esc(t){ return String(t==null?'':t).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];}); }
 fetch(API + '/api/tarifas').then(function(r){ return r.json(); }).then(function(d){
   var items = (d.items || []).filter(function(t){ return t.activo; });
   if (!items.length) throw new Error();
+  // La portada promete solo lo que de verdad se puede pedir hoy en la app (se arma con los servicios activos)
+  var hay = function(re){ return items.some(function(t){ return re.test(t.tipo); }); };
+  var partes = ['enfermería'];
+  if (hay(/^consulta_medica$/)) partes.push('medicina general');
+  if (hay(/^terapia_|^psicologia$/)) partes.push('terapias');
+  var lista = partes.length > 1 ? partes.slice(0, -1).join(', ') + ' y ' + partes[partes.length - 1] : partes[0];
+  var ht = document.getElementById('heroe-texto'); if (ht) ht.textContent = 'Pida ' + lista + ' a domicilio para usted o su familia.';
   document.getElementById('servicios').innerHTML = items.map(function(t){
     return '<div class="tarjeta"><div class="icono">' + (ICONOS[t.tipo] || '🏥') + '</div><h3>' + esc(t.nombre) + '</h3><p>' + esc(t.descripcion || '') + '</p>' +
       '<div class="precio">$' + Number(t.precio).toLocaleString('es-CO') + ' <small>COP</small></div></div>';

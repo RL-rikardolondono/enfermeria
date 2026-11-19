@@ -145,6 +145,7 @@
   .chips{display:flex;flex-wrap:wrap;gap:6px}
   .chip-sel{border:1.5px solid #DCE5EE;background:#fff;color:#1C2B39;border-radius:999px;padding:5px 11px;font:600 12px 'Public Sans',sans-serif;cursor:pointer}
   .chip-sel.on{background:#14A38B;border-color:#14A38B;color:#fff}
+[hidden]{display:none!important}
 </style>
 <script src="comun.js?v=20261022c" data-rol="admin"></script>
 </head>
@@ -279,11 +280,11 @@
           </div>
         </div>
         <div class="grid-2">
-          <div class="card">
+          <div class="card" id="card-recientes">
             <div class="card-header"><div class="card-title">Servicios recientes</div></div>
             <div id="servicios-recientes"><div class="loading"><div class="spinner"></div> Cargando...</div></div>
           </div>
-          <div class="card">
+          <div class="card" id="card-pendientes">
             <div class="card-header"><div class="card-title">Profesionales pendientes</div></div>
             <div id="profesionales-pendientes"><div class="loading"><div class="spinner"></div> Cargando...</div></div>
           </div>
@@ -762,7 +763,7 @@ function analizarEvento(id) {
   f.className = 'sec-modal-fondo';
   var est = 'width:100%;padding:9px;border:1px solid #DCE5EE;border-radius:8px;font:inherit;box-sizing:border-box;margin-bottom:8px;background:#fff';
   f.innerHTML = '<div class="sec-modal" role="dialog" aria-modal="true" style="max-width:520px"><h3>Análisis del evento</h3><p style="margin-bottom:8px;font-size:13px"></p>' +
-    '<label style="font-size:13px;font-weight:700">Clasificación</label><select id="ev-clas" style="' + est + '"><option value="">— Elija —</option>' + Object.keys(EV_CLAS).map(function(k){ return '<option value="' + k + '"' + (x.clasificacion === k ? ' selected' : '') + '>' + EV_CLAS[k] + '</option>'; }).join('') + '</select>' +
+    '<label style="font-size:13px;font-weight:700">Clasificación</label><select id="ev-clas" style="' + est + '"><option value="">— Elija —</option>' + Object.keys(EV_CLAS).filter(function(k){ return x.gravedad === 'sin_dano' ? k === 'incidente' : k !== 'incidente'; }).map(function(k){ return '<option value="' + k + '"' + (x.clasificacion === k ? ' selected' : '') + '>' + EV_CLAS[k] + '</option>'; }).join('') + '</select>' +
     '<label style="font-size:13px;font-weight:700">Análisis (causas, factores contributivos)</label><textarea id="ev-an" maxlength="4000" style="' + est + ';height:100px"></textarea>' +
     '<label style="font-size:13px;font-weight:700">Plan de mejora (acciones, responsable, fecha)</label><textarea id="ev-plan" maxlength="3000" style="' + est + ';height:80px"></textarea>' +
     '<div class="sec-modal-botones"><button class="sec-btn-no" type="button">Cerrar</button><button class="ev-guardar sec-btn-no" type="button">Guardar avance</button><button class="sec-btn-si" type="button">Cerrar evento</button></div></div>';
@@ -898,8 +899,16 @@ async function loadPagos(pagina, filtro) {
 
 async function marcarLiquidacion(id, accion, btn) {
   if (accion === 'reembolsado' && !(await confirmar('Confirme que ya devolvió el dinero al paciente desde el panel de Bold.', {titulo:'¿Marcar como reembolsado?', si:'Sí, ya lo devolví'}))) return;
+  var cuerpo = {};
+  if (accion === 'transferido') {
+    // Pagar al profesional no se puede deshacer: se confirma y se guarda el comprobante (sale en el documento soporte)
+    var fila = btn.closest('tr'); var detalle = fila ? Array.prototype.slice.call(fila.cells, 1, 7).map(function(c){ return c.innerText.replace(/\s+/g, ' ').trim(); }).filter(Boolean).join(' · ') : '';
+    var ref = await pedirTexto('Confirme que ya le transfirió el dinero al profesional (' + detalle + '). Escriba el número del comprobante o la referencia de la transferencia (Nequi, Daviplata, banco). No se puede deshacer.', '¿Marcar como transferido?', { min: 3, boton: 'Sí, ya le transferí', placeholder: 'Ej: comprobante Nequi M123456' });
+    if (!ref) return;
+    cuerpo.referencia = ref;
+  }
   btn.disabled = true; btn.textContent = 'Guardando...';
-  var res = await apiFetch('/api/pagos/liquidaciones/' + id + '/' + accion, { method: 'PUT', body: '{}' });
+  var res = await apiFetch('/api/pagos/liquidaciones/' + id + '/' + accion, { method: 'PUT', body: JSON.stringify(cuerpo) });
   if (res && res.ok) { aviso(accion === 'transferido' ? 'Marcado como transferido' : 'Marcado como reembolsado'); loadPagos(paginaPagos, filtroPagos); } else { btn.disabled = false; btn.textContent = accion === 'transferido' ? 'Marcar transferido' : 'Marcar reembolsado'; aviso((res && res.error) || 'No se pudo guardar. Intente de nuevo.', 'error'); }
 }
 
@@ -993,8 +1002,17 @@ async function loadDashboard() {
     });
     aviso('No se pudo cargar el resumen: ' + (e.message || 'sin conexión') + ' Toque "Actualizar" en un momento.', 'error');
   }
-  loadServiciosRecientes();
-  loadProfesionalesPendientes();
+  // Cada perfil ve solo los cuadros que puede abrir (Tesorería no veía «No hay servicios aún» con servicios del día)
+  var verServ = puede('servicios'), verProf = puede('profesionales');
+  var cr = document.getElementById('card-recientes'), cp = document.getElementById('card-pendientes');
+  if (cr) cr.hidden = !verServ; if (cp) cp.hidden = !verProf;
+  var sp = document.getElementById('stat-pendientes'); var cardSp = sp && sp.closest('.stat-card'); if (cardSp) cardSp.hidden = !verProf;
+  document.querySelectorAll('.stat-card[onclick]').forEach(function(c){
+    var m = /irA\('([a-z]+)'/.exec(c.getAttribute('onclick') || '');
+    if (m && !puede(SECCION_PERMISO[m[1]] || m[1])) { c.removeAttribute('onclick'); c.removeAttribute('role'); c.removeAttribute('title'); c.style.cursor = 'default'; }
+  });
+  if (verServ) loadServiciosRecientes();
+  if (verProf) loadProfesionalesPendientes();
 }
 
 async function loadServiciosRecientes() {
@@ -1369,7 +1387,7 @@ async function verDocumentosProf(id, nombre) {
       (x ? '<div style="font-size:12px;color:#5D6B78">Subido ' + formatDate(x.createdAt) + (x.vence ? ' · vence ' + formatDate(x.vence) : '') + (x.nota ? ' · ' + esc(x.nota) : '') + '</div>' +
         '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px">' +
         (x.archivoId ? '<button class="btn btn-sm" data-id="' + x.id + '" data-n="' + esc(req.nombre) + '" onclick="verArchivo(API+\'/api/profesionales/documentos/\'+this.dataset.id+\'/archivo\', token, this.dataset.n)">Ver</button>' : '') +
-        (x.estado !== 'aprobado' ? (req.vence ? '<input type="date" id="dv-' + x.id + '" aria-label="Vence" value="' + (x.vence ? String(x.vence).slice(0, 10) : '') + '" style="padding:5px;border:1px solid #DCE5EE;border-radius:6px;background:#fff">' : '') +
+        (x.estado !== 'aprobado' ? (req.vence ? '<input type="date" id="dv-' + x.id + '" aria-label="Vence" value="' + (x.vence ? fechaInputCol(x.vence) : '') + '" style="padding:5px;border:1px solid #DCE5EE;border-radius:6px;background:#fff">' : '') +
           '<button class="btn btn-sm btn-approve" data-id="' + x.id + '" onclick="revisarDocumento(this.dataset.id,\'aprobado\',this)">✓ Aprobar</button>' : '') +
         (x.estado !== 'rechazado' ? '<button class="btn btn-sm btn-reject" data-id="' + x.id + '" onclick="revisarDocumento(this.dataset.id,\'rechazado\',this)">✗ Rechazar</button>' : '') +
         '</div>' : '') + '</div>';
@@ -1403,16 +1421,19 @@ async function revisarDocumento(id, estado, btn) {
   } else { btn.disabled = false; aviso((r && r.error) || 'No se pudo guardar', 'error'); }
 }
 // Pide un texto corto en una ventana (motivos)
-function pedirTexto(texto, titulo) {
+function pedirTexto(texto, titulo, op) {
+  op = op || {}; var minimo = op.min || 5;
   return new Promise(function(ok){
     var f = document.createElement('div');
     f.className = 'sec-modal-fondo';
     f.innerHTML = '<div class="sec-modal" role="dialog" aria-modal="true"><h3></h3><p style="margin-bottom:8px"></p><textarea maxlength="300" style="width:100%;height:80px;padding:10px;border:1px solid #DCE5EE;border-radius:8px;font:inherit;box-sizing:border-box"></textarea><div class="sec-modal-botones" style="margin-top:12px"><button class="sec-btn-no" type="button">Cancelar</button><button class="sec-btn-si" type="button">Guardar</button></div></div>';
     f.querySelector('h3').textContent = titulo; f.querySelector('p').textContent = texto;
+    if (op.boton) f.querySelector('.sec-btn-si').textContent = op.boton;
+    if (op.placeholder) f.querySelector('textarea').placeholder = op.placeholder;
     var fin = function(v){ f.remove(); ok(v); };
     f.__cerrar = function(){ fin(''); };
     f.querySelector('.sec-btn-no').onclick = function(){ fin(''); };
-    f.querySelector('.sec-btn-si').onclick = function(){ var v = f.querySelector('textarea').value.trim(); if (v.length < 5) { aviso('Escriba el motivo (mínimo 5 letras)', 'aviso'); return; } fin(v); };
+    f.querySelector('.sec-btn-si').onclick = function(){ var v = f.querySelector('textarea').value.trim(); if (v.length < minimo) { aviso(minimo === 5 ? 'Escriba el motivo (mínimo 5 letras)' : 'Escriba el comprobante o la referencia', 'aviso'); return; } fin(v); };
     document.body.appendChild(f); f.querySelector('textarea').focus();
   });
 }
@@ -1534,7 +1555,7 @@ async function pegarLlaveFia() {
   var v = await pedirDato({ titulo: 'Llave de conexión de Factura-IA', texto: 'Péguela completa (se muestra una sola vez en Factura-IA → Datos de la empresa → Llave de conexión para otras apps). Se guarda cifrada.', si: 'Conectar', maxlength: 200, validar: function (x) { return x.length >= 20; }, error: 'La llave está incompleta' });
   if (!v) return;
   var r = await apiFetch('/api/admin/facturacion/llave', { method: 'PUT', body: JSON.stringify({ llave: v }) });
-  if (r && r.ok) { aviso('Factura-IA conectado' + (r.empresa ? ' (' + r.empresa + ')' : '') + '. Las facturas en cola se envían ahora.'); loadFacturacion(); } else aviso((r && r.error) || 'No se pudo conectar', 'error');
+  if (r && r.ok) { aviso('Factura-IA conectado' + (r.empresa ? ' (' + r.empresa + ')' : '') + '.' + (r.enCola ? ' Enviando ' + (r.enCola === 1 ? 'la factura que estaba' : 'las ' + r.enCola + ' facturas que estaban') + ' en cola; la lista se actualiza en unos segundos.' : '')); loadFacturacion(); if (r.enCola) { setTimeout(loadFacturacion, 6000); setTimeout(loadFacturacion, 20000); } } else aviso((r && r.error) || 'No se pudo conectar', 'error');
 }
 async function quitarLlaveFia() {
   if (!(await confirmar('Las facturas nuevas quedarán en cola hasta que pegue otra llave. Las ya emitidas siguen en Factura-IA.', { titulo: '¿Desconectar Factura-IA?', si: 'Sí, desconectar', peligro: true }))) return;
@@ -1593,6 +1614,8 @@ function bajarFactura(id, f) { bajarArchivo('/api/admin/facturacion/facturas/' +
 function verSoporte(id) { bajarArchivo('/api/pagos/soporte/' + id, '', true); }
 
 // ══ Paquete 8: Informes y copias ══
+// Fecha AAAA-MM-DD en hora de Colombia (los vencimientos se guardan al final del día en Bogotá: cortar el texto en UTC daba el día siguiente)
+function fechaInputCol(v) { var d = new Date(v); return isNaN(d) ? '' : d.toLocaleDateString('en-CA', { timeZone: 'America/Bogota' }); }
 function hoyCol() { return new Date(Date.now() - 5 * 3600000).toISOString().slice(0, 10); }
 function rangoInforme(t) {
   var h = hoyCol(), y = +h.slice(0, 4), m = +h.slice(5, 7);

@@ -383,6 +383,8 @@
       if (op.min) inp.min = op.min;
       if (op.max) inp.max = op.max;
       if (op.valor) inp.value = op.valor;
+      if (op.placeholder) inp.placeholder = op.placeholder;
+      if (op.normal) inp.style.font = "500 16px 'Public Sans',sans-serif";
       if (op.tipo === 'text' || !op.tipo) inp.style.letterSpacing = op.espaciado || 'normal';
       f.querySelector('.sec-btn-si').textContent = op.si || 'Aceptar';
       var fin = function (v) { f.remove(); resolve(v); };
@@ -518,8 +520,8 @@
           if (!leido && lee('sec_chat_avisado_' + id) !== ult.id) {
             guarda('sec_chat_avisado_' + id, ult.id);
             var b = botones(id)[0];
-            var quien = d.yo === 'paciente' ? 'su profesional' : 'el paciente';
-            window.aviso('Nuevo mensaje de ' + quien + ': "' + (ult.texto.length > 70 ? ult.texto.slice(0, 70) + '…' : ult.texto) + '"', 'aviso', 15000);
+            var quien = d.yo === 'paciente' ? 'de su profesional' : 'del paciente';
+            window.aviso('Nuevo mensaje ' + quien + ': "' + (ult.texto.length > 70 ? ult.texto.slice(0, 70) + '…' : ult.texto) + '"', 'aviso', 15000);
             var t = document.querySelector('.sec-toast-zona .sec-toast:last-child');
             if (t && b) {
               var ab = document.createElement('button'); ab.className = 'abrir-chat'; ab.type = 'button'; ab.textContent = 'Abrir';
@@ -532,6 +534,8 @@
       } finally { revisando = false; }
     }
     setInterval(revisar, 15000);
+    // primera revisión a los pocos segundos de abrir la app (antes esperaba 15 s y parecía que no avisaba)
+    setTimeout(revisar, 3000); setTimeout(revisar, 7000);
     document.addEventListener('visibilitychange', function () { if (!document.hidden) setTimeout(revisar, 800); });
   })();
 
@@ -599,6 +603,8 @@
       '.sec-instalar img{width:44px;height:44px;border-radius:10px;flex:none}.sec-instalar b{display:block;font-size:15px}' +
       '.sec-instalar .si{background:#14A38B;color:#fff;border:0;border-radius:10px;padding:10px 14px;font:700 14px "Public Sans",sans-serif;cursor:pointer;flex:none}' +
       '.sec-instalar .no{background:none;border:0;font-size:22px;color:#5D6B78;cursor:pointer;flex:none;padding:0 2px}' +
+      // no tapa el botón Ingresar en la pantalla de entrada ni las ventanas abiertas (firma, calificación…)
+      'body:has(#screen-auth.active):not(:has(#screen-app.active)) .sec-instalar,body:has(.sec-modal-fondo) .sec-instalar,body:has(.modal.open) .sec-instalar,body:has(#cal-overlay) .sec-instalar{display:none}' +
       '.sec-pasos-inst{text-align:left;margin:8px 0 0;padding-left:20px;font:500 15px/1.6 "Public Sans",sans-serif}';
     var stI = document.createElement('style'); stI.textContent = cssI; document.head.appendChild(stI);
     window.addEventListener('beforeinstallprompt', function (e) { e.preventDefault(); instalarEvt = e; mostrarInstalar(); });

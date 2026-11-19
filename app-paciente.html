@@ -140,7 +140,7 @@ body{font-family:'Public Sans',sans-serif;background:var(--cream);color:var(--in
   <div class="auth-body">
     <div id="tab-login">
       <div class="form-group"><label>Correo electrónico</label><input type="email" id="login-email" placeholder="correo@ejemplo.com"></div>
-      <div class="form-group"><label>Contraseña</label><input type="password" id="login-password" placeholder="&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;"></div>
+      <div class="form-group"><label>Contraseña</label><input type="password" id="login-password" placeholder="Su contraseña"></div>
       <button class="btn-main" onclick="doLogin()">Ingresar</button>
       <div style="text-align:center;margin-top:14px"><a href="restablecer.html" style="color:inherit;font-weight:700;font-size:14px">¿Olvidó su contraseña?</a></div>
       <div class="auth-error" id="login-error"></div>
@@ -198,6 +198,16 @@ body{font-family:'Public Sans',sans-serif;background:var(--cream);color:var(--in
         <div class="form-group"><label for="fac-num">Número de documento</label><input type="text" id="fac-num" inputmode="numeric" maxlength="20" placeholder="Sin puntos"></div>
         <div class="form-group"><label for="fac-nac">Fecha de nacimiento</label><input type="date" id="fac-nac"></div>
         <div class="form-group"><label for="fac-sexo">Sexo (como aparece en el documento)</label><select id="fac-sexo"><option value="">Elija…</option><option value="M">Mujer</option><option value="H">Hombre</option><option value="I">Indeterminado</option></select></div>
+      </div>
+      <div id="factura-a" class="info-card" style="display:none;margin-bottom:16px">
+        <div style="font-size:14px;font-weight:800;margin-bottom:6px">🧾 ¿A nombre de quién sale la factura?</div>
+        <label style="display:flex;gap:8px;align-items:center;margin:6px 0"><input type="radio" name="fa" value="paciente" checked onchange="cambioFacturaA()"> <span>Del paciente (<span id="fa-nom-pac"></span>)</span></label>
+        <label style="display:flex;gap:8px;align-items:center;margin:6px 0"><input type="radio" name="fa" value="titular" onchange="cambioFacturaA()"> <span>A mi nombre: yo pago (<span id="fa-nom-tit"></span>)</span></label>
+        <div id="fa-datos" style="display:none;margin-top:8px">
+          <div class="form-group"><label for="fa-tipo">Su tipo de documento</label><select id="fa-tipo"><option value="CC">Cédula de ciudadanía</option><option value="CE">Cédula de extranjería</option><option value="PT">Permiso por protección temporal</option><option value="PA">Pasaporte</option></select></div>
+          <div class="form-group"><label for="fa-num">Su número de documento</label><input type="text" id="fa-num" inputmode="numeric" maxlength="20" placeholder="Sin puntos"></div>
+        </div>
+        <div class="field-hint">La historia clínica y los RIPS siempre van con los datos del paciente atendido.</div>
       </div>
       <div id="nuevo-paciente" class="info-card" style="display:none;margin-bottom:16px">
         <div style="font-size:14px;font-weight:800;margin-bottom:12px">Agregar paciente a su cuenta</div>
@@ -328,6 +338,13 @@ function switchTab(tab) {
   document.querySelectorAll('.auth-tab').forEach(function(t,i){ t.classList.toggle('active',(i===0&&tab==='login')||(i===1&&tab==='registro')); });
 }
 
+// Enter (o «Ir» del teclado del celular) también ingresa o crea la cuenta
+document.addEventListener('keydown', function(e){
+  if (e.key !== 'Enter' || !e.target || e.target.tagName !== 'INPUT') return;
+  var id = e.target.id || '';
+  if (id === 'login-email' || id === 'login-password') { e.preventDefault(); doLogin(); }
+  else if (/^reg-/.test(id) && e.target.type !== 'checkbox') { e.preventDefault(); doRegistro(); }
+});
 async function doLogin() {
   var email = document.getElementById('login-email').value.trim();
   var password = document.getElementById('login-password').value;
@@ -363,6 +380,7 @@ async function doRegistro() {
   if (!email) { showError(errEl,'Por favor ingrese su correo electrónico'); return; }
   if (!email.includes('@')||!email.includes('.')) { showError(errEl,'El correo no es válido. Ejemplo: nombre@gmail.com'); return; }
   if (!telefonoRaw) { showError(errEl,'Por favor ingrese su teléfono celular'); return; }
+  if (!telefonoRaw.startsWith('+') && !/^(3\d{9}|60\d{8})$/.test(telefonoRaw.replace(/\D/g,''))) { showError(errEl,'El teléfono debe tener 10 números, por ejemplo 3001234567'); return; }
   if (!password) { showError(errEl,'Por favor ingrese una contraseña'); return; }
   if (password.length < 10) { showError(errEl,'La contraseña debe tener mínimo 10 caracteres'); return; }
   if (password !== document.getElementById('reg-password2').value) { showError(errEl,'Las dos contraseñas no coinciden. Escríbalas otra vez.'); return; }
@@ -424,12 +442,14 @@ function initApp() {
   document.getElementById('screen-auth').classList.remove('active');
   document.getElementById('screen-app').classList.add('active');
   var nombre = (user && user.nombreCompleto) ? user.nombreCompleto : 'Paciente';
-  var hora = new Date().getHours();
-  var saludo = hora < 12 ? 'Buenos días' : hora < 18 ? 'Buenas tardes' : 'Buenas noches';
+  var hora = Number(new Date().toLocaleString('en-US', { hour: 'numeric', hour12: false, timeZone: 'America/Bogota' })) % 24;
+  var saludo = hora >= 5 && hora < 12 ? 'Buenos días' : hora >= 12 && hora < 18 ? 'Buenas tardes' : 'Buenas noches';
   document.querySelector('.topbar-greeting').textContent = saludo+',';
   document.getElementById('app-nombre').textContent = nombre.split(' ')[0];
   document.getElementById('app-rol').textContent = 'Cuenta de paciente' + (user && user.email ? ' · ' + user.email : '');
-  document.getElementById('app-avatar').textContent = nombre.split(' ').map(function(w){return w[0];}).join('').slice(0,2).toUpperCase();
+  // Iniciales sin «de», «del», «la», «los» (María de los Ángeles → MÁ, no MD)
+  var pal = nombre.split(/\s+/).filter(function(w){ return w && !/^(de|del|la|las|los|y|e)$/i.test(w); });
+  document.getElementById('app-avatar').textContent = ((pal[0] || 'P')[0] + (pal.length > 1 ? pal[1][0] : '')).toUpperCase();
   try { history.replaceState({ pag: 'home', base: true }, ''); history.pushState({ pag: 'home' }, ''); } catch (e) {}
   revisarRegresoBold();
   loadServiciosRecientes();
@@ -489,7 +509,7 @@ async function loadServiciosRecientes() {
     if (!res.ok) throw new Error();
     var data = await res.json();
     pagosEnLinea = !!data.pagosEnLinea;
-    var items = data.items || data;
+    var items = data.items || data; window.__ultimosServicios = items;
     if (!items.length) { el.innerHTML = '<div class="empty"><div class="empty-icon">&#x1F4CB;</div><div class="empty-text">No tiene servicios aún</div></div>'; return; }
     var msgs = {asignado:['Profesional confirmado. Pronto saldrá hacia su domicilio','#1F8A4C'],en_camino:['El profesional está en camino','#0E8571'],en_curso:['El servicio ha comenzado','#0B4F8A'],completado:['Servicio completado','#1F8A4C'],cancelado:['Servicio cancelado','#B4412F']};
     items.forEach(function(s) {
@@ -582,6 +602,9 @@ function servicioItem(s) {
     }
   }
   if (s.estado === 'cancelado' && s.notas) extra += '<div class="srv-prof" style="color:#5D6B78">'+escapeHtml(s.notas)+'</div>';
+  // Cancelado después de pagar: decirle qué pasa con su dinero
+  if (s.estado === 'cancelado' && s.pago && s.pago.estado === 'reembolsado') extra += '<div class="srv-prof" style="color:#1F8A4C"><b>La IPS ya le devolvió su pago</b> por el mismo medio con que pagó. Según su banco, puede tardar unos días en verse.</div>';
+  else if (s.estado === 'cancelado' && s.pago && s.pago.estado === 'aprobado' && s.pago.estadoLiquidacion === 'reembolso') extra += '<div class="srv-prof" style="color:#0B4F8A"><b>Su dinero se le devuelve.</b> La IPS hace la devolución por el mismo medio con que pagó; según su banco puede tardar de 3 a 15 días hábiles. Si el profesional ya iba en camino, la IPS le avisará si descuenta el desplazamiento. Dudas: WhatsApp de la IPS.</div>';
   if (s.estado === 'pendiente') {
     var n = (s._count && s._count.ofertas) || 0;
     extra += '<div class="srv-prof" style="color:#0B4F8A"><b>Buscando profesional</b>' + (n ? ' · ' + n + (n === 1 ? ' se ofreció' : ' se ofrecieron') : '') + '</div>';
@@ -653,7 +676,9 @@ async function suscribirAvisos() {
 }
 
 async function cancelarServicio(id) {
-  if (!(await confirmar('Si el profesional ya va en camino, la IPS puede cobrar el desplazamiento según la política de cancelación.', {titulo:'¿Cancelar este servicio?', si:'Sí, cancelar', no:'No', peligro:true}))) return;
+  var sv = (window.__ultimosServicios || []).filter(function(x){ return x.id === id; })[0];
+  var pagado = !!(sv && sv.pago && sv.pago.estado === 'aprobado');
+  if (!(await confirmar((pagado ? 'Como ya pagó, la IPS le devuelve el dinero por el mismo medio de pago. ' : '') + 'Si el profesional ya va en camino, la IPS puede descontar el desplazamiento según la política de cancelación.', {titulo:'¿Cancelar este servicio?', si:'Sí, cancelar', no:'No', peligro:true}))) return;
   showLoading('Cancelando...');
   try {
     var res = await fetch(API+'/api/servicios/'+id+'/estado', {method:'PUT',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},body:JSON.stringify({estado:'cancelado'})});
@@ -693,12 +718,32 @@ async function verNotaClinica(id) {
       (rc.firma && /^data:image\/png;base64,[A-Za-z0-9+\/]+={0,2}$/.test(rc.firma) ? '<div>Firmó: '+escapeHtml(rc.nombre||'')+' · '+formatDate(rc.fecha)+'</div><img alt="Firma" src="'+rc.firma+'">' : '<div>Sin firma: '+escapeHtml(rc.motivo||'')+'</div>') + '</div>';
     var fondo = document.createElement('div');
     fondo.className = 'sec-modal-fondo';
-    fondo.innerHTML = '<div class="sec-modal" role="dialog" aria-modal="true" style="max-height:85vh;overflow:auto"><h3>Nota clínica</h3>'+html+'<div class="sec-modal-botones" style="margin-top:14px"><button class="sec-btn-si" type="button">Cerrar</button></div></div>';
+    fondo.innerHTML = '<div class="sec-modal" role="dialog" aria-modal="true" style="max-height:85vh;overflow:auto"><h3>Nota clínica</h3>'+html+'<div class="sec-modal-botones" style="margin-top:14px">'+(items.length?'<button class="sec-btn-no" type="button" data-pdf="1">🖨 Guardar en PDF</button>':'')+'<button class="sec-btn-si" type="button">Cerrar</button></div></div>';
     fondo.querySelector('.sec-btn-si').onclick = function(){ fondo.remove(); };
+    var bp = fondo.querySelector('[data-pdf]'); if (bp) bp.onclick = function(){ imprimirNota(id, html); };
     fondo.onclick = function(e){ if (e.target === fondo) fondo.remove(); };
     document.body.appendChild(fondo);
   } catch(e) { hideLoading(); aviso(mensajeRed(e), 'error'); }
 }
+
+// Copia de la nota clínica para guardar en PDF o imprimir (con los datos de la IPS y la referencia de SkyNet Genesis)
+function imprimirNota(id, cuerpo) {
+  var sv = (window.__ultimosServicios || []).filter(function(x){ return x.id === id; })[0] || {};
+  var pac = sv.paciente ? (sv.paciente.nombreCompleto || (sv.paciente.usuario && sv.paciente.usuario.nombreCompleto) || '') : '';
+  var doc = '<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Nota clínica · Salud en Casa</title><style>' +
+    'body{font-family:Arial,sans-serif;color:#1C2B39;max-width:760px;margin:24px auto;padding:0 18px;font-size:14px;line-height:1.5}h1{color:#0B4F8A;font-size:22px;margin:0}' +
+    '.cab{border-bottom:3px solid #14A38B;padding-bottom:10px;margin-bottom:14px}.nota-item{border:1px solid #DCE5EE;border-radius:10px;padding:12px;margin:10px 0}.nota-fecha{font-weight:bold;color:#0B4F8A}' +
+    '.nota-vitales{background:#F4F8FB;border-radius:8px;padding:8px;margin:6px 0}.nota-sec b{display:block;margin-top:8px}.recibido{margin-top:12px}.recibido img{max-width:260px;border:1px solid #DCE5EE;border-radius:8px;display:block;margin-top:6px}' +
+    '.pie{margin-top:24px;font-size:11px;color:#5D6B78;border-top:1px solid #DCE5EE;padding-top:8px}.imp{background:#0B4F8A;color:#fff;border:0;border-radius:8px;padding:10px 16px;font-size:15px;cursor:pointer}@media print{.imp{display:none}}</style></head><body>' +
+    '<button class="imp" onclick="print()">🖨 Imprimir o guardar en PDF</button>' +
+    '<div class="cab"><h1>Nota clínica de atención domiciliaria</h1><div>Clínica Reina Elizabeth IPS · NIT 901074496-5 · Calle 22 No. 18-18, Santa Marta · WhatsApp 312 888 6611</div>' +
+    '<div><b>Paciente:</b> ' + escapeHtml(pac) + (sv.tipo ? ' · <b>Servicio:</b> ' + escapeHtml(tipoLabelPaciente(sv.tipo)) : '') + '</div></div>' + cuerpo +
+    '<div class="pie">Copia para el paciente generada desde Salud en Casa el ' + new Date().toLocaleString('es-CO', { timeZone: 'America/Bogota' }) + '. Documento con información de salud reservada (Ley 1581 de 2012). Tecnología SkyNet Genesis · contacto@skynetgenesis.com · WhatsApp 304 437 5758</div></body></html>';
+  var u = URL.createObjectURL(new Blob([doc], { type: 'text/html' }));
+  var w = window.open(u, '_blank'); if (!w) location.href = u;
+  setTimeout(function(){ URL.revokeObjectURL(u); }, 120000);
+}
+function tipoLabelPaciente(t) { var x = (typeof tarifasIPS !== "undefined" && tarifasIPS) ? tarifasIPS[t] : null; return x ? x.nombre : t; }
 
 function mostrarCalificacion(servicioId, info) {
   var overlay = document.getElementById('cal-overlay');
@@ -873,12 +918,39 @@ function cambioPaciente() {
   var p = nuevo ? null : pacienteElegido(), caja = document.getElementById('datos-factura');
   if (!caja) return;
   caja.style.display = faltaDatoFactura(p) ? 'block' : 'none';
+  // Si el servicio es para un familiar, el titular puede pedir la factura a su nombre (él paga)
+  var tit = misPacientes.filter(function(x){ return x.esTitular; })[0], fa = document.getElementById('factura-a');
+  if (fa) {
+    fa.style.display = p && tit && !p.esTitular ? 'block' : 'none';
+    if (p && tit) { document.getElementById('fa-nom-pac').textContent = p.nombreCompleto || ''; document.getElementById('fa-nom-tit').textContent = tit.nombreCompleto || ''; }
+    var r0 = document.querySelector('input[name=fa][value=paciente]'); if (r0) r0.checked = true; cambioFacturaA();
+  }
   if (p && faltaDatoFactura(p)) {
     if (TIPOS_DOC_OK.indexOf(String(p.documentoTipo || '').toUpperCase()) >= 0) document.getElementById('fac-tipo').value = String(p.documentoTipo).toUpperCase();
     document.getElementById('fac-num').value = String(p.documentoNumero || '').replace(/[^0-9A-Za-z]/g, '');
     document.getElementById('fac-nac').value = p.fechaNacimiento ? String(p.fechaNacimiento).slice(0, 10) : '';
     document.getElementById('fac-sexo').value = p.sexo || '';
   }
+}
+function facturaATitular() { var fa = document.getElementById('factura-a'); var r = document.querySelector('input[name=fa]:checked'); return !!(fa && fa.style.display !== 'none' && r && r.value === 'titular'); }
+function titularDeCuenta() { return misPacientes.filter(function(x){ return x.esTitular; })[0] || null; }
+function cambioFacturaA() {
+  var t = titularDeCuenta(), d = document.getElementById('fa-datos'); if (!d) return;
+  var falta = facturaATitular() && t && !/^[0-9A-Za-z]{4,20}$/.test(String(t.documentoNumero || '').replace(/[^0-9A-Za-z]/g, ''));
+  d.style.display = falta ? 'block' : 'none';
+}
+// Documento del titular cuando la factura sale a su nombre (una sola vez)
+async function guardarDocTitular() {
+  var t = titularDeCuenta(); if (!facturaATitular() || !t || document.getElementById('fa-datos').style.display === 'none') return true;
+  var num = document.getElementById('fa-num').value.replace(/[^0-9A-Za-z]/g, ''), tipo = document.getElementById('fa-tipo').value;
+  if (!/^[0-9A-Za-z]{4,20}$/.test(num)) { aviso('Escriba su número de documento para la factura (sin puntos)', 'aviso'); document.getElementById('fa-num').focus(); return false; }
+  try {
+    var r = await fetch(API + '/api/pacientes/' + t.id, { method: 'PUT', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token }, body: JSON.stringify({ documentoTipo: tipo, documentoNumero: num }) });
+    var d = await r.json().catch(function(){ return {}; });
+    if (!r.ok) throw new Error(d.error || 'No se pudo guardar su documento');
+    Object.assign(t, { documentoTipo: tipo, documentoNumero: num }); document.getElementById('fa-datos').style.display = 'none';
+    return true;
+  } catch (e) { aviso(mensajeRed(e), 'error'); return false; }
 }
 // Guarda los datos de la factura del paciente antes de seguir (una sola vez)
 async function guardarDatosFactura() {
@@ -947,8 +1019,11 @@ function irPaso(n) {
     var desc = document.getElementById('sol-descripcion').value.trim();
     var pv = document.getElementById('sol-paciente').value;
     if (!pv && !misPacientes.length) { cargarMisPacientes(); return; }
+    // Si llenó el paciente nuevo y tocó Continuar, se guarda solo (antes había que tocar «Guardar paciente»)
+    if (pv === '__nuevo' && document.getElementById('np-nombre').value.trim().length >= 3) { guardarNuevoPaciente().then(function(){ if (document.getElementById('sol-paciente').value !== '__nuevo') irPaso(3); }); return; }
     if (!pv || pv === '__nuevo') { aviso('Guarde el nuevo paciente o elija para quién es el servicio', 'aviso'); return; }
     if (faltaDatoFactura(pacienteElegido())) { guardarDatosFactura().then(function(ok){ if (ok) irPaso(3); }); return; }
+    if (facturaATitular() && document.getElementById('fa-datos').style.display !== 'none') { guardarDocTitular().then(function(ok){ if (ok) irPaso(3); }); return; }
     if (dir.length < 5) { aviso('Por favor escriba la dirección completa', 'aviso'); return; }
     if (desc.length < 5) { aviso('Describa brevemente lo que necesita (mínimo 5 caracteres)', 'aviso'); return; }
     if (tarifasIPS[tipoSeleccionado] && tarifasIPS[tipoSeleccionado].requiereOrden && !ordenFoto) { aviso('Tome la foto de la orden médica para continuar', 'aviso'); document.getElementById('bloque-orden').scrollIntoView({behavior:'smooth'}); return; }
@@ -1008,7 +1083,7 @@ async function enviarSolicitud() {
     var ciudad = document.getElementById('sol-ciudad').value.trim()||'Santa Marta';
     var descripcion = document.getElementById('sol-descripcion').value.trim();
     // CORRECCIÓN: usar tipoSeleccionado en lugar de 'rutina'
-    var res = await fetch(API+'/api/servicios', {method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},body:JSON.stringify({tipo:tipoSeleccionado,pacienteId:document.getElementById('sol-paciente').value||undefined,descripcion:descripcion,direccion:direccion+', '+ciudad,barrio:document.getElementById('sol-barrio').value.trim()||undefined,orden:ordenFoto||undefined,programadoPara:esCita&&fechaElegida()?fechaElegida().toISOString():undefined})});
+    var res = await fetch(API+'/api/servicios', {method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},body:JSON.stringify({tipo:tipoSeleccionado,pacienteId:document.getElementById('sol-paciente').value||undefined,descripcion:descripcion,direccion:direccion+', '+ciudad,barrio:document.getElementById('sol-barrio').value.trim()||undefined,orden:ordenFoto||undefined,programadoPara:esCita&&fechaElegida()?fechaElegida().toISOString():undefined,facturarA:facturaATitular()?'titular':undefined})});
     var data = await res.json().catch(function(){ return {}; });
     if (!res.ok) {
       if (data.sinProfesionales) pintarDisponibles(0);
@@ -1166,7 +1241,7 @@ async function elegirProfesional(ofertaId, nombre) {
     var d = await r.json();
     hideLoading();
     if (!r.ok) { aviso(d.error || 'No se pudo elegir', 'error'); cargarOfertas(); return; }
-    aviso(nombre + ' fue confirmado');
+    aviso('Listo: ' + nombre + ' atenderá su servicio');
     terminarBusqueda(d);
   } catch(e) { hideLoading(); aviso('Revise su conexión e intente de nuevo', 'error'); }
 }
