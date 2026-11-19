@@ -142,6 +142,14 @@ export async function armarFactura(servicioId: string): Promise<{ cuerpo?: any; 
   const cie10 = (s.evoluciones.find((e) => e.cie10)?.cie10 || t?.cie10 || '').toUpperCase()
   if (!/^[A-Z][0-9]{2}[0-9A-Z]$/.test(cie10)) faltan.push('diagnóstico CIE-10')
   if (!s.fechaInicio && !s.fechaFin) faltan.push('la fecha de la atención')
+  // Factura a nombre del titular de la cuenta (quien paga) cuando el servicio fue para un familiar; los RIPS siguen con el paciente
+  let comprador: { tipoDoc: string; num: string; nombre: string } | null = null
+  if ((s as any).facturarA === 'titular' && p && !p.esTitular) {
+    const tit = await prisma.paciente.findFirst({ where: { usuarioId: p.usuarioId, esTitular: true } })
+    const tDoc = String(tit?.documentoTipo || '').toUpperCase(), tNum = String(tit?.documentoNumero || '').replace(/[^0-9A-Za-z]/g, '')
+    if (!tit || !(TIPOS_DOC_PACIENTE as readonly string[]).includes(tDoc) || !/^[0-9A-Za-z]{4,20}$/.test(tNum)) faltan.push('documento del titular de la cuenta (la factura sale a su nombre)')
+    else comprador = { tipoDoc: tDoc, num: tNum, nombre: limpio(tit.nombreCompleto || p.usuario.nombreCompleto, 200) }
+  }
   if (faltan.length) return { faltan }
 
   const atencion = s.fechaInicio || s.fechaFin || s.createdAt
@@ -150,7 +158,7 @@ export async function armarFactura(servicioId: string): Promise<{ cuerpo?: any; 
   const cuerpo = {
     refApp: 'sec-' + s.id, // evita facturas repetidas si se reintenta
     cliente: {
-      tipoDoc: DOC_DIAN[tipoDoc] || '13', num: numDoc, nombre,
+      tipoDoc: DOC_DIAN[comprador ? comprador.tipoDoc : tipoDoc] || '13', num: comprador ? comprador.num : numDoc, nombre: comprador ? comprador.nombre : nombre,
       email: p!.usuario.email, telefono: p!.usuario.telefono || undefined,
       direccion: limpio(s.direccion || p!.direccionBase || '', 200) || undefined, municipio,
     },

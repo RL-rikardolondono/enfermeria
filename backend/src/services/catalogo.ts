@@ -78,6 +78,21 @@ export const DOCUMENTOS: { tipo: string; nombre: string; vence: boolean; obligat
   { tipo: 'soporte_vital', nombre: 'Curso de soporte vital básico', vence: true, obligatorio: false, ayuda: 'Opcional; indique cuándo vence' },
 ]
 export const TIPOS_DOC = DOCUMENTOS.map((d) => d.tipo) as [string, ...string[]]
+// Lista de documentos con el nombre del título según la profesión (al médico no se le pide «certificado de auxiliar»)
+const TITULO_POR_PERFIL: Record<string, [string, string]> = {
+  medico: ['Tarjeta profesional de médico (registro médico)', 'Acta de grado o tarjeta profesional de medicina'],
+  enfermero_profesional: ['Tarjeta profesional de enfermería', 'Expedida por el Consejo Técnico Nacional de Enfermería'],
+  auxiliar_enfermeria: ['Certificado de auxiliar de enfermería', 'Certificado de aptitud ocupacional'],
+  fisioterapeuta: ['Tarjeta profesional de fisioterapia', 'Expedida por el colegio profesional'],
+  terapeuta_ocupacional: ['Tarjeta profesional de terapia ocupacional', 'Expedida por el colegio profesional'],
+  terapeuta_respiratorio: ['Tarjeta profesional de terapia respiratoria', 'Expedida por el colegio profesional'],
+  psicologo: ['Tarjeta profesional de psicología', 'Expedida por el Colegio Colombiano de Psicólogos'],
+  terapeuta_conductual: ['Título o certificación en terapia conductual (ABA)', 'Diploma o certificación vigente'],
+}
+export function documentosPara(perfil?: string | null) {
+  const t = perfil ? TITULO_POR_PERFIL[perfil] : undefined
+  return DOCUMENTOS.map((d) => (d.tipo === 'titulo' && t ? { ...d, nombre: t[0], ayuda: t[1] } : d))
+}
 
 // ¿Tiene el profesional todos sus documentos obligatorios aprobados y vigentes?
 export async function documentosAlDia(profesionalId: string) {
@@ -88,7 +103,8 @@ export async function documentosAlDia(profesionalId: string) {
   })
   const faltan: string[] = [], vencidos: string[] = [], porRevisar: string[] = []
   const ahora = Date.now()
-  for (const req of DOCUMENTOS.filter((d) => d.obligatorio)) {
+  const pr = await prisma.profesional.findUnique({ where: { id: profesionalId }, select: { perfil: true } }).catch(() => null)
+  for (const req of documentosPara(pr?.perfil).filter((d) => d.obligatorio)) {
     const deTipo = docs.filter((d) => d.tipo === req.tipo)
     // Basta con uno aprobado y vigente (si renueva antes de tiempo, el anterior sigue valiendo mientras se revisa el nuevo)
     const vigente = deTipo.some((d) => d.estado === 'aprobado' && (!req.vence || (d.vence && d.vence.getTime() >= ahora)))
