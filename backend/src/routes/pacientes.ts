@@ -144,9 +144,13 @@ export async function pacientesRoutes(app: FastifyInstance) {
       ...datosPaciente,
     }).parse(request.body)
 
-    const paciente = await prisma.paciente.findUnique({ where: { id }, select: { usuarioId: true } })
+    const paciente = await prisma.paciente.findUnique({ where: { id }, select: { usuarioId: true, esTitular: true } })
     if (!paciente || (!(paciente.usuarioId === request.usuario.id || (request.usuario.rol === 'admin' && tienePermiso(request.usuario, 'pacientes'))))) {
       return reply.status(404).send({ error: 'Paciente no encontrado' })
+    }
+    // El titular de la cuenta debe ser mayor de edad (Ley 1581: los datos de salud de un menor los autoriza su representante)
+    if (paciente.esTitular && request.usuario.rol === 'paciente' && body.fechaNacimiento && esMenorDeEdad(body.fechaNacimiento)) {
+      return reply.status(400).send({ error: 'La cuenta debe ser de un adulto. Si el paciente es menor de edad, su madre, padre o acudiente crea la cuenta y lo agrega como «otro paciente».', menor: true })
     }
 
     const actualizado = await prisma.paciente.update({
@@ -211,4 +215,13 @@ export async function pacientesRoutes(app: FastifyInstance) {
       : null
     return { total, page, limit, items, recibido }
   })
+}
+
+// ¿Tiene menos de 18 años hoy (hora de Colombia)?
+function esMenorDeEdad(fecha: string) {
+  const n = new Date(fecha); if (isNaN(n.getTime())) return false
+  const hoy = new Date(Date.now() - 5 * 3600 * 1000)
+  let edad = hoy.getUTCFullYear() - n.getUTCFullYear()
+  if (hoy.getUTCMonth() < n.getUTCMonth() || (hoy.getUTCMonth() === n.getUTCMonth() && hoy.getUTCDate() < n.getUTCDate())) edad--
+  return edad < 18
 }

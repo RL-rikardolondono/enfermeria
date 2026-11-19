@@ -6,6 +6,7 @@ import { autenticar, olvidarSesion, olvidarSesionesDe, SESION_MAX_MS, permisosDe
 import crypto from 'crypto'
 import { APP_URL } from '../utils/config'
 import { enviarEnlaceClave } from '../services/cuentas'
+import { enviarCorreo } from '../utils/correo'
 import { PERFIL_IDS, PERFILES } from '../services/catalogo'
 
 const sha256 = (t: string) => crypto.createHash('sha256').update(t).digest('hex')
@@ -66,9 +67,16 @@ export async function authRoutes(app: FastifyInstance) {
     const body = registerSchema.parse(request.body)
 
     // Normalizar teléfono: asegurar que tenga +57
-    let telefono = body.telefono.replace(/\s/g, '')
+    let telefono = body.telefono.replace(/[\s.()-]/g, '')
     if (!telefono.startsWith('+')) {
       telefono = '+57' + telefono.replace(/\D/g, '')
+    }
+    // Colombia: celular de 10 dígitos que empieza por 3, o fijo de 10 dígitos que empieza por 60 (sin esto, «300 123» quedaba guardado y nadie podía llamar)
+    if (telefono.startsWith('+57') && !/^\+57(3\d{9}|60\d{8})$/.test(telefono)) {
+      return reply.status(400).send({ error: 'El teléfono debe tener 10 números, por ejemplo 3001234567.' })
+    }
+    if (!telefono.startsWith('+57') && !/^\+\d{8,15}$/.test(telefono)) {
+      return reply.status(400).send({ error: 'Revise el teléfono: solo números, con el indicativo del país si no es de Colombia.' })
     }
 
     const existe = await prisma.usuario.findFirst({
@@ -112,6 +120,9 @@ export async function authRoutes(app: FastifyInstance) {
     })
 
     const { accessToken, refreshToken } = await abrirSesion(usuario, request.ip)
+    await prisma.usuario.update({ where: { id: usuario.id }, data: { ultimoIngreso: new Date() } }).catch(() => {})
+    // Correo de bienvenida (en segundo plano: si falla, la cuenta igual queda creada)
+    setImmediate(() => { enviarCorreo(usuario.email, 'Bienvenida a Salud en Casa', correoBienvenida(usuario.nombreCompleto, body.rol)).catch(() => {}) })
     return reply.status(201).send({ accessToken, refreshToken, usuario: datosPublicos(usuario) })
   })
 
@@ -253,4 +264,21 @@ export async function authRoutes(app: FastifyInstance) {
     return { ...resto, rolIps: usuario.rol === 'admin' ? (rolIps || 'superadmin') : undefined, permisos: permisosDe(usuario) }
   })
 }
- 
+
+// Correo de bienvenida para quien se registra (paciente o profesional)
+function correoBienvenida(nombre: string, rol: string) {
+  const esc = (t: string) => t.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c] as string))
+  const pro = rol === 'profesional'
+  const url = APP_URL.replace(/\/$/, '') + (pro ? '/app-enfermero.html' : '/app-paciente.html')
+  const pasos = pro
+    ? ['Entre a la app y suba sus documentos (Perfil → Mis documentos): foto, cédula, título, RETHUS, póliza y vacunas.', 'En Perfil → «Cómo recibir mis pagos», diga dónde le pagamos y su cédula.', 'La Clínica Reina Elizabeth IPS revisa y aprueba su cuenta; le avisamos por correo.', 'Toque «Disponible» cuando quiera recibir solicitudes de pacientes.']
+    : ['Toque «Solicitar servicio» y elija lo que necesita.', 'Escriba la dirección y si es para ya o para otro día.', 'Elija al profesional entre los que se ofrecen y pague por la app.', 'Siga el avance y, al terminar, califique la atención.']
+  return `<div style="font-family:Arial,sans-serif;color:#1C2B39;max-width:560px">
+    <h2 style="color:#0B4F8A;margin:0 0 6px">Bienvenida(o) a Salud en Casa</h2>
+    <p>Hola, ${esc(nombre.split(' ')[0] || nombre)}. Su cuenta ${pro ? 'de profesional ' : ''}quedó creada. ${pro ? 'Así empieza a trabajar:' : 'Así pide atención en casa:'}</p>
+    <ol>${pasos.map((x) => '<li style="margin:4px 0">' + x + '</li>').join('')}</ol>
+    <p><a href="${url}" style="background:#14A38B;color:#fff;padding:11px 18px;border-radius:8px;text-decoration:none;font-weight:bold">Abrir la app</a></p>
+    <p style="font-size:13px;color:#5D6B78">Si usted no creó esta cuenta, escríbanos al WhatsApp de la IPS 312 888 6611.</p>
+    <p style="font-size:12px;color:#5D6B78">Clínica Reina Elizabeth IPS · Tecnología SkyNet Genesis · contacto@skynetgenesis.com · WhatsApp 304 437 5758</p>
+  </div>`
+}

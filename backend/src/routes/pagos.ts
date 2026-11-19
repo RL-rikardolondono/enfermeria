@@ -274,10 +274,11 @@ export async function pagosRoutes(app: FastifyInstance) {
   // PUT /api/pagos/liquidaciones/:id/transferido — la IPS ya pagó al profesional
   app.put('/liquidaciones/:id/transferido', { preHandler: requerirPermiso('pagos') }, async (request, reply) => {
     const { id } = z.object({ id: z.string().uuid() }).parse(request.params)
+    const { referencia } = z.object({ referencia: z.string().trim().min(3).max(120) }).parse(request.body || {})
     // Atómico: se marca transferido y recibe el siguiente número de documento soporte (DS) en la misma operación
     const r = await prisma.$transaction(async (tx: any) => {
       await tx.$queryRaw`SELECT pg_advisory_xact_lock(hashtext('soporte-ds'))::text`
-      const u = await tx.pago.updateMany({ where: { id, estadoLiquidacion: 'liberado' }, data: { estadoLiquidacion: 'transferido', transferidoEn: new Date() } })
+      const u = await tx.pago.updateMany({ where: { id, estadoLiquidacion: 'liberado' }, data: { estadoLiquidacion: 'transferido', transferidoEn: new Date(), referenciaTransferencia: referencia } })
       if (u.count === 0) return u
       const m = await tx.pago.aggregate({ _max: { soporteNumero: true } })
       await tx.pago.update({ where: { id }, data: { soporteNumero: (m._max.soporteNumero || 0) + 1 } })
@@ -319,7 +320,7 @@ button{background:#0B4F8A;color:#fff;border:0;border-radius:8px;padding:10px 18p
 <button onclick="print()">🖨 Imprimir o guardar en PDF</button>
 <div class="cab"><div><h1>Documento soporte de pago</h1><div>Pago a profesional independiente · Salud en Casa</div></div><div style="text-align:right"><b style="font-size:20px">${num}</b><br>Fecha: ${e(f(p.transferidoEn))}</div></div>
 <table><tr><th colspan="2">Quien paga</th></tr><tr><td>Razón social</td><td>Reina Elizabeth IPS S.A.S. (Clínica Reina Elizabeth IPS)</td></tr><tr><td>NIT</td><td>901074496-5</td></tr><tr><td>Dirección</td><td>Calle 22 No. 18-18, Santa Marta (Magdalena) · WhatsApp 312 888 6611</td></tr></table>
-<table><tr><th colspan="2">Quien recibe (profesional no obligado a facturar)</th></tr><tr><td>Nombre</td><td>${e(pr?.usuario.nombreCompleto)}</td></tr><tr><td>Documento</td><td>${e(pr?.documentoTipo || 'CC')} ${e(pr?.documentoNumero || 'NO REGISTRADO')}</td></tr><tr><td>Contacto</td><td>${e(pr?.usuario.telefono || '')} · ${e(pr?.usuario.email)}</td></tr><tr><td>Medio de pago</td><td>${e(cuenta)}</td></tr></table>
+<table><tr><th colspan="2">Quien recibe (profesional no obligado a facturar)</th></tr><tr><td>Nombre</td><td>${e(pr?.usuario.nombreCompleto)}</td></tr><tr><td>Documento</td><td>${e(pr?.documentoTipo || 'CC')} ${e(pr?.documentoNumero || 'NO REGISTRADO')}</td></tr><tr><td>Contacto</td><td>${e(pr?.usuario.telefono || '')} · ${e(pr?.usuario.email)}</td></tr><tr><td>Medio de pago</td><td>${e(cuenta)}</td></tr>${p.referenciaTransferencia ? `<tr><td>Comprobante de la transferencia</td><td>${e(p.referenciaTransferencia)}</td></tr>` : ''}</table>
 <table><tr><th>Concepto</th><th>Servicio</th><th>Atendido</th><th style="text-align:right">Valor</th></tr>
 <tr><td>Honorarios por atención domiciliaria: ${e(t?.nombre || p.servicio.tipo)}</td><td>${e(p.servicio.id.slice(0, 8))}</td><td>${e(f(p.servicio.fechaFin))}</td><td style="text-align:right">${$(Number(p.valorProfesional || 0))}</td></tr>
 <tr><td colspan="3" style="text-align:right">Valor pagado por el paciente: ${$(Number(p.monto))} · Parte de la IPS: ${$(Number(p.comision || 0))}</td><td></td></tr>

@@ -29,8 +29,14 @@ function csv(filas: (string | number | null | undefined)[][]) {
     if (/^[=+\-@\t\r]/.test(t) && !/^-?\d+([.,]\d+)?$/.test(t)) t = "'" + t
     return /[";\n\r]/.test(t) ? '"' + t.replace(/"/g, '""') + '"' : t
   }
-  return '﻿' + filas.map((f) => f.map(celda).join(';')).join('\r\n') + '\r\n'
+  const pie = [[], ['Generado con Salud en Casa (Clínica Reina Elizabeth IPS) el ' + col(new Date()) + '. Tecnología SkyNet Genesis · contacto@skynetgenesis.com · WhatsApp 304 437 5758']]
+  return '﻿' + filas.concat(pie).map((f) => f.map(celda).join(';')).join('\r\n') + '\r\n'
 }
+// Nombres para leer en Excel (en vez de los códigos internos)
+const NOMBRE_PERFIL: Record<string, string> = { enfermero_profesional: 'Enfermero(a) profesional', auxiliar_enfermeria: 'Auxiliar de enfermería', medico: 'Médico(a) general', fisioterapeuta: 'Fisioterapeuta', terapeuta_ocupacional: 'Terapeuta ocupacional', terapeuta_respiratorio: 'Terapeuta respiratorio', psicologo: 'Psicólogo(a)', terapeuta_conductual: 'Terapeuta conductual (ABA)' }
+const NOMBRE_VARIOS: Record<string, string> = { aprobado: 'Aprobado', pendiente: 'Pendiente', rechazado: 'Rechazado', reembolsado: 'Reembolsado', fallido: 'Fallido', retenido: 'Retenido (servicio sin terminar)', liberado: 'Por transferir al profesional', transferido: 'Transferido al profesional', reembolso: 'Reembolsado al paciente', revisar: 'Revisar a mano', iniciado: 'Pago iniciado', activo: 'Activa', suspendido: 'Suspendida', pendiente_verificacion: 'Por verificar', emitida: 'Emitida', faltan_datos: 'Faltan datos', rechazada: 'Rechazada por la DIAN', anulada: 'Anulada' }
+const nv = (v?: string | null) => (v ? NOMBRE_VARIOS[v] || v : '')
+async function nombresServicio() { const t = await prisma.tarifa.findMany({ select: { tipo: true, nombre: true } }).catch(() => [] as any[]); const m: Record<string, string> = {}; t.forEach((x: any) => { m[x.tipo] = x.nombre }); return (v: string) => m[v] || v }
 const NOMBRE_ESTADO: Record<string, string> = { pendiente: 'Buscando profesional', asignado: 'Confirmado', en_camino: 'En camino', en_curso: 'Atendiendo', completado: 'Completado', cancelado: 'Cancelado' }
 
 export async function informesRoutes(app: FastifyInstance) {
@@ -118,24 +124,25 @@ export async function informesRoutes(app: FastifyInstance) {
     if (['pagos', 'facturas'].includes(tipo) && !veDinero(request.usuario)) return reply.status(403).send({ error: 'Su perfil no ve la información de dinero.' })
     const enRango = { createdAt: { gte: ini, lt: fin } }
     let filas: any[][] = []
+    const ns = await nombresServicio()
     if (tipo === 'servicios') {
       const L = await prisma.servicio.findMany({ where: enRango, orderBy: { createdAt: 'asc' }, take: 20000, select: {
         id: true, tipo: true, estado: true, barrio: true, createdAt: true, programadoPara: true, fechaInicio: true, fechaFin: true, monto: true, calificacion: true,
         paciente: { select: { nombreCompleto: true } }, profesional: { select: { usuario: { select: { nombreCompleto: true } } } } } })
       filas = [['Servicio', 'Tipo', 'Estado', 'Solicitado', 'Cita para', 'Inicio', 'Fin', 'Barrio', 'Paciente', 'Profesional', 'Valor', 'Calificación'],
-        ...L.map((s) => [s.id.slice(0, 8), s.tipo, NOMBRE_ESTADO[s.estado] || s.estado, col(s.createdAt), col(s.programadoPara), col(s.fechaInicio), col(s.fechaFin), s.barrio || '',
+        ...L.map((s) => [s.id.slice(0, 8), ns(s.tipo), NOMBRE_ESTADO[s.estado] || s.estado, col(s.createdAt), col(s.programadoPara), col(s.fechaInicio), col(s.fechaFin), s.barrio || '',
           s.paciente?.nombreCompleto || '', s.profesional?.usuario.nombreCompleto || '', veDinero(request.usuario) ? Number(s.monto || 0) : '', s.calificacion ?? ''])]
     } else if (tipo === 'pagos') {
       const L = await prisma.pago.findMany({ where: { ...enRango, OR: [{ estado: { in: ['aprobado', 'reembolsado'] } }, { estadoLiquidacion: 'revisar' }] }, orderBy: { createdAt: 'asc' }, take: 20000, select: {
-        createdAt: true, monto: true, estado: true, estadoLiquidacion: true, comision: true, valorProfesional: true, referenciaExterna: true, liberadoEn: true, transferidoEn: true,
+        createdAt: true, monto: true, estado: true, estadoLiquidacion: true, comision: true, valorProfesional: true, referenciaExterna: true, liberadoEn: true, transferidoEn: true, referenciaTransferencia: true,
         servicio: { select: { id: true, tipo: true, profesional: { select: { documentoNumero: true, banco: true, usuario: { select: { nombreCompleto: true } } } } } } } })
-      filas = [['Fecha del pago', 'Servicio', 'Tipo', 'Referencia Bold', 'Valor pagado', 'Estado', 'Liquidación', 'Para la IPS', 'Para el profesional', 'Profesional', 'Cédula', 'Medio de pago del profesional', 'Liberado', 'Transferido'],
-        ...L.map((p) => [col(p.createdAt), p.servicio.id.slice(0, 8), p.servicio.tipo, p.referenciaExterna || '', Number(p.monto), p.estado, p.estadoLiquidacion, p.comision ?? '', p.valorProfesional ?? '',
-          p.servicio.profesional?.usuario.nombreCompleto || '', p.servicio.profesional?.documentoNumero || '', p.servicio.profesional?.banco || '', col(p.liberadoEn), col(p.transferidoEn)])]
+      filas = [['Fecha del pago', 'Servicio', 'Tipo', 'Referencia Bold', 'Valor pagado', 'Estado', 'Liquidación', 'Para la IPS', 'Para el profesional', 'Profesional', 'Cédula', 'Medio de pago del profesional', 'Liberado', 'Transferido', 'Comprobante de la transferencia'],
+        ...L.map((p) => [col(p.createdAt), p.servicio.id.slice(0, 8), ns(p.servicio.tipo), p.referenciaExterna || '', Number(p.monto), nv(p.estado), nv(p.estadoLiquidacion), p.comision ?? '', p.valorProfesional ?? '',
+          p.servicio.profesional?.usuario.nombreCompleto || '', p.servicio.profesional?.documentoNumero || '', p.servicio.profesional?.banco || '', col(p.liberadoEn), col(p.transferidoEn), p.referenciaTransferencia || ''])]
     } else if (tipo === 'facturas') {
       const L = await prisma.factura.findMany({ where: enRango, orderBy: { createdAt: 'asc' }, take: 20000, include: { servicio: { select: { id: true, tipo: true, paciente: { select: { nombreCompleto: true, documentoNumero: true } } } } } })
       filas = [['Creada', 'Servicio', 'Tipo', 'Paciente', 'Documento', 'Valor', 'Estado', 'Número', 'CUFE', 'CUV (RIPS)', 'Emitida', 'Nota crédito', 'Motivo'],
-        ...L.map((f) => [col(f.createdAt), f.servicio.id.slice(0, 8), f.servicio.tipo, f.servicio.paciente?.nombreCompleto || '', f.servicio.paciente?.documentoNumero || '', f.total, f.estado,
+        ...L.map((f) => [col(f.createdAt), f.servicio.id.slice(0, 8), ns(f.servicio.tipo), f.servicio.paciente?.nombreCompleto || '', f.servicio.paciente?.documentoNumero || '', f.total, nv(f.estado),
           f.numero || '', f.cufe || '', f.cuv || '', col(f.emitidaEn), f.notaCreditoNumero || '', f.motivo || ''])]
     } else {
       const L = await prisma.profesional.findMany({ orderBy: { createdAt: 'asc' }, take: 5000, select: {
@@ -143,7 +150,7 @@ export async function informesRoutes(app: FastifyInstance) {
         usuario: { select: { nombreCompleto: true, email: true, telefono: true, estado: true } },
         documentos: { select: { tipo: true, estado: true, vence: true } } } })
       filas = [['Nombre', 'Correo', 'Teléfono', 'Cédula', 'Perfil', 'Verificación', 'Cuenta', 'Servicios', 'Calificación', 'Documentos aprobados', 'Póliza vence', 'Registrado'],
-        ...L.map((p) => [p.usuario.nombreCompleto, p.usuario.email, p.usuario.telefono || '', p.documentoNumero || '', p.perfil || '', p.estadoVerificacion, p.usuario.estado,
+        ...L.map((p) => [p.usuario.nombreCompleto, p.usuario.email, p.usuario.telefono || '', p.documentoNumero || '', NOMBRE_PERFIL[p.perfil || ''] || p.perfil || '', nv(p.estadoVerificacion), nv(p.usuario.estado),
           p.totalServicios, p.calificacionPromedio ? Number(p.calificacionPromedio) : '', p.documentos.filter((d) => d.estado === 'aprobado').length,
           col(p.documentos.find((d) => d.tipo === 'poliza' && d.estado === 'aprobado')?.vence).slice(0, 10), col(p.createdAt).slice(0, 10)])]
     }

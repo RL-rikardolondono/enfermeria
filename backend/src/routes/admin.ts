@@ -8,7 +8,7 @@ import { recalcularPromedio } from '../services/opiniones'
 import { liberarServiciosDe } from '../services/profesionalBaja'
 import { marcarCambio } from '../utils/cambios'
 import { enviarEnlaceClave, SUPERADMIN_CORREO } from '../services/cuentas'
-import { PERFIL_IDS, PERFILES, documentosAlDia, textoDocumentos, DOCUMENTOS, sacarDelTurnoSiFaltanDocs } from '../services/catalogo'
+import { PERFIL_IDS, PERFILES, documentosAlDia, textoDocumentos, DOCUMENTOS, sacarDelTurnoSiFaltanDocs, documentosPara } from '../services/catalogo'
 import { enviarCorreo } from '../utils/correo'
 import { APP_URL } from '../utils/config'
 import bcrypt from 'bcryptjs'
@@ -257,6 +257,13 @@ export async function adminRoutes(app: FastifyInstance) {
     }).parse(request.body)
     if (b.estado === 'cerrado' && (!b.clasificacion || !b.analisis || b.analisis.length < 10)) return reply.status(400).send({ error: 'Para cerrar el evento escriba el análisis y elija la clasificación.' })
     if (b.estado === 'cerrado' && b.clasificacion === 'evento_prevenible' && (!b.planMejora || b.planMejora.length < 10)) return reply.status(400).send({ error: 'Un evento prevenible necesita plan de mejora.' })
+    // La clasificación debe cuadrar con el daño reportado: con daño no es «incidente (sin daño)», y sin daño no es «evento adverso»
+    if (b.clasificacion) {
+      const ev = await prisma.eventoSeguridad.findUnique({ where: { id }, select: { gravedad: true } })
+      if (!ev) return reply.status(404).send({ error: 'Evento no encontrado' })
+      if (ev.gravedad !== 'sin_dano' && b.clasificacion === 'incidente') return reply.status(400).send({ error: 'Este evento causó daño al paciente (' + ev.gravedad + '): clasifíquelo como evento adverso, prevenible o no prevenible. «Incidente» es solo cuando no hubo daño.' })
+      if (ev.gravedad === 'sin_dano' && b.clasificacion !== 'incidente') return reply.status(400).send({ error: 'El reporte dice que no hubo daño: clasifíquelo como incidente (sin daño).' })
+    }
     const r = await prisma.eventoSeguridad.updateMany({ where: { id }, data: { ...b, revisadoPor: request.usuario.id, cerradoEn: b.estado === 'cerrado' ? new Date() : null } })
     if (!r.count) return reply.status(404).send({ error: 'Evento no encontrado' })
     await prisma.bitacora.create({ data: { actorId: request.usuario.id, usuarioId: request.usuario.id, accion: 'evento_seguridad_' + b.estado, detalle: id } }).catch(() => {})
@@ -431,7 +438,8 @@ export async function adminRoutes(app: FastifyInstance) {
       select: { id: true, tipo: true, estado: true, vence: true, nota: true, archivoId: true, createdAt: true, revisadoEn: true },
     })
     const alDia = await documentosAlDia(id)
-    return { items, requeridos: DOCUMENTOS, alDia }
+    const pr = await prisma.profesional.findUnique({ where: { id }, select: { perfil: true } })
+    return { items, requeridos: documentosPara(pr?.perfil), alDia }
   })
 
   // PUT /api/admin/documentos/:id — aprobar o rechazar un documento (con nota si se rechaza)

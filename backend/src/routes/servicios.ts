@@ -4,7 +4,7 @@ import { prisma } from '../utils/prisma'
 import { autenticar, requerirRol } from '../middleware/auth'
 import { calcularTarifa } from '../services/tarifas'
 import { notificarProfesionalesDisponibles, notificarUsuario } from './push'
-import { liberarPago, marcarReembolso, PAGO_OBLIGATORIO } from '../services/liquidacion'
+import { liberarPago, marcarReembolso, PAGO_OBLIGATORIO, COMISION_IPS_PORCENTAJE } from '../services/liquidacion'
 import { encolarFactura } from '../services/facturacion'
 import { APP_URL } from '../utils/config'
 import { marcarCambio } from '../utils/cambios'
@@ -12,7 +12,7 @@ import { vencerPendientesAntiguas, buscandoVigente, finBusqueda, MINUTOS_EXTRA_O
 import { enTurno, profesionalRespondio, MAX_IGNORADAS } from '../services/presencia'
 import { notificarUsuario as avisarA, pushConfigurado } from './push'
 import { opinionesDe, recalcularPromedio } from '../services/opiniones'
-import { crearQueja } from '../services/quejas'
+import { crearQueja, avisarDesiste } from '../services/quejas'
 import { TIPOS, puedeAtender, perfilEfectivo, leerDataUrl, guardarArchivo } from '../services/catalogo'
 import { requerirPermiso, tienePermiso } from '../middleware/auth'
 import { plazoPagoCita, ocupadoAhora, finBusquedaProgramada, conflictoAgenda, puedeTrabajar, nuevoCodigo, validarFechaCita, fechaCita, limiteActivacion, MAX_CITAS_POR_CUENTA } from '../services/agenda'
@@ -222,6 +222,7 @@ export async function serviciosRoutes(app: FastifyInstance) {
       barrio: z.string().trim().max(80).optional(),
       programadoPara: z.string().max(40).optional(), // cita programada (fecha y hora); sin esto es para ahora
       profesionalId: z.string().uuid().optional(),   // "otra visita con este profesional" (solo con cita)
+      facturarA: z.enum(['titular']).optional(),     // la factura sale a nombre del titular de la cuenta (él paga)
     }).parse(request.body)
 
     // ── Cita programada ──
@@ -305,6 +306,7 @@ export async function serviciosRoutes(app: FastifyInstance) {
           estado: 'pendiente',
           programadoPara,
           dirigidoA: body.profesionalId || null,
+          facturarA: body.facturarA && !paciente.esTitular ? 'titular' : null,
           buscandoHasta: programadoPara ? finBusquedaProgramada(programadoPara) : finBusqueda(),
         },
       })
@@ -426,7 +428,7 @@ export async function serviciosRoutes(app: FastifyInstance) {
           },
           profesional: PROF_PUBLICO,
           pago: { select: { estado: true, monto: true, estadoLiquidacion: true } },
-          _count: { select: { ofertas: { where: { estado: 'activa' } }, quejas: true } },
+          _count: { select: { ofertas: { where: { estado: 'activa' } }, quejas: true, evoluciones: true } },
         },
       }),
     ])
@@ -515,6 +517,8 @@ export async function serviciosRoutes(app: FastifyInstance) {
           direccion: profesionalId ? zonaAproximada(direccion, barrio) : direccion,
           paciente: profesionalId ? { nombreCompleto: nombre.split(' ')[0] } : paciente,
           miOferta: ofertas.length > 0, totalOfertas: _count.ofertas,
+          // lo que recibe el profesional (su parte de la tarifa)
+          paraProfesional: profesionalId && resto.monto ? Math.round(Number(resto.monto) * (100 - COMISION_IPS_PORCENTAJE) / 100) : undefined,
         }
       }),
     }
@@ -729,11 +733,12 @@ export async function serviciosRoutes(app: FastifyInstance) {
 
   app.put('/:id/estado', { preHandler: autenticar }, async (request, reply) => {
     const { id } = z.object({ id: z.string().uuid() }).parse(request.params)
-    const { estado, firma, codigo, lat, lng } = z.object({
+    const { estado, firma, codigo, lat, lng, motivo } = z.object({
       estado: z.enum(['asignado', 'en_camino', 'en_curso', 'completado', 'cancelado']),
       codigo: z.string().trim().regex(/^\d{4}$/).optional(), // código de llegada que dice el paciente
       lat: z.number().min(-90).max(90).optional(),           // ubicación del profesional al marcar (seguridad)
       lng: z.number().min(-180).max(180).optional(),
+      motivo: z.string().trim().min(5).max(300).optional(), // por qué el profesional no puede ir (obligatorio al desistir)
       // Recibido del servicio: firma manuscrita del paciente o acudiente, o el motivo por el que no pudo firmar
       firma: z.object({
         imagen: z.string().max(250000).regex(/^data:image\/png;base64,[A-Za-z0-9+/]+={0,2}$/, 'Firma no válida').optional(),
@@ -786,6 +791,7 @@ export async function serviciosRoutes(app: FastifyInstance) {
         if (!['asignado', 'en_camino'].includes(servicio.estado)) {
           return reply.status(400).send({ error: 'La visita ya comenzó; comuníquese con la IPS' })
         }
+        if (!motivo) return reply.status(400).send({ error: 'Escriba por qué no puede ir (la IPS lo verá).' })
         // El profesional desiste antes de la visita: la solicitud vuelve a buscar profesional por 10 minutos
         // (una cita lejana vuelve a recibir ofertas hasta 2 horas antes; si ya es muy pronto, 10 minutos)
         const nuevaBusqueda = servicio.programadoPara ? finBusquedaProgramada(servicio.programadoPara) : finBusqueda()
@@ -798,6 +804,9 @@ export async function serviciosRoutes(app: FastifyInstance) {
         })
         if (r.count === 0) return reply.status(409).send({ error: 'El servicio cambió de estado; recargue' })
         await prisma.oferta.updateMany({ where: { servicioId: id, profesionalId: profesional.id }, data: { estado: 'desistio' } })
+        // Queda escrito para la IPS: bitácora de la cuenta y correo de alertas con el motivo
+        await prisma.bitacora.create({ data: { actorId: usuarioId, usuarioId, accion: 'desistio', detalle: ('Servicio ' + id.slice(0, 8) + (servicio.pago?.estado === 'aprobado' ? ' (ya pagado)' : '') + ' · ' + motivo).slice(0, 500) } }).catch(() => {})
+        avisarDesiste({ profesional: (await prisma.usuario.findUnique({ where: { id: usuarioId }, select: { nombreCompleto: true } }))?.nombreCompleto || 'Profesional', servicioId: id, tipo: servicio.tipo, pagado: servicio.pago?.estado === 'aprobado', motivo })
         marcarCambio()
         setImmediate(() => { avisarBusquedaReabierta(id, [profesional.id]).catch(() => {}) })
         if (servicio.paciente) avisarA(servicio.paciente.usuarioId, { titulo: 'El profesional no podrá ir', cuerpo: 'Su solicitud vuelve a buscar profesional. Abra la app para elegir otro.', url: `${APP_URL}/app-paciente.html` }).catch(() => {})

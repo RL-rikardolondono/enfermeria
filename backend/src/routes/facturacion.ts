@@ -5,7 +5,7 @@ import { requerirPermiso, tienePermiso } from '../middleware/auth'
 import { marcarCambio } from '../utils/cambios'
 import {
   FIA_URL, leerLlave, guardarLlave, llamarFIA, enPausa, pausar, emitirFactura, anularFactura, armarFactura,
-  TIPOS_DOC_PACIENTE, daneDe,
+  TIPOS_DOC_PACIENTE, daneDe, procesarCola,
 } from '../services/facturacion'
 
 // Panel → Facturación: conexión con Factura-IA, cola de facturas de salud con RIPS, reintentos y anulación
@@ -50,7 +50,10 @@ export async function facturacionRoutes(app: FastifyInstance) {
     // las facturas que esperaban la conexión se intentan ya
     await prisma.factura.updateMany({ where: { estado: { in: ['pendiente', 'faltan_datos'] } }, data: { proximoIntento: new Date() } })
     marcarCambio()
-    return { ok: true, empresa: r.empresa?.razon || null }
+    // se envían ya, sin esperar la vuelta de 10 minutos de la cola
+    setTimeout(() => { procesarCola().then(() => marcarCambio()).catch(() => {}) }, 500)
+    const enCola = await prisma.factura.count({ where: { estado: { in: ['pendiente', 'faltan_datos'] } } })
+    return { ok: true, empresa: r.empresa?.razon || null, enCola }
   })
 
   // DELETE /api/admin/facturacion/llave — desconectar (las facturas ya emitidas siguen en Factura-IA)

@@ -2,7 +2,7 @@ import { FastifyInstance, FastifyRequest } from 'fastify'
 import { z } from 'zod'
 import { prisma } from '../utils/prisma'
 import { autenticar, requerirRol, requerirPermiso, tienePermiso } from '../middleware/auth'
-import { documentosAlDia, textoDocumentos, DOCUMENTOS, TIPOS_DOC, leerDataUrl, guardarArchivo, PERFILES, enTransicion, DIAS_TRANSICION } from '../services/catalogo'
+import { documentosAlDia, textoDocumentos, DOCUMENTOS, TIPOS_DOC, leerDataUrl, guardarArchivo, PERFILES, enTransicion, DIAS_TRANSICION, documentosPara } from '../services/catalogo'
 import { liberarServiciosDe } from '../services/profesionalBaja'
 import { marcarCambio } from '../utils/cambios'
 import { profesionalRespondio } from '../services/presencia'
@@ -204,7 +204,7 @@ export async function profesionalesRoutes(app: FastifyInstance) {
       where: { profesionalId: p.id }, orderBy: [{ createdAt: 'desc' }, { id: 'desc' }], take: 40,
       select: { id: true, tipo: true, estado: true, vence: true, nota: true, archivoId: true, createdAt: true },
     })
-    return { items, requeridos: DOCUMENTOS, alDia: await documentosAlDia(p.id), perfil: p.perfil ? PERFILES[p.perfil] || p.perfil : null, transicionHasta }
+    return { items, requeridos: documentosPara(p.perfil), alDia: await documentosAlDia(p.id), perfil: p.perfil ? PERFILES[p.perfil] || p.perfil : null, transicionHasta }
   })
 
   // POST /api/profesionales/mis-documentos — sube (o reemplaza) un documento; queda "en revisión" de la IPS
