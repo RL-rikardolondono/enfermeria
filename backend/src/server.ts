@@ -37,7 +37,7 @@ const NOMBRES_CAMPO: Record<string, string> = {
   tensionSistolica: 'tensión sistólica', tensionDiastolica: 'tensión diastólica', frecuenciaCardiaca: 'frecuencia cardiaca', temperatura: 'temperatura',
   saturacionOxigeno: 'saturación de oxígeno', glucemia: 'glucemia', observaciones: 'observaciones', procedimientos: 'procedimientos',
   precio: 'precio', puntuacion: 'calificación', comentario: 'comentario', estado: 'estado', token: 'enlace',
-  queja: 'queja (mínimo 10 letras)', texto: 'queja (mínimo 10 letras)', respuesta: 'nota de revisión', ofertaId: 'profesional elegido', cie10: 'diagnóstico CIE-10', sexo: 'sexo', municipioDane: 'municipio (código DANE)', documentoTipo: 'tipo de documento',
+  queja: 'queja (mínimo 10 letras)', texto: 'queja (mínimo 10 letras)', respuesta: 'nota de revisión', ofertaId: 'profesional elegido', cie10: 'diagnóstico CIE-10', referencia: 'comprobante de la transferencia (mínimo 3 caracteres)', sexo: 'sexo', municipioDane: 'municipio (código DANE)', documentoTipo: 'tipo de documento',
 }
 
 const app = Fastify({
@@ -61,6 +61,20 @@ async function bootstrap() {
     max: 100,
     timeWindow: '1 minute',
     ...(redisReal ? { redis: redisReal } : {}),
+    // Con sesión válida el límite cuenta por persona (varias profesionales en el wifi de la IPS no se bloquean entre sí);
+    // sin sesión, por conexión. El token se verifica: uno inventado no sirve para saltarse el límite.
+    keyGenerator: (request: any) => {
+      const h = String(request.headers?.authorization || '')
+      if (h.startsWith('Bearer ')) {
+        try { const t: any = (app as any).jwt.verify(h.slice(7)); if (t?.sub) return 'u:' + t.sub } catch { /* token no válido: cuenta por conexión */ }
+      }
+      return 'ip:' + request.ip
+    },
+    // Mensaje en español (el de la librería sale en inglés)
+    // (se lanza como Error con statusCode 429 para que el manejador de errores lo envíe como { error })
+    errorResponseBuilder: (_request: any, context: any) => Object.assign(new Error('Hizo demasiadas solicitudes seguidas. Espere ' +
+      String(context.after || 'unos minutos').replace('minutes', 'minutos').replace('minute', 'minuto').replace('seconds', 'segundos').replace('second', 'segundo') +
+      ' e intente de nuevo.'), { statusCode: 429 }),
   })
 
   // Auth
